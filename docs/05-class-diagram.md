@@ -246,6 +246,26 @@ classDiagram
 
     UserBalance *-- PointTransaction : "records"
 
+    %% 서비스와 엔티티 간 관계
+    OrderService --> Order : "manages"
+    OrderService --> OrderItem : "manages"
+
+    ProductService --> Product : "manages"
+    ProductService ..> OrderItem : "reads"
+
+    UserBalanceService --> UserBalance : "manages"
+    UserBalanceService --> PointTransaction : "creates"
+    UserBalanceService ..> User : "reads"
+
+    CouponService --> Coupon : "manages"
+    CouponService --> UserCoupon : "manages"
+    CouponService ..> User : "reads"
+
+    RecoveryService ..> Order : "reads/updates"
+    RecoveryService ..> UserBalance : "restores"
+    RecoveryService ..> Product : "restores"
+    RecoveryService ..> UserCoupon : "restores"
+
     %% 서비스 의존성
     OrderService --> ProductService : "uses"
     OrderService --> UserBalanceService : "uses"
