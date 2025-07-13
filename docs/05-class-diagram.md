@@ -125,7 +125,7 @@ classDiagram
     %% 서비스 클래스
     class OrderService {
         -ProductService productService
-        -UserBalanceService userBalanceService
+        -WalletService walletService
         -CouponService couponService
         -OrderRepository orderRepository
         +createOrder(userId, items, couponId) Order
@@ -153,7 +153,7 @@ classDiagram
         -calculatePopularProducts() List~Product~
     }
 
-    class UserBalanceService {
+    class WalletService {
         -UserBalanceRepository userBalanceRepository
         -PointTransactionRepository pointTransactionRepository
         +getUserBalance(userId) UserBalance
@@ -190,7 +190,7 @@ classDiagram
 
     class RecoveryService {
         -OrderService orderService
-        -UserBalanceService userBalanceService
+        -WalletService walletService
         -ProductService productService
         -CouponService couponService
         +schedulePendingOrderRecovery() Boolean
@@ -253,9 +253,9 @@ classDiagram
     ProductService --> Product : "manages"
     ProductService ..> OrderItem : "reads"
 
-    UserBalanceService --> UserBalance : "manages"
-    UserBalanceService --> PointTransaction : "creates"
-    UserBalanceService ..> User : "reads"
+    WalletService --> UserBalance : "manages"
+    WalletService --> PointTransaction : "creates"
+    WalletService ..> User : "reads"
 
     CouponService --> Coupon : "manages"
     CouponService --> UserCoupon : "manages"
@@ -268,11 +268,11 @@ classDiagram
 
     %% 서비스 의존성
     OrderService --> ProductService : "uses"
-    OrderService --> UserBalanceService : "uses"
+    OrderService --> WalletService : "uses"
     OrderService --> CouponService : "uses"
 
     RecoveryService --> OrderService : "uses"
-    RecoveryService --> UserBalanceService : "uses"
+    RecoveryService --> WalletService : "uses"
     RecoveryService --> ProductService : "uses"
     RecoveryService --> CouponService : "uses"
 ```
@@ -333,7 +333,7 @@ classDiagram
 - 상품 조회 및 재고 관리
 - 인기 상품 통계 처리
 
-#### UserBalanceService
+#### WalletService
 
 - 잔액 충전 및 결제 처리
 - 거래 이력 관리
