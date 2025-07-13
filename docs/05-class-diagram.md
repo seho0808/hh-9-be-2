@@ -103,10 +103,9 @@ classDiagram
         +getUser() User
         +getTransactions() List~PointTransaction~
         +charge(amount) Boolean
-        +reserve(amount) Boolean
-        +confirm(amount) Boolean
-        +release(amount) Boolean
-        +getAvailableBalance() Long
+        +deduct(amount) Boolean
+        +refund(amount) Boolean
+        +hasEnoughBalance(amount) Boolean
     }
 
     class PointTransaction {
@@ -158,11 +157,10 @@ classDiagram
         -PointTransactionRepository pointTransactionRepository
         +getUserBalance(userId) UserBalance
         +chargeBalance(userId, amount) Boolean
-        +reserveBalance(userId, amount) Boolean
-        +confirmBalance(userId, amount) Boolean
-        +releaseBalance(userId, amount) Boolean
+        +deductBalance(userId, amount) Boolean
+        +refundBalance(userId, amount) Boolean
         +getTransactionHistory(userId) List~PointTransaction~
-        -validateChargeAmount(amount) Boolean
+        -validateAmount(amount) Boolean
         -createTransaction(userId, type, amount) PointTransaction
     }
 
@@ -225,10 +223,8 @@ classDiagram
     class TransactionType {
         <<enumeration>>
         CHARGE
-        PAYMENT
+        DEDUCT
         REFUND
-        RESERVE
-        RELEASE
     }
 
     %% 관계 정의
@@ -262,7 +258,7 @@ classDiagram
     CouponService ..> User : "reads"
 
     RecoveryService ..> Order : "reads/updates"
-    RecoveryService ..> UserBalance : "restores"
+    RecoveryService ..> UserBalance : "refunds"
     RecoveryService ..> Product : "restores"
     RecoveryService ..> UserCoupon : "restores"
 

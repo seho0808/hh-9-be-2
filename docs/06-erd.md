@@ -226,13 +226,12 @@ erDiagram
 
 ### 7. user_balances (사용자 잔액)
 
-| 컬럼             | 타입      | 제약조건                                              | 설명             |
-| ---------------- | --------- | ----------------------------------------------------- | ---------------- |
-| id               | UUID      | PRIMARY KEY, DEFAULT uuid_generate_v4()               | 잔액 ID          |
-| user_id          | UUID      | UNIQUE, NOT NULL, FOREIGN KEY                         | 사용자 ID        |
-| balance          | BIGINT    | NOT NULL, DEFAULT 0                                   | 사용 가능한 잔액 |
-| reserved_balance | BIGINT    | NOT NULL, DEFAULT 0                                   | 예약된 잔액      |
-| updated_at       | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 수정일시         |
+| 컬럼       | 타입      | 제약조건                                              | 설명             |
+| ---------- | --------- | ----------------------------------------------------- | ---------------- |
+| id         | UUID      | PRIMARY KEY, DEFAULT uuid_generate_v4()               | 잔액 ID          |
+| user_id    | UUID      | UNIQUE, NOT NULL, FOREIGN KEY                         | 사용자 ID        |
+| balance    | BIGINT    | NOT NULL, DEFAULT 0                                   | 사용 가능한 잔액 |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 수정일시         |
 
 **인덱스:**
 
@@ -240,16 +239,16 @@ erDiagram
 
 ### 8. point_transactions (포인트 거래)
 
-| 컬럼          | 타입         | 제약조건                                | 설명                                                  |
-| ------------- | ------------ | --------------------------------------- | ----------------------------------------------------- |
-| id            | UUID         | PRIMARY KEY, DEFAULT uuid_generate_v4() | 거래 ID                                               |
-| user_id       | UUID         | NOT NULL, FOREIGN KEY                   | 사용자 ID                                             |
-| type          | ENUM         | NOT NULL                                | 거래 타입 (CHARGE, PAYMENT, REFUND, RESERVE, RELEASE) |
-| amount        | BIGINT       | NOT NULL                                | 거래 금액                                             |
-| balance_after | BIGINT       | NOT NULL                                | 거래 후 잔액                                          |
-| reason        | VARCHAR(255) |                                         | 거래 사유                                             |
-| reference_id  | VARCHAR(255) |                                         | 참조 ID (주문 ID 등)                                  |
-| created_at    | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP               | 생성일시                                              |
+| 컬럼          | 타입         | 제약조건                                | 설명                               |
+| ------------- | ------------ | --------------------------------------- | ---------------------------------- |
+| id            | UUID         | PRIMARY KEY, DEFAULT uuid_generate_v4() | 거래 ID                            |
+| user_id       | UUID         | NOT NULL, FOREIGN KEY                   | 사용자 ID                          |
+| type          | ENUM         | NOT NULL                                | 거래 타입 (CHARGE, DEDUCT, REFUND) |
+| amount        | BIGINT       | NOT NULL                                | 거래 금액                          |
+| balance_after | BIGINT       | NOT NULL                                | 거래 후 잔액                       |
+| reason        | VARCHAR(255) |                                         | 거래 사유                          |
+| reference_id  | VARCHAR(255) |                                         | 참조 ID (주문 ID 등)               |
+| created_at    | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP               | 생성일시                           |
 
 **인덱스:**
 
@@ -265,8 +264,7 @@ erDiagram
 #### 잔액 관리
 
 - `user_balances.balance >= 0` (음수 잔액 불가)
-- `user_balances.reserved_balance >= 0` (음수 예약 불가)
-- `user_balances.balance + reserved_balance <= 10000000` (최대 보유 한도: 천만원)
+- `user_balances.balance <= 10000000` (최대 보유 한도: 천만원)
 
 #### 재고 관리
 
