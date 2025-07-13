@@ -231,13 +231,13 @@ classDiagram
         RELEASE
     }
 
-        %% 관계 정의
+    %% 관계 정의
     User *-- UserBalance : "has"
     User *-- UserCoupon : "has"
     User *-- Order : "places"
     User *-- PointTransaction : "creates"
 
-    Product o-- OrderItem : "contains"
+    Product *-- OrderItem : "contains"
 
     Order *-- OrderItem : "contains"
     Order o-- UserCoupon : "uses"
