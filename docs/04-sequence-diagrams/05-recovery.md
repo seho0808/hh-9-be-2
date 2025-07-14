@@ -1,132 +1,55 @@
-# 멀티 인스턴스 동시성 문제 및 해결방안
+# 보류 주문 → 자동 복구 흐름
 
-## 개요
-
-멀티 인스턴스 환경에서 발생하는 주요 동시성 문제들과 락(Lock) 기반 해결방안을 정리합니다.
-
----
-
-## 1. 선착순 쿠폰 발급 시 동시성 문제
-
-### 문제 상황
-
-선착순 쿠폰 발급 시 여러 인스턴스가 동시에 같은 쿠폰의 발급 가능 여부를 확인하고 발급하려고 시도하는 경우
-
-### 해결 방안: Redis 원자적 연산 (INCR)
-
-#### 플로우차트
-
-```mermaid
-flowchart TD
-    Start([쿠폰 발급 요청]) --> Auth[사용자 인증]
-    Auth --> DupCheck{이미 발급받은<br/>쿠폰인가?}
-
-    DupCheck -->|Yes| DupError[409 Conflict<br/>이미 발급받은 쿠폰]
-    DupCheck -->|No| AtomicIncr[Redis INCR<br/>coupon:used:EVENT2025]
-
-    AtomicIncr --> GetTotal[Redis GET<br/>coupon:total:EVENT2025]
-    GetTotal --> Compare{used > total?}
-
-    Compare -->|Yes| Rollback[Redis DECR<br/>coupon:used:EVENT2025]
-    Rollback --> SoldOut[410 Gone<br/>쿠폰 소진]
-
-    Compare -->|No| CreateUserCoupon[DB에 user_coupon 생성]
-    CreateUserCoupon --> DBSuccess{DB 생성 성공?}
-
-    DBSuccess -->|Yes| Success[200 OK<br/>쿠폰 발급 완료]
-    DBSuccess -->|No| CompensateDecr[Redis DECR<br/>coupon:used:EVENT2025]
-    CompensateDecr --> DBError[500 Internal Error<br/>DB 오류]
-
-    style AtomicIncr color:#111,fill:#ff9800
-    style Rollback color:#111,fill:#f44336
-    style CompensateDecr color:#111,fill:#f44336
-```
-
-#### 시퀀스 다이어그램
+## 5-1. 주문 보류 → 타이머 만료 → 자동 복구
 
 ```mermaid
 sequenceDiagram
-    participant User as 사용자
-    participant API as API 서버
-    participant Redis as Redis
-    participant DB as Database
+    participant RecoveryScheduler
+    participant OrderService
+    participant WalletService
+    participant ProductService
+    participant CouponService
+    participant Database
 
-    User->>API: 쿠폰 발급 요청
-    API->>API: 사용자 인증
+    %% 스케줄러가 보류 상태 주문 감지
+    RecoveryScheduler->>OrderService: getPendingOrders()
+    OrderService->>Database: SELECT * FROM orders WHERE status = '보류'
+    Database-->>OrderService: 보류 주문 목록
 
-    API->>DB: 중복 발급 체크
-    DB-->>API: 발급 이력 조회 결과
+    loop 각 보류 주문
+        %% 잔액 복구
+        OrderService->>WalletService: restoreBalance(userId, amount)
+        WalletService->>Database: update balance
+        Database-->>WalletService: OK
 
-    alt 이미 발급받은 쿠폰인 경우
-        API-->>User: 409 Conflict<br/>(이미 발급받은 쿠폰)
-    else 신규 발급 가능한 경우
-        API->>Redis: INCR coupon:used:EVENT2025
-        Redis-->>API: 증가된 사용량 반환
+        %% 재고 복구
+        OrderService->>ProductService: releaseStock(items)
+        ProductService->>Database: update stock
+        Database-->>ProductService: OK
 
-        API->>Redis: GET coupon:total:EVENT2025
-        Redis-->>API: 총 수량 반환
+        %% 쿠폰 복구
+        OrderService->>CouponService: restoreCoupon(userId, couponId)
+        CouponService->>Database: update coupon status
+        Database-->>CouponService: OK
 
-        alt 수량 초과인 경우
-            API->>Redis: DECR coupon:used:EVENT2025<br/>(롤백)
-            Redis-->>API: 감소된 사용량 반환
-            API-->>User: 410 Gone<br/>(쿠폰 소진)
-        else 수량 충분한 경우
-            API->>DB: user_coupon 생성
-            alt DB 생성 성공
-                DB-->>API: 생성 완료
-                API-->>User: 200 OK<br/>(쿠폰 발급 완료)
-            else DB 생성 실패
-                DB-->>API: 생성 실패
-                API->>Redis: DECR coupon:used:EVENT2025<br/>(보상 트랜잭션)
-                Redis-->>API: 감소된 사용량 반환
-                API-->>User: 500 Internal Error<br/>(DB 오류)
-            end
-        end
+        %% 주문 상태 업데이트
+        OrderService->>Database: update order { status: "canceled", reason: "system failure" }
     end
-```
-
-### 구현 예시
-
-```typescript
-async issueCoupon(userId: string, couponCode: string) {
-  // 1. 중복 발급 체크
-  const existingCoupon = await this.findUserCoupon(userId, couponCode);
-  if (existingCoupon) {
-    throw new ConflictException('이미 발급받은 쿠폰입니다');
-  }
-
-  // 2. 원자적 증가
-  const usedCount = await this.redis.incr(`coupon:used:${couponCode}`);
-  const totalCount = await this.redis.get(`coupon:total:${couponCode}`);
-
-  // 3. 수량 초과 체크
-  if (usedCount > parseInt(totalCount)) {
-    await this.redis.decr(`coupon:used:${couponCode}`);
-    throw new GoneException('쿠폰이 모두 소진되었습니다');
-  }
-
-  try {
-    // 4. DB에 사용자 쿠폰 생성
-    return await this.createUserCoupon(userId, couponCode);
-  } catch (error) {
-    // 5. DB 실패 시 보상 트랜잭션
-    await this.redis.decr(`coupon:used:${couponCode}`);
-    throw error;
-  }
-}
 ```
 
 ---
 
-## 2. 배치 작업 중복 실행 문제
+## 동시성 문제 해결방안
 
-### 문제 상황
+### 배치 작업 중복 실행 문제
+
+#### 문제 상황
 
 여러 인스턴스에서 동시에 같은 보류 주문을 복구하려고 시도하는 경우
 
-### 해결 방안: Redis 분산 락 (SET NX EX)
+#### 해결 방안: Redis 분산 락 (SET NX EX)
 
-#### 2-1. 플로우차트
+##### 플로우차트
 
 ```mermaid
 flowchart TD
@@ -168,7 +91,7 @@ flowchart TD
     style HandleError color:#111,fill:#f44336
 ```
 
-#### 2-2. 시퀀스 다이어그램
+##### 시퀀스 다이어그램 - 단일 인스턴스 관점
 
 ```mermaid
 sequenceDiagram
@@ -219,7 +142,7 @@ sequenceDiagram
     Note over Redis: 60초 TTL로<br/>자동 락 해제<br/>(프로세스 장애 대비)
 ```
 
-#### 2-3. 시퀀스 다이어그램 2
+##### 시퀀스 다이어그램 2 - 여러 인스턴스 관점
 
 ```mermaid
 sequenceDiagram
@@ -264,10 +187,9 @@ sequenceDiagram
         Redis-->>Instance2: OK (락 획득 성공)
         Instance2->>Instance2: order-4 복구 작업 시작...
     end
-
 ```
 
-### 구현 예시
+#### 구현 예시
 
 ```typescript
 @Cron('*/1 * * * *')
