@@ -14,6 +14,8 @@
 
 ### 해결 방안: Redis 원자적 연산 (INCR)
 
+#### 플로우차트
+
 ```mermaid
 flowchart TD
     Start([쿠폰 발급 요청]) --> Auth[사용자 인증]
@@ -38,6 +40,49 @@ flowchart TD
     style AtomicIncr color:#111,fill:#ff9800
     style Rollback color:#111,fill:#f44336
     style CompensateDecr color:#111,fill:#f44336
+```
+
+#### 시퀀스 다이어그램
+
+```mermaid
+sequenceDiagram
+    participant User as 사용자
+    participant API as API 서버
+    participant Redis as Redis
+    participant DB as Database
+
+    User->>API: 쿠폰 발급 요청
+    API->>API: 사용자 인증
+
+    API->>DB: 중복 발급 체크
+    DB-->>API: 발급 이력 조회 결과
+
+    alt 이미 발급받은 쿠폰인 경우
+        API-->>User: 409 Conflict<br/>(이미 발급받은 쿠폰)
+    else 신규 발급 가능한 경우
+        API->>Redis: INCR coupon:used:EVENT2025
+        Redis-->>API: 증가된 사용량 반환
+
+        API->>Redis: GET coupon:total:EVENT2025
+        Redis-->>API: 총 수량 반환
+
+        alt 수량 초과인 경우
+            API->>Redis: DECR coupon:used:EVENT2025<br/>(롤백)
+            Redis-->>API: 감소된 사용량 반환
+            API-->>User: 410 Gone<br/>(쿠폰 소진)
+        else 수량 충분한 경우
+            API->>DB: user_coupon 생성
+            alt DB 생성 성공
+                DB-->>API: 생성 완료
+                API-->>User: 200 OK<br/>(쿠폰 발급 완료)
+            else DB 생성 실패
+                DB-->>API: 생성 실패
+                API->>Redis: DECR coupon:used:EVENT2025<br/>(보상 트랜잭션)
+                Redis-->>API: 감소된 사용량 반환
+                API-->>User: 500 Internal Error<br/>(DB 오류)
+            end
+        end
+    end
 ```
 
 ### 구현 예시
@@ -73,114 +118,15 @@ async issueCoupon(userId: string, couponCode: string) {
 
 ---
 
-## 2. 재고 임시 예약 시 동시성 문제
-
-### 문제 상황
-
-재고 1개가 남은 상황에서 여러 인스턴스가 동시에 재고 예약을 시도하는 경우
-
-### 해결 방안: Redis Lua Script를 활용한 원자적 예약
-
-```mermaid
-flowchart TD
-    Start([재고 예약 요청]) --> GetReqId[요청 ID 생성<br/>userId + timestamp]
-    GetReqId --> LuaScript[Redis Lua Script 실행<br/>원자적 재고 예약]
-
-    LuaScript --> LuaLogic{"`
-    local available = redis.call('get', stock:productId)
-    local requested = ARGV[1]
-
-    if available >= requested then
-      redis.call('decrby', stock:productId, requested)
-      redis.call('setex', reservation:productId:userId, 30, requested)
-      return 1
-    else
-      return 0
-    end
-    `"}
-
-    LuaLogic -->|return 1| ReserveSuccess[재고 예약 성공<br/>30초 TTL]
-    LuaLogic -->|return 0| ReserveFail[재고 부족<br/>예약 실패]
-
-    ReserveSuccess --> ProceedOrder[주문 처리 계속]
-    ReserveFail --> OrderFail[주문 실패<br/>409 Conflict]
-
-    ProceedOrder --> PaymentSuccess{결제 성공?}
-    PaymentSuccess -->|Yes| ConfirmStock[재고 확정<br/>예약 → 실제 차감]
-    PaymentSuccess -->|No| ReleaseReserve[예약 재고 해제<br/>Redis DEL]
-
-    ConfirmStock --> DeleteReservation[예약 정보 삭제<br/>Redis DEL]
-    DeleteReservation --> Complete[주문 완료]
-
-    ReleaseReserve --> RestoreStock[재고 복원<br/>Redis INCRBY]
-    RestoreStock --> OrderFail
-
-    subgraph "30초 후 자동 해제"
-        TTLExpire[TTL 만료] --> AutoRelease[자동 재고 복원]
-    end
-
-    style LuaScript color:#111,fill:#ff9800
-    style ConfirmStock color:#111,fill:#4caf50
-    style ReleaseReserve color:#111,fill:#f44336
-    style RestoreStock color:#111,fill:#f44336
-```
-
-### 구현 예시
-
-```typescript
-async reserveStock(productId: string, quantity: number, userId: string) {
-  const luaScript = `
-    local stockKey = KEYS[1]
-    local reservationKey = KEYS[2]
-    local requested = tonumber(ARGV[1])
-
-    local available = tonumber(redis.call('get', stockKey) or 0)
-
-    if available >= requested then
-      redis.call('decrby', stockKey, requested)
-      redis.call('setex', reservationKey, 30, requested)
-      return 1
-    else
-      return 0
-    end
-  `;
-
-  const result = await this.redis.eval(
-    luaScript,
-    2,
-    `stock:${productId}`,
-    `reservation:${productId}:${userId}`,
-    quantity
-  );
-
-  return result === 1;
-}
-
-async confirmStock(productId: string, userId: string) {
-  // 예약 정보 삭제 (이미 재고는 차감됨)
-  await this.redis.del(`reservation:${productId}:${userId}`);
-}
-
-async releaseStockReservation(productId: string, userId: string) {
-  const reservedQuantity = await this.redis.get(`reservation:${productId}:${userId}`);
-  if (reservedQuantity) {
-    // 재고 복원
-    await this.redis.incrby(`stock:${productId}`, parseInt(reservedQuantity));
-    // 예약 정보 삭제
-    await this.redis.del(`reservation:${productId}:${userId}`);
-  }
-}
-```
-
----
-
-## 3. 배치 작업 중복 실행 문제
+## 2. 배치 작업 중복 실행 문제
 
 ### 문제 상황
 
 여러 인스턴스에서 동시에 같은 보류 주문을 복구하려고 시도하는 경우
 
 ### 해결 방안: Redis 분산 락 (SET NX EX)
+
+#### 2-1. 플로우차트
 
 ```mermaid
 flowchart TD
@@ -193,7 +139,7 @@ flowchart TD
     LoopStart --> TryLock[분산 락 시도<br/>Redis SET NX EX<br/>recovery:orderId]
 
     TryLock --> LockResult{락 획득 성공?}
-    LockResult -->|No| NextOrder[다음 주문으로<br/>다른 인스턴스가 처리 중]
+    LockResult -->|No| NextOrder[다음 주문으로 or<br/>타 인스턴스가 처리 중이면 스킵]
     LockResult -->|Yes| ProcessRecovery[복구 작업 실행]
 
     ProcessRecovery --> RestoreBalance[잔액 복구]
@@ -220,6 +166,105 @@ flowchart TD
     style ReleaseLock color:#111,fill:#2196f3
     style ProcessRecovery color:#111,fill:#ff9800
     style HandleError color:#111,fill:#f44336
+```
+
+#### 2-2. 시퀀스 다이어그램
+
+```mermaid
+sequenceDiagram
+    participant Scheduler as 스케줄러
+    participant Instance1 as 인스턴스1
+    participant Instance2 as 인스턴스2
+    participant Redis as Redis
+    participant DB as Database
+    participant WalletService as 지갑 서비스
+    participant ProductService as 상품 서비스
+    participant CouponService as 쿠폰 서비스
+
+    Note over Scheduler: 1분마다 실행
+
+    Scheduler->>Instance1: 복구 스케줄러 시작
+    Scheduler->>Instance2: 복구 스케줄러 시작
+
+    Instance1->>DB: 보류 주문 목록 조회
+    Instance2->>DB: 보류 주문 목록 조회
+    DB-->>Instance1: 보류 주문 리스트
+    DB-->>Instance2: 보류 주문 리스트
+
+    par 각 인스턴스가 동시에 처리
+        Instance1->>Redis: SET NX EX recovery:order1<br/>(분산 락 시도)
+        Instance2->>Redis: SET NX EX recovery:order1<br/>(분산 락 시도)
+
+        Redis-->>Instance1: OK (락 획득 성공)
+        Redis-->>Instance2: NULL (락 획득 실패)
+
+        Instance2->>Instance2: 다음 주문으로 이동<br/>(다른 인스턴스가 처리 중이면 스킵)
+
+        Instance1->>WalletService: 잔액 복구 요청
+        WalletService-->>Instance1: 잔액 복구 완료
+
+        Instance1->>ProductService: 재고 예약 해제 요청
+        ProductService-->>Instance1: 재고 예약 해제 완료
+
+        Instance1->>CouponService: 쿠폰 복구 요청
+        CouponService-->>Instance1: 쿠폰 복구 완료
+
+        Instance1->>DB: 주문 상태 → CANCELED
+        DB-->>Instance1: 상태 업데이트 완료
+
+        Instance1->>Redis: DEL recovery:order1<br/>(락 해제)
+        Redis-->>Instance1: 삭제 완료
+    end
+
+    Note over Redis: 60초 TTL로<br/>자동 락 해제<br/>(프로세스 장애 대비)
+```
+
+#### 2-3. 시퀀스 다이어그램 2
+
+```mermaid
+sequenceDiagram
+    participant Instance1
+    participant Instance2
+    participant Redis
+    participant DB
+
+    Note over Instance1, Instance2: 둘 다 같은 보류 주문 목록을 조회함
+
+    Instance1->>DB: 보류 주문 조회
+    Instance2->>DB: 보류 주문 조회
+    DB-->>Instance1: [order-1, order-2, order-3, order-4]
+    DB-->>Instance2: [order-1, order-2, order-3, order-4]
+
+    par Instance1의 for loop
+        Instance1->>Redis: SET NX recovery:order-1
+        Redis-->>Instance1: OK (락 획득 성공)
+        Instance1->>Instance1: order-1 복구 작업 시작...
+
+        Instance1->>Redis: SET NX recovery:order-2
+        Redis-->>Instance1: NULL (락 획득 실패)
+        Instance1->>Instance1: order-2 건너뛰고 다음으로
+
+        Instance1->>Redis: SET NX recovery:order-3
+        Redis-->>Instance1: OK (락 획득 성공)
+        Instance1->>Instance1: order-3 복구 작업 시작...
+    and Instance2의 for loop
+        Instance2->>Redis: SET NX recovery:order-1
+        Redis-->>Instance2: NULL (락 획득 실패)
+        Instance2->>Instance2: order-1 건너뛰고 다음으로
+
+        Instance2->>Redis: SET NX recovery:order-2
+        Redis-->>Instance2: OK (락 획득 성공)
+        Instance2->>Instance2: order-2 복구 작업 시작...
+
+        Instance2->>Redis: SET NX recovery:order-3
+        Redis-->>Instance2: NULL (락 획득 실패)
+        Instance2->>Instance2: order-3 건너뛰고 다음으로
+
+        Instance2->>Redis: SET NX recovery:order-4
+        Redis-->>Instance2: OK (락 획득 성공)
+        Instance2->>Instance2: order-4 복구 작업 시작...
+    end
+
 ```
 
 ### 구현 예시
@@ -274,183 +319,3 @@ private async recoverSingleOrder(order: Order) {
   await this.orderRepository.updateStatus(order.id, OrderStatus.CANCELED);
 }
 ```
-
----
-
-## 4. 중복 요청 방지 문제
-
-### 문제 상황
-
-같은 사용자가 여러 탭에서 동시에 주문을 시도하는 경우
-
-### 해결 방안: 사용자별 분산 락 + 요청 ID 멱등성
-
-```mermaid
-flowchart TD
-    Start([주문 요청]) --> ReqIdCheck{requestId<br/>중복 체크}
-    ReqIdCheck -->|중복| DupResponse[409 Conflict<br/>중복 요청]
-    ReqIdCheck -->|신규| UserLock[사용자별 락 시도<br/>Redis SET NX EX<br/>user:lock:userId]
-
-    UserLock --> UserLockResult{사용자 락<br/>획득 성공?}
-    UserLockResult -->|No| UserBusy[429 Too Many Requests<br/>처리 중인 주문 있음]
-    UserLockResult -->|Yes| ProcessOrder[주문 처리 시작]
-
-    ProcessOrder --> StockReserve[재고 예약]
-    StockReserve --> StockOK{재고 예약 성공?}
-    StockOK -->|No| ReleaseUserLock[사용자 락 해제] --> StockFail[재고 부족]
-    StockOK -->|Yes| CouponValidate[쿠폰 검증]
-
-    CouponValidate --> CouponOK{쿠폰 유효?}
-    CouponOK -->|No| ReleaseAll[재고 + 락 해제] --> CouponFail[쿠폰 오류]
-    CouponOK -->|Yes| Payment[결제 처리]
-
-    Payment --> PaymentResult{결제 성공?}
-    PaymentResult -->|Yes| OrderSuccess[주문 완료]
-    PaymentResult -->|No| PendingState[보류 처리]
-
-    OrderSuccess --> ReleaseUserLock
-    PendingState --> ReleaseUserLock
-    ReleaseUserLock --> Response[응답 반환]
-
-    subgraph "락 자동 해제"
-        UserLockTTL[30초 TTL] --> AutoReleaseUser[자동 사용자 락 해제]
-    end
-
-    subgraph "멱등성 보장"
-        SaveReqId[requestId 저장<br/>24시간 TTL]
-    end
-
-    style UserLock color:#111,fill:#2196f3
-    style ReleaseUserLock color:#111,fill:#2196f3
-    style ReleaseAll color:#111,fill:#f44336
-    style ReqIdCheck color:#111,fill:#4caf50
-```
-
-### 구현 예시
-
-```typescript
-async createOrder(userId: string, orderRequest: CreateOrderDto) {
-  // 1. 요청 ID 중복 체크 (멱등성)
-  const requestId = orderRequest.requestId;
-  const existingRequest = await this.redis.get(`request:${requestId}`);
-  if (existingRequest) {
-    throw new ConflictException('중복된 요청입니다');
-  }
-
-  // 2. 사용자별 분산 락 획득
-  const userLockKey = `user:lock:${userId}`;
-  const lockAcquired = await this.redis.set(
-    userLockKey,
-    'processing',
-    'PX', 30000,
-    'NX'
-  );
-
-  if (lockAcquired !== 'OK') {
-    throw new TooManyRequestsException('처리 중인 주문이 있습니다');
-  }
-
-  try {
-    // 3. 요청 ID 저장 (24시간 TTL)
-    await this.redis.setex(`request:${requestId}`, 86400, 'processed');
-
-    // 4. 주문 처리
-    const order = await this.processOrderLogic(userId, orderRequest);
-
-    return order;
-  } catch (error) {
-    // 에러 발생 시 요청 ID 삭제 (재시도 가능하도록)
-    await this.redis.del(`request:${requestId}`);
-    throw error;
-  } finally {
-    // 5. 사용자 락 해제
-    await this.redis.del(userLockKey);
-  }
-}
-
-private async processOrderLogic(userId: string, orderRequest: CreateOrderDto) {
-  // 재고 예약
-  const stockReserved = await this.productService.reserveStock(
-    orderRequest.productId,
-    orderRequest.quantity,
-    userId
-  );
-
-  if (!stockReserved) {
-    throw new ConflictException('재고가 부족합니다');
-  }
-
-  try {
-    // 쿠폰 검증, 결제 처리 등...
-    return await this.completeOrder(userId, orderRequest);
-  } catch (error) {
-    // 실패 시 재고 예약 해제
-    await this.productService.releaseStockReservation(
-      orderRequest.productId,
-      userId
-    );
-    throw error;
-  }
-}
-```
-
----
-
-## 동시성 제어 패턴 비교
-
-| 패턴                    | 사용 사례            | 장점                    | 단점                   |
-| ----------------------- | -------------------- | ----------------------- | ---------------------- |
-| **Redis 원자적 연산**   | 쿠폰 발급, 카운터    | 빠름, 간단              | 복잡한 로직 불가       |
-| **Redis Lua Script**    | 재고 예약            | 복잡한 원자적 연산 가능 | 스크립트 관리 필요     |
-| **분산 락 (SET NX EX)** | 배치 작업, 중복 방지 | 다양한 상황 적용 가능   | 데드락 위험, 성능 저하 |
-| **멱등성 키**           | 중복 요청 방지       | 네트워크 장애 대응      | 추가 저장소 필요       |
-
----
-
-## 성능 고려사항
-
-### Redis 연결 관리
-
-```typescript
-// 연결 풀 설정
-const redisConfig = {
-  host: "redis-cluster",
-  port: 6379,
-  maxRetriesPerRequest: 3,
-  retryDelayOnFailover: 100,
-  enableOfflineQueue: false,
-  lazyConnect: true,
-  maxLoadingTimeout: 5000,
-};
-```
-
-### 락 타임아웃 설정
-
-- **사용자 락**: 30초 (주문 처리 시간 고려)
-- **복구 락**: 60초 (복구 작업 시간 고려)
-- **재고 예약**: 30초 (결제 처리 시간 고려)
-
-### 모니터링 지표
-
-- 락 획득 실패율
-- 락 보유 시간
-- 동시성 충돌 빈도
-- Redis 응답 시간
-
----
-
-## 장애 대응 시나리오
-
-### Redis 장애 시
-
-1. **Graceful Degradation**: 락 없이 동작하되 동시성 이슈 경고
-2. **Fallback to DB**: 데이터베이스 락 사용
-3. **Circuit Breaker**: Redis 장애 감지 시 요청 제한
-
-### 데드락 방지
-
-1. **Lock Ordering**: 항상 동일한 순서로 락 획득
-2. **Timeout 설정**: 모든 락에 TTL 설정
-3. **Health Check**: 락 상태 주기적 모니터링
-
-이 문서는 멀티 인스턴스 환경에서 발생하는 주요 동시성 문제들에 대한 실용적인 해결방안을 제시합니다.
