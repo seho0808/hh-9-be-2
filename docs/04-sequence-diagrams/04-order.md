@@ -207,18 +207,12 @@ sequenceDiagram
     WalletService->>Database: update balance
     Database-->>WalletService: OK
 
-    %% 주문 저장 중 장애 발생
-    OrderService->>Database: update order { status: "success" }
-    Database-->>OrderService: 오류 (예: DB timeout)
+    %% 결제 처리 중 통신 오류 발생
+    WalletService-->>OrderService: 오류 (예: 결제 처리 중 통신 오류)
 
     %% 보류 처리
     OrderService-->>API_Server: 주문 보류 처리
     API_Server-->>Client: 202 Accepted { message: "결제 처리 중 오류 발생, 자동 복구 예정" }
-
-    %% 보류 처리
-    OrderService->>OrderFallbackService: 보류 처리 요청
-    OrderFallbackService->>임시 저장소: update order { status: "pending" }
-    OrderFallbackService->>Database: update order { status: "pending" } (반복 요청)
 
 
     Note over OrderService, Database: 1분 내 잔액, 재고, 쿠폰 자동 복원 로직 실행
