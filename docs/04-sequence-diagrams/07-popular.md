@@ -15,7 +15,7 @@ sequenceDiagram
     AuthService-->>API_Server: userId
 
     API_Server->>ProductService: getPopularProducts()
-    ProductService->>Database: SELECT product_id, SUM(qty) FROM orders WHERE created_at >= NOW() - 3일 GROUP BY product_id ORDER BY SUM(qty) DESC LIMIT 5
+    ProductService->>Database: 집계 정보 주세요
     Database-->>ProductService: 인기 상품 5개
 
     ProductService-->>API_Server: 상품 목록
