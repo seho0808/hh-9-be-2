@@ -21,7 +21,7 @@ classDiagram
         +String id
         +String name
         +String description
-        +Long price
+        +Number price
         +Integer stock
         +Boolean isActive
         +LocalDateTime createdAt
@@ -35,17 +35,17 @@ classDiagram
     class Order {
         +String id
         +String userId
-        +Long totalAmount
-        +Long discountAmount
-        +Long finalAmount
+        +Number totalAmount
+        +Number discountAmount
+        +Number finalAmount
         +OrderStatus status
         +String requestId
         +LocalDateTime createdAt
         +LocalDateTime updatedAt
         +getOrderItems() List~OrderItem~
         +getUsedCoupon() UserCoupon
-        +calculateTotal() Long
-        +applyDiscount(coupon) Long
+        +calculateTotal() Number
+        +applyDiscount(coupon) Number
     }
 
     class OrderItem {
@@ -53,12 +53,12 @@ classDiagram
         +String orderId
         +String productId
         +Integer quantity
-        +Long unitPrice
-        +Long totalPrice
+        +Number unitPrice
+        +Number totalPrice
         +LocalDateTime createdAt
         +getProduct() Product
         +getOrder() Order
-        +calculateTotalPrice() Long
+        +calculateTotalPrice() Number
     }
 
     class Coupon {
@@ -66,9 +66,9 @@ classDiagram
         +String code
         +String name
         +CouponType type
-        +Long discountValue
-        +Long maxDiscount
-        +Long minOrderAmount
+        +Number discountValue
+        +Number maxDiscount
+        +Number minOrderAmount
         +Integer totalQuantity
         +Integer usedQuantity
         +LocalDateTime validFrom
@@ -78,7 +78,7 @@ classDiagram
         +LocalDateTime updatedAt
         +isValid() Boolean
         +canIssue() Boolean
-        +calculateDiscount(amount) Long
+        +calculateDiscount(amount) Number
     }
 
     class UserCoupon {
@@ -98,7 +98,7 @@ classDiagram
     class UserBalance {
         +String id
         +String userId
-        +Long balance
+        +Number balance
         +LocalDateTime updatedAt
         +getUser() User
         +getTransactions() List~PointTransaction~
@@ -112,8 +112,8 @@ classDiagram
         +String id
         +String userId
         +TransactionType type
-        +Long amount
-        +Long balanceAfter
+        +Number amount
+        +Number balanceAfter
         +String reason
         +String referenceId
         +LocalDateTime createdAt
@@ -172,7 +172,7 @@ classDiagram
         +validateCoupon(userId, couponId) Boolean
         +useCoupon(userId, couponId) Boolean
         +restoreCoupon(userId, couponId) Boolean
-        +calculateDiscount(couponId, amount) Long
+        +calculateDiscount(couponId, amount) Number
         -checkCouponEligibility(userId, coupon) Boolean
         -checkCouponAvailability(coupon) Boolean
     }
@@ -350,31 +350,27 @@ classDiagram
 2. **복구 가능성**: 모든 상태 변경 추적 및 복구 로직 제공
 3. **동시성 제어**: 재고 및 잔액 예약 시스템으로 동시성 문제 해결
 4. **확장성**: 서비스 계층 분리로 각 도메인 독립적 확장 가능
-5. **금액 처리**: 모든 금액을 정수(Long)로 처리하여 부동소수점 오차 방지
+5. **금액 처리**: 모든 금액을 정수(Number)로 처리하여 부동소수점 오차 방지
 
 ### 4. 할인 처리 방식
 
-#### 할인율 쿠폰 예시
+#### 할인율 쿠폰 예시 (Percentage Discount Coupon Example)
 
-```java
+```typescript
 // 10% 할인 쿠폰 적용
-long originalAmount = 1235L;  // 1,235원
-int discountRate = 10;        // 10%
-long discountAmount = originalAmount * discountRate / 100;  // 123원
-long finalAmount = originalAmount - discountAmount;         // 1,112원
+const originalAmount: number = 1235; // 1,235원
+const discountRate: number = 10; // 10%
+const discountAmount: number = Math.floor(
+  (originalAmount * discountRate) / 100
+); // 123원
+const finalAmount: number = originalAmount - discountAmount; // 1,112원
 ```
 
-#### 정액 할인 쿠폰 예시
+#### 정액 할인 쿠폰 예시 (Fixed Amount Discount Coupon Example)
 
-```java
+```typescript
 // 2,000원 할인 쿠폰 적용
-long originalAmount = 5000L;  // 5,000원
-long discountAmount = 2000L;  // 2,000원
-long finalAmount = originalAmount - discountAmount;  // 3,000원
+const originalAmount: number = 5000; // 5,000원
+const discountAmount: number = 2000; // 2,000원
+const finalAmount: number = originalAmount - discountAmount; // 3,000원
 ```
-
-#### 장점
-
-- 부동소수점 오차 완전 방지
-- 정수 연산으로 성능 향상
-- 소수점 버림 정책으로 안정성 보장
