@@ -22,14 +22,17 @@ classDiagram
         +String name
         +String description
         +Number price
-        +Integer stock
+        +Integer totalStock
+        +Integer reservedStock
         +Boolean isActive
         +LocalDateTime createdAt
         +LocalDateTime updatedAt
-        +reserveStock(quantity) Boolean
-        +releaseStock(quantity) Boolean
-        +confirmStock(quantity) Boolean
+        +reserveStock(quantity, userId) Boolean
+        +releaseStock(reservationId) Boolean
+        +confirmStock(reservationId) Boolean
+        +getAvailableStock() Integer
         +isAvailable(quantity) Boolean
+        +getStockReservations() List~StockReservation~
     }
 
     class Order {
@@ -121,6 +124,19 @@ classDiagram
         +getUserBalance() UserBalance
     }
 
+    class StockReservation {
+        +String reservationId
+        +String productId
+        +String userId
+        +Integer quantity
+        +LocalDateTime createdAt
+        +LocalDateTime expiresAt
+        +getProduct() Product
+        +getUser() User
+        +isExpired() Boolean
+        +extend(seconds) Boolean
+    }
+
     %% 서비스 클래스
     class OrderService {
         -ProductService productService
@@ -141,15 +157,18 @@ classDiagram
 
     class ProductService {
         -ProductRepository productRepository
+        -StockReservationRepository stockReservationRepository
         -RedisTemplate redisTemplate
         +getAllProducts() List~Product~
         +getProductById(id) Product
         +getPopularProducts() List~Product~
-        +reserveStock(productId, quantity) Boolean
-        +confirmStock(productId, quantity) Boolean
-        +releaseStock(productId, quantity) Boolean
+        +reserveStock(productId, quantity, userId) String
+        +confirmStock(reservationId) Boolean
+        +releaseStock(reservationId) Boolean
         +updatePopularProducts() Boolean
+        +cleanupExpiredReservations() Boolean
         -calculatePopularProducts() List~Product~
+        -validateStockAvailability(productId, quantity) Boolean
     }
 
     class WalletService {
@@ -232,8 +251,10 @@ classDiagram
     User *-- UserCoupon : "has"
     User *-- Order : "places"
     User *-- PointTransaction : "creates"
+    User *-- StockReservation : "makes"
 
     Product *-- OrderItem : "contains"
+    Product *-- StockReservation : "reserved"
 
     Order *-- OrderItem : "contains"
     Order o-- UserCoupon : "uses"
@@ -247,6 +268,7 @@ classDiagram
     OrderService --> OrderItem : "manages"
 
     ProductService --> Product : "manages"
+    ProductService --> StockReservation : "manages"
     ProductService ..> OrderItem : "reads"
 
     WalletService --> UserBalance : "manages"
@@ -260,6 +282,7 @@ classDiagram
     RecoveryService ..> Order : "reads/updates"
     RecoveryService ..> UserBalance : "refunds"
     RecoveryService ..> Product : "restores"
+    RecoveryService ..> StockReservation : "cleans_up"
     RecoveryService ..> UserCoupon : "restores"
 
     %% 서비스 의존성
@@ -317,6 +340,11 @@ classDiagram
 - 모든 잔액 변동 이력 기록
 - 감사 추적 및 복구 지원
 
+#### StockReservation (재고 예약)
+
+- 사용자별 상품 재고 예약 정보
+- 예약 만료 시간 관리
+
 ### 2. 서비스 클래스
 
 #### OrderService
@@ -351,6 +379,7 @@ classDiagram
 3. **동시성 제어**: 재고 및 잔액 예약 시스템으로 동시성 문제 해결
 4. **확장성**: 서비스 계층 분리로 각 도메인 독립적 확장 가능
 5. **금액 처리**: 모든 금액을 정수(Number)로 처리하여 부동소수점 오차 방지
+6. **TTL 기반 자동 정리**: 예약 만료 시 자동으로 리소스 해제
 
 ### 4. 할인 처리 방식
 

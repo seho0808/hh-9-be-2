@@ -27,8 +27,8 @@ sequenceDiagram
     CouponService-->>OrderService: 유효
 
     %% 재고 확보
-    OrderService->>ProductService: reserveStock(items)
-    ProductService-->>OrderService: 재고 확보 성공
+    OrderService->>ProductService: reserveStock(items, userId)
+    ProductService-->>OrderService: 재고 확보 성공 (reservationIds)
 
     %% 잔액 확인 및 차감
     OrderService->>WalletService: deductBalance(userId, finalAmount)
@@ -36,8 +36,8 @@ sequenceDiagram
     Database-->>WalletService: OK
 
     %% 재고 차감
-    OrderService->>ProductService: confirmStock(items)
-    ProductService->>Database: update stock
+    OrderService->>ProductService: confirmStock(reservationIds)
+    ProductService->>Database: update total_stock, reserved_stock
     Database-->>ProductService: OK
 
     %% 쿠폰 사용 처리
@@ -76,8 +76,8 @@ sequenceDiagram
     OrderService->>Database: insert order
 
     %% 1. 재고 확보
-    OrderService->>ProductService: reserveStock(items)
-    ProductService-->>OrderService: 재고 확보 OK
+    OrderService->>ProductService: reserveStock(items, userId)
+    ProductService-->>OrderService: 재고 확보 OK (reservationIds)
 
     %% 2. 잔액 확인
     OrderService->>WalletService: checkBalance(userId, totalAmount)
@@ -86,7 +86,7 @@ sequenceDiagram
         WalletService-->>OrderService: insufficient balance
 
         %% 3. 확보한 재고 복구
-        OrderService->>ProductService: releaseStock(items)
+        OrderService->>ProductService: releaseStock(reservationIds)
         ProductService-->>OrderService: 재고 복원 완료
 
         %% 4. 주문 상태 업데이트 (실패 처리)
@@ -119,7 +119,7 @@ sequenceDiagram
     API_Server->>OrderService: createOrder(userId, items, couponId)
     OrderService->>Database: insert order
 
-    OrderService->>ProductService: reserveStock(items)
+    OrderService->>ProductService: reserveStock(items, userId)
 
     alt 재고 부족
         ProductService-->>OrderService: stock unavailable
@@ -135,10 +135,11 @@ sequenceDiagram
 
 - **문제**: 인기 상품의 경우 동시에 여러 사용자가 주문을 시도할 수 있음
 - **해결됨**: Reserve/Release 패턴으로 DB 필드 구현
-  - `reserveStock()`: 재고 예약 (원자적 처리)
-  - `confirmStock()`: 재고 차감 확정
-  - `releaseStock()`: 재고 예약 해제
+  - `reserveStock(productId, quantity, userId)`: 재고 예약 → `reservationId` 반환
+  - `confirmStock(reservationId)`: 재고 차감 확정
+  - `releaseStock(reservationId)`: 재고 예약 해제
 - **장점**: DB 레벨에서 동시성 제어, race condition 방지
+- **TTL 자동 정리**: 30초 후 예약 만료 시 자동 `releaseStock()` 실행 + 5분 마다 배치 release (타 인스턴스 깨지는 것 대비)
 
 ---
 
@@ -163,15 +164,15 @@ sequenceDiagram
     OrderService->>Database: insert order
 
     %% 재고 먼저 확보
-    OrderService->>ProductService: reserveStock(items)
-    ProductService-->>OrderService: 재고 확보 OK
+    OrderService->>ProductService: reserveStock(items, userId)
+    ProductService-->>OrderService: 재고 확보 OK (reservationIds)
 
     %% 쿠폰 검사
     OrderService->>CouponService: validateCoupon(userId, couponId)
 
     alt 쿠폰 무효
         CouponService-->>OrderService: invalid or expired
-        OrderService->>ProductService: releaseStock(items)
+        OrderService->>ProductService: releaseStock(reservationIds)
         ProductService-->>OrderService: 재고 복구 완료
 
         %% 주문 상태 업데이트 (실패 처리)

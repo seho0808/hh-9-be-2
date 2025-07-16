@@ -18,7 +18,8 @@ erDiagram
         varchar name
         text description
         bigint price
-        integer stock
+        integer total_stock
+        integer reserved_stock
         boolean is_active
         timestamp created_at
         timestamp updated_at
@@ -91,13 +92,24 @@ erDiagram
         timestamp created_at
     }
 
+    stock_reservations {
+        varchar reservation_id PK
+        uuid product_id FK
+        uuid user_id FK
+        integer quantity
+        timestamp created_at
+        timestamp expires_at
+    }
+
     %% 관계 정의
     users ||--|| user_balances : has
     users ||--o{ user_coupons : has
     users ||--o{ orders : places
     users ||--o{ point_transactions : creates
+    users ||--o{ stock_reservations : makes
 
     products ||--o{ order_items : contains
+    products ||--o{ stock_reservations : reserved
 
     orders ||--|{ order_items : contains
     orders ||--o| user_coupons : uses
@@ -126,21 +138,22 @@ erDiagram
 
 ### 2. products (상품)
 
-| 컬럼        | 타입         | 제약조건                                              | 설명                |
-| ----------- | ------------ | ----------------------------------------------------- | ------------------- |
-| id          | UUID         | PRIMARY KEY, DEFAULT uuid_generate_v4()               | 상품 ID             |
-| name        | VARCHAR(255) | NOT NULL                                              | 상품명              |
-| description | TEXT         |                                                       | 상품 설명           |
-| price       | BIGINT       | NOT NULL                                              | 상품 가격 (원 단위) |
-| stock       | INTEGER      | NOT NULL, DEFAULT 0                                   | 재고 수량           |
-| is_active   | BOOLEAN      | NOT NULL, DEFAULT TRUE                                | 활성화 상태         |
-| created_at  | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP                             | 생성일시            |
-| updated_at  | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 수정일시            |
+| 컬럼           | 타입         | 제약조건                                              | 설명                |
+| -------------- | ------------ | ----------------------------------------------------- | ------------------- |
+| id             | UUID         | PRIMARY KEY, DEFAULT uuid_generate_v4()               | 상품 ID             |
+| name           | VARCHAR(255) | NOT NULL                                              | 상품명              |
+| description    | TEXT         |                                                       | 상품 설명           |
+| price          | BIGINT       | NOT NULL                                              | 상품 가격 (원 단위) |
+| total_stock    | INTEGER      | NOT NULL, DEFAULT 0                                   | 총 재고 수량        |
+| reserved_stock | INTEGER      | DEFAULT 0                                             | 예약된 재고 수량    |
+| is_active      | BOOLEAN      | NOT NULL, DEFAULT TRUE                                | 활성화 상태         |
+| created_at     | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP                             | 생성일시            |
+| updated_at     | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 수정일시            |
 
 **인덱스:**
 
 - `idx_products_active` (is_active)
-- `idx_products_stock` (stock)
+- `idx_products_stock` (total_stock)
 
 ### 3. orders (주문)
 
@@ -257,6 +270,28 @@ erDiagram
 - `idx_point_transactions_created_at` (created_at)
 - `idx_point_transactions_reference_id` (reference_id)
 
+### 9. stock_reservations (재고 예약)
+
+| 컬럼           | 타입         | 제약조건                  | 설명                        |
+| -------------- | ------------ | ------------------------- | --------------------------- |
+| reservation_id | VARCHAR(255) | PRIMARY KEY               | 예약 ID (UUID 또는 복합키)  |
+| product_id     | UUID         | NOT NULL, FOREIGN KEY     | 상품 ID                     |
+| user_id        | UUID         | NOT NULL, FOREIGN KEY     | 사용자 ID                   |
+| quantity       | INTEGER      | NOT NULL                  | 예약 수량                   |
+| created_at     | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP | 예약 생성일시               |
+| expires_at     | TIMESTAMP    | NOT NULL                  | 예약 만료일시 (생성 + 30초) |
+
+**인덱스:**
+
+- `idx_stock_reservations_product_id` (product_id)
+- `idx_stock_reservations_user_id` (user_id)
+- `idx_stock_reservations_expires_at` (expires_at)
+
+**TTL 정책:**
+
+- `expires_at < NOW()` 인 레코드는 자동 삭제 (정기 배치 또는 Redis TTL)
+- 예약 만료 시 자동으로 `products.reserved_stock` 차감
+
 ## 주요 제약사항 및 비즈니스 규칙
 
 ### 1. 데이터 무결성 제약사항
@@ -268,9 +303,49 @@ erDiagram
 
 #### 재고 관리
 
-- `products.stock >= 0` (음수 재고 불가)
+- `products.total_stock >= 0` (음수 재고 불가)
+- `products.reserved_stock >= 0` (음수 예약 재고 불가)
+- `products.reserved_stock <= total_stock` (예약 재고가 총 재고 초과 불가)
+- `available_stock = total_stock - reserved_stock` (사용 가능 재고 계산)
 - `order_items.quantity > 0` (0개 이하 주문 불가)
 - `order_items.quantity <= 10` (상품당 최대 10개)
+
+#### 재고 예약 시스템 (Reserve/Release Pattern)
+
+**기본 개념:**
+
+- **총 재고 (total_stock)**: 실제 보유한 전체 재고량
+- **예약 재고 (reserved_stock)**: 주문 진행 중 임시로 확보된 재고량
+- **사용 가능 재고 (available_stock)**: `total_stock - reserved_stock` (계산값)
+
+**예약 프로세스:**
+
+1. **reserveStock()**: `reserved_stock += quantity` (여러명 동시요청해도 조건부 업데이트를 통해 - 아래 `동시성 제어`에서 다시 언급됨 - 락걸어서 원자적으로 처리)
+2. **confirmStock()**: `total_stock -= quantity, reserved_stock -= quantity` (재고 확정 차감)
+3. **releaseStock()**: `reserved_stock -= quantity` (예약 해제)
+
+**TTL 기반 자동 예약 해제:**
+
+- 별도 `stock_reservations` 임시 테이블로 TTL 관리
+- 30초 후 자동 `releaseStock()` 실행
+- 5분 마다 cron으로 release 안 된 재고 release
+
+```sql
+-- 재고 예약 임시 관리 테이블 (Redis 또는 임시 DB 테이블)
+stock_reservations {
+    varchar reservation_id PK
+    uuid product_id FK
+    uuid user_id
+    integer quantity
+    timestamp created_at
+    timestamp expires_at  -- created_at + 30초
+}
+```
+
+**동시성 제어:**
+
+- `UPDATE products SET reserved_stock = reserved_stock + ? WHERE id = ? AND (total_stock - reserved_stock) >= ?`
+- 조건부 업데이트로 사용 가능 재고 검증과 예약을 원자적으로 처리
 
 #### 쿠폰 관리
 
@@ -294,7 +369,7 @@ erDiagram
 
 #### 재고 관리
 
-- `products.stock` 업데이트 시 행 단위 락 필요
+- `products.total_stock` 업데이트 시 행 단위 락 필요
 - 재고 예약 → 확정 → 해제 순서 보장
 
 #### 잔액 관리
