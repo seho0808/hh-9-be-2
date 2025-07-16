@@ -91,7 +91,7 @@ flowchart TD
     style HandleError color:#111,fill:#f44336
 ```
 
-##### 시퀀스 다이어그램 - 단일 인스턴스 관점
+##### 시퀀스 다이어그램 - 2개의 인스턴스 동시 요청 집중 탐색
 
 ```mermaid
 sequenceDiagram
@@ -142,7 +142,7 @@ sequenceDiagram
     Note over Redis: 60초 TTL로<br/>자동 락 해제<br/>(프로세스 장애 대비)
 ```
 
-##### 시퀀스 다이어그램 2 - 여러 인스턴스 관점
+##### 시퀀스 다이어그램 2 - 2개의 인스턴스 여러 요청 loop 처리 집중 시각화
 
 ```mermaid
 sequenceDiagram
