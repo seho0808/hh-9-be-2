@@ -295,3 +295,6 @@ classDiagram
     RecoveryService --> ProductService : "uses"
     RecoveryService --> CouponService : "uses"
 ```
+
+- 클래스 다이어그램은 구현 시 많이 바뀔 수 있을 것 같아서 너무 완벽하게 정하지는 않고 진행.
+- 해당 도메인에서 백엔드를 처음 만들어보기에 클래스 다이어그램에서 완벽하다고 생각해도 구현/리팩토링 과정에서 많이 변경될 것임.
