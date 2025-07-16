@@ -2,6 +2,8 @@
 
 ## 4-1. [성공] 정상 주문 → 재고/쿠폰/잔액 확보 → 결제 완료
 
+엔드포인트: `POST /api/orders`
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -55,6 +57,8 @@ sequenceDiagram
 
 ## 4-2. [실패] 잔액 부족
 
+엔드포인트: `POST /api/orders`
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -98,6 +102,8 @@ sequenceDiagram
 
 ## 4-3. [실패] 재고 부족
 
+엔드포인트: `POST /api/orders`
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -138,6 +144,8 @@ sequenceDiagram
 
 ## 4-4. [실패] 쿠폰 무효
 
+엔드포인트: `POST /api/orders`
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -177,6 +185,8 @@ sequenceDiagram
 ---
 
 ## 4-5. [실패] 결제 중 시스템 오류
+
+엔드포인트: `POST /api/orders`
 
 ```mermaid
 sequenceDiagram

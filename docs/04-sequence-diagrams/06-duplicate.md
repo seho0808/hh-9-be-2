@@ -2,6 +2,8 @@
 
 ## 6-1. 같은 주문 재요청 시 중복 방지 응답
 
+엔드포인트: `POST /api/orders`
+
 ```mermaid
 sequenceDiagram
     participant Client

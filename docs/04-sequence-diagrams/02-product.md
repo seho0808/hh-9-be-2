@@ -1,5 +1,7 @@
 # 상품 목록 및 단일 조회
 
+엔드포인트: `GET /api/products`
+
 ## 2-1. [성공] 전체 상품 조회
 
 ```mermaid
@@ -25,6 +27,8 @@ sequenceDiagram
 ---
 
 ## 2-2. [성공/실패] 단일 상품 상세 조회
+
+엔드포인트: `GET /api/products/:productId`
 
 ```mermaid
 sequenceDiagram

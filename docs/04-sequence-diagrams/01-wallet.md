@@ -2,6 +2,8 @@
 
 ## 1-1. [성공] 충전 요청 성공 → 잔액 반영 → 조회
 
+엔드포인트: `POST /api/users/me/points/charges`
+
 ```mermaid
 sequenceDiagram
 participant Client
@@ -10,7 +12,7 @@ participant AuthService
 participant WalletService
 participant Database
 
-    Client->>API_Server: POST /api/points/charge { amount: 10000 }
+    Client->>API_Server: POST .../charges { amount: 10000 }
     API_Server->>AuthService: verifyToken()
     AuthService-->>API_Server: userId
 
@@ -27,6 +29,8 @@ participant Database
 
 ## 1-2. [실패] 충전 실패 (단위 미만, 한도 초과 등)
 
+엔드포인트: `POST /api/users/me/points/charges`
+
 ```mermaid
 sequenceDiagram
 participant Client
@@ -34,7 +38,7 @@ participant API_Server
 participant AuthService
 participant WalletService
 
-    Client->>API_Server: POST /api/points/charge { amount: 123 }
+    Client->>API_Server: POST .../charges { amount: 123 }
     API_Server->>AuthService: verifyToken()
     AuthService-->>API_Server: userId
 

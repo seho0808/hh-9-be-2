@@ -1,26 +1,33 @@
-# API 엔드포인트
+# 📘 API 엔드포인트
 
-## 잔액 충전, 조회
+## 👤 사용자
 
-- 충전: POST /api/points/charge
-- 조회: GET /api/points
+- `GET /api/users/me` – 내 정보 조회
+- `POST /api/users` – 회원가입
+- `POST /api/auth/login` – 로그인
+- `POST /api/auth/logout` – 로그아웃
 
-인증으로 누구인지 식별
+## 💰 포인트 / 잔액
 
-## 상품 조회
+- `GET /api/users/me/points/balance` – 내 잔액 조회
+- `POST /api/users/me/points/charges` – 포인트 충전
+- `GET /api/users/me/points/transactions` – 포인트 거래 내역 조회
 
-- 상품 조회: GET /api/products
-- 단일 상품 조회: GET /api/products/:id
+## 🛍️ 상품
 
-## 선착순 쿠폰 기능
+- `GET /api/products` – 전체 상품 조회
+- `GET /api/products/popular` – 인기 상품 조회
+- `GET /api/products/:productId` – 단일 상품 조회
 
-- 쿠폰 발급: POST /api/coupons
-- 보유 쿠폰 조회: GET /api/coupons
+## 🎟️ 쿠폰
 
-## 주문 / 결제 API
+- `GET /api/coupons` – 사용 가능 쿠폰 목록
+- `GET /api/coupons/:couponId` – 쿠폰 상세 조회
+- `POST /api/coupons/:couponId/claims` – 쿠폰 발급 요청 (선착순)
+- `GET /api/users/me/coupons` – 내가 가진 쿠폰 목록
 
-- 결제: POST /api/orders
+## 🧾 주문 / 결제
 
-## 상위 상품 조회 API
-
-- 상위 상품 조회: GET /api/products/popular
+- `POST /api/orders` – 주문 생성 및 결제
+- `GET /api/orders/:orderId` – 주문 상세 조회
+- `GET /api/users/me/orders` – 내 주문 목록

@@ -2,6 +2,8 @@
 
 ## 3-1. [성공] 선착순 쿠폰 발급 → 보유 쿠폰 조회
 
+엔드포인트: `POST /api/coupons/:couponId/claims`
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -10,7 +12,7 @@ sequenceDiagram
     participant CouponService
     participant Database
 
-    Client->>API_Server: POST /api/coupons { couponCode: "EVENT2025" }
+    Client->>API_Server: POST .../claims { couponCode: "EVENT2025" }
     API_Server->>AuthService: verifyToken()
     AuthService-->>API_Server: userId
 
@@ -29,6 +31,8 @@ sequenceDiagram
 
 ## 3-2. [실패] 발급 실패
 
+엔드포인트: `POST /api/coupons/:couponId/claims`
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -37,7 +41,7 @@ sequenceDiagram
     participant CouponService
     participant Database
 
-    Client->>API_Server: POST /api/coupons { couponCode: "EVENT2025" }
+    Client->>API_Server: POST .../claims  { couponCode: "EVENT2025" }
     API_Server->>AuthService: verifyToken()
     AuthService-->>API_Server: userId
 
