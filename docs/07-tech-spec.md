@@ -32,7 +32,7 @@ graph TB
     end
 
     subgraph "Shared Resources"
-        DB[(PostgreSQL)]
+        DB[(MySQL)]
         R[(Redis)]
         K[(Kafka)]
     end
@@ -107,7 +107,7 @@ src/
 | ------------ | ------------ | ----- | --------------------------------------------- |
 | 런타임       | Node.js      | 18.x  | 서버 사이드 JavaScript 실행                   |
 | 프레임워크   | NestJS       | 10.x  | 엔터프라이즈급 Node.js 프레임워크             |
-| 데이터베이스 | PostgreSQL   | 15.x  | 관계형 데이터 저장 및 트랜잭션                |
+| 데이터베이스 | MySQL        | 8.x   | 관계형 데이터 저장 및 트랜잭션                |
 | 캐시         | Redis        | 7.x   | 쿠폰 발급 동시성 제어, 보류 주문 복구 분산 락 |
 | 메시징       | Kafka (Mock) | -     | 주문 이벤트 로깅                              |
 | ORM          | TypeORM      | 0.3.x | 데이터베이스 ORM                              |
