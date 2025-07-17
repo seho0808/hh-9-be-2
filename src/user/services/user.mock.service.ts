@@ -3,7 +3,8 @@ import {
   ConflictException,
   NotFoundException,
 } from "@nestjs/common";
-import { CreateUserDto, UserResponseDto } from "../dto/user.dto";
+import { UserResponseDto } from "../dto/user.dto";
+import { RegisterDto } from "../../auth/dto/register.dto";
 
 @Injectable()
 export class UserMockService {
@@ -27,7 +28,7 @@ export class UserMockService {
     },
   ];
 
-  async createUser(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  async createUser(createUserDto: RegisterDto): Promise<UserResponseDto> {
     const { email, password, name } = createUserDto;
 
     // 이메일 중복 확인
