@@ -3,7 +3,7 @@
 ## 👤 사용자
 
 - `GET /api/users/me` – 내 정보 조회
-- `POST /api/users` – 회원가입
+- `POST /api/auth/signup` – 회원가입
 - `POST /api/auth/login` – 로그인
 - `POST /api/auth/logout` – 로그아웃
 
