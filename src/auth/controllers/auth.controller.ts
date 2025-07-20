@@ -1,27 +1,30 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from "@nestjs/common";
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseFilters,
+} from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
-import { AuthMockService } from "./services/auth.mock.service";
-import { LoginDto } from "./dto/login.dto";
-import { RegisterDto } from "./dto/register.dto";
-import { LoginResponseDto } from "./dto/auth-response.dto";
-import { ApiResponseDto } from "../common/dto/response.dto";
-import { UserResponseDto } from "src/user/dto/user.dto";
-import { UserMockService } from "src/user/services/user.mock.service";
+import { AuthService } from "../services/auth.service";
+import { LoginDto, LoginResponseDto } from "../dto/login.dto";
+import { RegisterDto, RegisterResponseDto } from "../dto/register.dto";
+import { ApiResponseDto } from "@/common/dto/response.dto";
+import { AuthExceptionFilter } from "../filters/auth-exception.filter";
 
 @ApiTags("인증")
 @Controller("auth")
+@UseFilters(AuthExceptionFilter)
 export class AuthController {
-  constructor(
-    private readonly authService: AuthMockService,
-    private readonly userService: UserMockService
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post("signup")
   @ApiOperation({ summary: "회원가입" })
   @ApiResponse({
     status: 201,
     description: "회원가입 성공",
-    type: UserResponseDto,
+    type: RegisterResponseDto,
   })
   @ApiResponse({
     status: 409,
@@ -29,8 +32,8 @@ export class AuthController {
   })
   async register(
     @Body() registerDto: RegisterDto
-  ): Promise<ApiResponseDto<UserResponseDto>> {
-    const result = await this.userService.createUser(registerDto);
+  ): Promise<ApiResponseDto<RegisterResponseDto>> {
+    const result = await this.authService.register(registerDto);
     return ApiResponseDto.success(result, "회원가입이 완료되었습니다");
   }
 
