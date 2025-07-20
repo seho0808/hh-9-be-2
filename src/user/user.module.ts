@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { UserController } from "./infrastructure/http/user.controller";
 import { UserApplicationService } from "./application/services/user.service";
@@ -9,9 +9,13 @@ import { GetUserByIdUseCase } from "./application/use-cases/get-user-by-id.use-c
 import { GetUserByEmailUseCase } from "./application/use-cases/get-user-by-email.use-case";
 import { CreateUserUseCase } from "./application/use-cases/create-user.use-case";
 import { UpdateUserNameUseCase } from "./application/use-cases/update-user-name.use-case";
+import { AuthModule } from "@/auth/auth.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserTypeOrmEntity])],
+  imports: [
+    TypeOrmModule.forFeature([UserTypeOrmEntity]),
+    forwardRef(() => AuthModule),
+  ],
   controllers: [UserController],
   providers: [
     UserApplicationService,

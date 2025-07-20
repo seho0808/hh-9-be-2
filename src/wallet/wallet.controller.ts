@@ -17,7 +17,7 @@ import {
   ApiResponseDto,
   PaginatedResponseDto,
 } from "../common/dto/response.dto";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
 import {
   CurrentUser,
   CurrentUserData,
