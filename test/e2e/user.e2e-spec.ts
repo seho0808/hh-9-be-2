@@ -94,26 +94,6 @@ describe("User API E2E (with TestContainers)", () => {
       expect(response.body.message).toBe("사용자를 찾을 수 없습니다.");
     });
 
-    it("🔧 DB 연결 상태 및 테이블 구조 확인", async () => {
-      // DB 연결 확인
-      const isConnected = await testHelper.verifyDatabaseConnection(dataSource);
-      expect(isConnected).toBe(true);
-
-      // 테이블 존재 확인
-      const result = await dataSource.query("SHOW TABLES");
-      const tableNames = result.map((row: any) => Object.values(row)[0]);
-      expect(tableNames).toContain("users");
-
-      // 사용자 테이블 구조 확인
-      const columns = await testHelper.getTableInfo(dataSource, "users");
-      const columnNames = columns.map((col: any) => col.Field);
-
-      expect(columnNames).toContain("id");
-      expect(columnNames).toContain("email");
-      expect(columnNames).toContain("password");
-      expect(columnNames).toContain("name");
-    });
-
     it("🔄 여러 사용자 데이터로 테스트", async () => {
       // Given: 기본 테스트 사용자 생성 (test@example.com)
       await testHelper.createTestUser(dataSource, {
@@ -143,6 +123,26 @@ describe("User API E2E (with TestContainers)", () => {
   });
 
   describe("Database Integration", () => {
+    it("🔧 DB 연결 상태 및 테이블 구조 확인", async () => {
+      // DB 연결 확인
+      const isConnected = await testHelper.verifyDatabaseConnection(dataSource);
+      expect(isConnected).toBe(true);
+
+      // 테이블 존재 확인
+      const result = await dataSource.query("SHOW TABLES");
+      const tableNames = result.map((row: any) => Object.values(row)[0]);
+      expect(tableNames).toContain("users");
+
+      // 사용자 테이블 구조 확인
+      const columns = await testHelper.getTableInfo(dataSource, "users");
+      const columnNames = columns.map((col: any) => col.Field);
+
+      expect(columnNames).toContain("id");
+      expect(columnNames).toContain("email");
+      expect(columnNames).toContain("password");
+      expect(columnNames).toContain("name");
+    });
+
     it("📊 사용자 생성 후 조회가 제대로 동작해야 함", async () => {
       // Given: 헬퍼를 사용해 테스트 사용자 생성
       const userData = await testHelper.createTestUser(dataSource, {
