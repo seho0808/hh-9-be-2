@@ -12,8 +12,6 @@ describe("GetUserByEmailUseCase", () => {
       findById: jest.fn(),
       findByEmail: jest.fn(),
       save: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
       exists: jest.fn(),
     };
 

@@ -28,19 +28,6 @@ export class UserRepository implements UserRepositoryInterface {
     return this.toDomain(savedEntity);
   }
 
-  async update(user: User): Promise<User> {
-    const entity = this.fromDomain(user);
-    await this.userRepository.update(entity.id, entity);
-    const updatedEntity = await this.userRepository.findOne({
-      where: { id: entity.id },
-    });
-    return this.toDomain(updatedEntity!);
-  }
-
-  async delete(id: string): Promise<void> {
-    await this.userRepository.delete(id);
-  }
-
   async exists(email: string): Promise<boolean> {
     const count = await this.userRepository.count({ where: { email } });
     return count > 0;

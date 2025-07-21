@@ -32,6 +32,6 @@ export class UpdateUserNameUseCase {
 
     user.updateName(newName);
 
-    return this.userRepository.update(user);
+    return this.userRepository.save(user);
   }
 }

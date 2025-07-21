@@ -19,8 +19,6 @@ describe("UpdateUserNameUseCase", () => {
       findById: jest.fn(),
       findByEmail: jest.fn(),
       save: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
       exists: jest.fn(),
     };
 
@@ -68,7 +66,7 @@ describe("UpdateUserNameUseCase", () => {
         name: newName,
         updatedAt: new Date(),
       });
-      mockUserRepository.update.mockResolvedValue(updatedUser);
+      mockUserRepository.save.mockResolvedValue(updatedUser);
 
       const result = await updateUserNameUseCase.execute(validCommand);
 
@@ -115,7 +113,7 @@ describe("UpdateUserNameUseCase", () => {
     it("리포지토리 update 오류를 처리해야 함", async () => {
       mockUserRepository.findById.mockResolvedValue(existingUser);
       const error = new Error("Database update failed");
-      mockUserRepository.update.mockRejectedValue(error);
+      mockUserRepository.save.mockRejectedValue(error);
 
       await expect(updateUserNameUseCase.execute(validCommand)).rejects.toThrow(
         error
@@ -161,7 +159,7 @@ describe("UpdateUserNameUseCase", () => {
         name: newName,
         updatedAt: new Date(),
       });
-      mockUserRepository.update.mockResolvedValue(updatedUser);
+      mockUserRepository.save.mockResolvedValue(updatedUser);
 
       await updateUserNameUseCase.execute(validCommand);
 
