@@ -38,16 +38,3 @@ export class UserNotFoundError extends UserDomainError {
     super(`사용자를 찾을 수 없습니다: ${identifier}`);
   }
 }
-
-export class RepositoryError extends UserDomainError {
-  readonly code = "REPOSITORY_ERROR";
-
-  constructor(operation: string, cause?: Error) {
-    super(
-      `리포지토리 오류 (${operation}): ${cause?.message || "알 수 없는 오류"}`
-    );
-    if (cause) {
-      this.stack = cause.stack;
-    }
-  }
-}
