@@ -1,14 +1,14 @@
 import { Injectable } from "@nestjs/common";
-import { GetUserByIdUseCase } from "@/user/application/use-cases/get-user-by-id.use-case";
-import { GetUserByEmailUseCase } from "@/user/application/use-cases/get-user-by-email.use-case";
+import { GetUserByIdUseCase } from "@/user/domain/use-cases/get-user-by-id.use-case";
+import { GetUserByEmailUseCase } from "@/user/domain/use-cases/get-user-by-email.use-case";
 import {
   CreateUserUseCase,
   CreateUserCommand,
-} from "@/user/application/use-cases/create-user.use-case";
+} from "@/user/domain/use-cases/create-user.use-case";
 import {
   UpdateUserNameUseCase,
   UpdateUserNameCommand,
-} from "@/user/application/use-cases/update-user-name.use-case";
+} from "@/user/domain/use-cases/update-user-name.use-case";
 import { User } from "@/user/domain/entities/user.entity";
 
 @Injectable()

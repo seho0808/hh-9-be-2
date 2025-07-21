@@ -9,22 +9,24 @@ describe("Product API E2E (with TestContainers)", () => {
   let app: INestApplication;
   let dataSource: DataSource;
   let productRepository: Repository<ProductTypeOrmEntity>;
+  let testHelper: TestContainersHelper; // 인스턴스 추가
 
   beforeAll(async () => {
-    const setup = await TestContainersHelper.setupWithMySQL();
+    testHelper = new TestContainersHelper(); // 인스턴스 생성
+    const setup = await testHelper.setupWithMySQL();
     app = setup.app;
     dataSource = setup.dataSource;
     productRepository = dataSource.getRepository(ProductTypeOrmEntity);
   });
 
   afterAll(async () => {
-    await TestContainersHelper.cleanup();
+    await testHelper.cleanup();
   });
 
   beforeEach(async () => {
-    await TestContainersHelper.clearDatabase(dataSource);
+    await testHelper.clearDatabase(dataSource);
     // 각 테스트를 위한 기본 사용자 생성 (인증용)
-    await TestContainersHelper.createTestUser(dataSource);
+    await testHelper.createTestUser(dataSource);
     // Factory counter 초기화
     ProductFactory.resetCounter();
   });
@@ -33,7 +35,7 @@ describe("Product API E2E (with TestContainers)", () => {
     it("✅ 전체 상품 목록을 조회할 수 있어야 함", async () => {
       // Given: 테스트 상품들 생성
       await ProductFactory.createManyAndSave(productRepository, 3);
-      const authHeaders = await TestContainersHelper.getAuthHeaders(app);
+      const authHeaders = await testHelper.getAuthHeaders(app);
 
       // When: 전체 상품 조회
       const response = await request(app.getHttpServer())
@@ -53,7 +55,7 @@ describe("Product API E2E (with TestContainers)", () => {
     it("✅ 페이지네이션이 올바르게 동작해야 함", async () => {
       // Given: 테스트 상품들 생성 (5개)
       await ProductFactory.createManyAndSave(productRepository, 5);
-      const authHeaders = await TestContainersHelper.getAuthHeaders(app);
+      const authHeaders = await testHelper.getAuthHeaders(app);
 
       // When: 2페이지, 2개씩 조회
       const response = await request(app.getHttpServer())
@@ -76,7 +78,7 @@ describe("Product API E2E (with TestContainers)", () => {
       await ProductFactory.createManyAndSave(productRepository, 2, {
         isActive: false,
       });
-      const authHeaders = await TestContainersHelper.getAuthHeaders(app);
+      const authHeaders = await testHelper.getAuthHeaders(app);
 
       // When: 활성화된 상품만 조회
       const response = await request(app.getHttpServer())
@@ -103,7 +105,7 @@ describe("Product API E2E (with TestContainers)", () => {
         name: "Galaxy S24",
         description: "삼성의 플래그십",
       });
-      const authHeaders = await TestContainersHelper.getAuthHeaders(app);
+      const authHeaders = await testHelper.getAuthHeaders(app);
 
       // When: "iPhone" 검색
       const response = await request(app.getHttpServer())
@@ -161,7 +163,7 @@ describe("Product API E2E (with TestContainers)", () => {
           reservedStock: 10,
         }
       );
-      const authHeaders = await TestContainersHelper.getAuthHeaders(app);
+      const authHeaders = await testHelper.getAuthHeaders(app);
 
       // When: 특정 상품 조회
       const response = await request(app.getHttpServer())
@@ -186,7 +188,7 @@ describe("Product API E2E (with TestContainers)", () => {
 
     it("❌ 존재하지 않는 상품 조회 시 404 에러가 발생해야 함", async () => {
       // Given: 인증 헤더 준비
-      const authHeaders = await TestContainersHelper.getAuthHeaders(app);
+      const authHeaders = await testHelper.getAuthHeaders(app);
 
       // When: 존재하지 않는 상품 조회
       const response = await request(app.getHttpServer())
@@ -218,7 +220,7 @@ describe("Product API E2E (with TestContainers)", () => {
       // When: 잘못된 토큰으로 상품 조회 시도
       const response = await request(app.getHttpServer())
         .get(`/api/products/${testProduct.id}`)
-        .set(TestContainersHelper.getInvalidAuthHeaders())
+        .set(testHelper.getInvalidAuthHeaders())
         .expect(401);
 
       // Then: 인증 에러 메시지가 반환되어야 함
@@ -256,8 +258,7 @@ describe("Product API E2E (with TestContainers)", () => {
 
     it("🔧 DB 연결 상태 및 테이블 구조 확인", async () => {
       // DB 연결 확인
-      const isConnected =
-        await TestContainersHelper.verifyDatabaseConnection(dataSource);
+      const isConnected = await testHelper.verifyDatabaseConnection(dataSource);
       expect(isConnected).toBe(true);
 
       // 테이블 존재 확인
@@ -266,10 +267,7 @@ describe("Product API E2E (with TestContainers)", () => {
       expect(tableNames).toContain("products");
 
       // 상품 테이블 구조 확인
-      const columns = await TestContainersHelper.getTableInfo(
-        dataSource,
-        "products"
-      );
+      const columns = await testHelper.getTableInfo(dataSource, "products");
       const columnNames = columns.map((col: any) => col.Field);
 
       expect(columnNames).toContain("id");
@@ -306,7 +304,7 @@ describe("Product API E2E (with TestContainers)", () => {
         productRepository,
         3
       );
-      const authHeaders = await TestContainersHelper.getAuthHeaders(app);
+      const authHeaders = await testHelper.getAuthHeaders(app);
 
       // When: 각 상품을 개별적으로 조회
       for (const product of products) {

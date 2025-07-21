@@ -11,7 +11,7 @@
   "testTimeout": 60000,
   "maxWorkers": "50%",
   "forceExit": true,
-  "detectOpenHandles": true,
+  "detectOpenHandles": false,
   "moduleNameMapper": {
     "^@/(.*)$": "<rootDir>/src/$1"
   }

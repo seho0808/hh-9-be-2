@@ -16,26 +16,29 @@ export interface TestContainerConfig {
 }
 
 export class TestContainersHelper {
-  private static mysqlContainer: StartedMySqlContainer;
-  private static app: INestApplication;
-  private static dataSource: DataSource;
+  private mysqlContainer: StartedMySqlContainer | null = null;
+  private app: INestApplication | null = null;
+  private dataSource: DataSource | null = null;
 
-  static async setupWithMySQL(config: TestContainerConfig = {}): Promise<{
+  async setupWithMySQL(config: TestContainerConfig = {}): Promise<{
     app: INestApplication;
     dataSource: DataSource;
     container: StartedMySqlContainer;
   }> {
     // 워커별 고유 설정
     const workerId = process.env.JEST_WORKER_ID || "1";
+    const timestamp = Date.now(); // 추가적인 고유성을 위해
 
     const {
       mysqlVersion = "mysql:8.0",
-      database = `test_db_worker_${workerId}`, // 워커별 고유 DB명
+      database = `test_db_worker_${workerId}_${timestamp}`, // 더 고유한 DB명
       username = "test_user",
       password = "test_password",
     } = config;
 
-    // MySQL 컨테이너 시작 (동적 포트 할당)
+    console.log(`🚀 [Worker ${workerId}] Starting MySQL setup...`);
+
+    // MySQL 컨테이너 시작 (병렬 처리 최적화)
     this.mysqlContainer = await new MySqlContainer(mysqlVersion)
       .withDatabase(database)
       .withUsername(username)
@@ -44,7 +47,7 @@ export class TestContainersHelper {
       .start();
 
     console.log(
-      `🐳 MySQL Container started on port ${this.mysqlContainer.getPort()} (Worker ${workerId})`
+      `🐳 [Worker ${workerId}] MySQL Container started on port ${this.mysqlContainer.getPort()}`
     );
 
     // 테스트 모듈 생성
@@ -86,7 +89,7 @@ export class TestContainersHelper {
 
     this.dataSource = this.app.get(DataSource);
 
-    console.log("🚀 NestJS Application initialized with TestContainers");
+    console.log(`✅ [Worker ${workerId}] NestJS Application initialized`);
 
     return {
       app: this.app,
@@ -95,40 +98,52 @@ export class TestContainersHelper {
     };
   }
 
-  static async cleanup(): Promise<void> {
-    console.log("🧹 Cleaning up TestContainers...");
+  async cleanup(): Promise<void> {
+    const workerId = process.env.JEST_WORKER_ID || "1";
+    console.log(`🧹 [Worker ${workerId}] Cleaning up TestContainers...`);
 
-    if (this.dataSource) {
-      await this.dataSource.destroy();
-      console.log("📦 DataSource destroyed");
-    }
-
-    if (this.app) {
-      await this.app.close();
-      console.log("🛑 NestJS Application closed");
-    }
-
-    if (this.mysqlContainer) {
-      await this.mysqlContainer.stop();
-      console.log("🐳 MySQL Container stopped");
-    }
-  }
-
-  static async clearDatabase(dataSource: DataSource): Promise<void> {
-    // 테스트 간 데이터 정리
-    const tables = ["users", "products"]; // 필요에 따라 테이블 추가
-
-    for (const table of tables) {
-      try {
-        await dataSource.query(`DELETE FROM ${table}`);
-      } catch (error) {
-        // 테이블이 존재하지 않을 수 있으므로 에러 무시
-        console.warn(`Failed to clear table ${table}:`, error);
+    try {
+      if (this.dataSource) {
+        await this.dataSource.destroy();
+        this.dataSource = null;
+        console.log(`📦 [Worker ${workerId}] DataSource destroyed`);
       }
+
+      if (this.app) {
+        await this.app.close();
+        this.app = null;
+        console.log(`🛑 [Worker ${workerId}] NestJS Application closed`);
+      }
+
+      if (this.mysqlContainer) {
+        await this.mysqlContainer.stop();
+        this.mysqlContainer = null;
+        console.log(`🐳 [Worker ${workerId}] MySQL Container stopped`);
+      }
+    } catch (error) {
+      console.error(`❌ [Worker ${workerId}] Cleanup error:`, error);
     }
   }
 
-  static async createTestUser(
+  async clearDatabase(dataSource: DataSource): Promise<void> {
+    const tables = ["users", "products"];
+
+    try {
+      await dataSource.query("SET FOREIGN_KEY_CHECKS = 0");
+      for (const table of tables) {
+        try {
+          await dataSource.query(`TRUNCATE TABLE ${table}`);
+        } catch (error) {
+          console.warn(`Failed to truncate table ${table}:`, error.message);
+        }
+      }
+      await dataSource.query("SET FOREIGN_KEY_CHECKS = 1");
+    } catch (error) {
+      console.warn("Database cleanup error:", error);
+    }
+  }
+
+  async createTestUser(
     dataSource: DataSource,
     userData: {
       id?: string;
@@ -160,9 +175,7 @@ export class TestContainersHelper {
     return defaultUser;
   }
 
-  static async getAuthHeaders(
-    app: INestApplication
-  ): Promise<Record<string, string>> {
+  async getAuthHeaders(app: INestApplication): Promise<Record<string, string>> {
     // 실제 로그인을 통해 JWT 토큰 획득
     const loginResponse = await request(app.getHttpServer())
       .post("/api/auth/login")
@@ -183,21 +196,19 @@ export class TestContainersHelper {
     };
   }
 
-  static getMockAuthHeaders(): Record<string, string> {
+  getMockAuthHeaders(): Record<string, string> {
     return {
       Authorization: "Bearer mock-jwt-token",
     };
   }
 
-  static getInvalidAuthHeaders(): Record<string, string> {
+  getInvalidAuthHeaders(): Record<string, string> {
     return {
       Authorization: "Bearer invalid-token",
     };
   }
 
-  static async verifyDatabaseConnection(
-    dataSource: DataSource
-  ): Promise<boolean> {
+  async verifyDatabaseConnection(dataSource: DataSource): Promise<boolean> {
     try {
       await dataSource.query("SELECT 1");
       return true;
@@ -207,7 +218,7 @@ export class TestContainersHelper {
     }
   }
 
-  static async getTableInfo(
+  async getTableInfo(
     dataSource: DataSource,
     tableName: string
   ): Promise<any[]> {
