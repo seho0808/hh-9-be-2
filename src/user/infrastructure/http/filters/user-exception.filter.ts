@@ -11,7 +11,6 @@ import {
   InvalidEmailFormatError,
   InvalidUserNameError,
   UserNotFoundError,
-  RepositoryError,
 } from "@/user/domain/exceptions/user.exceptions";
 
 @Catch(UserDomainError)
@@ -59,12 +58,6 @@ export class UserExceptionFilter implements ExceptionFilter {
         return {
           status: HttpStatus.NOT_FOUND,
           message: "사용자를 찾을 수 없습니다.",
-        };
-
-      case RepositoryError:
-        return {
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: "데이터 처리 중 오류가 발생했습니다.",
         };
 
       default:

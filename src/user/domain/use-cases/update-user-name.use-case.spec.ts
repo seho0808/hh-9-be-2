@@ -8,7 +8,6 @@ import { User } from "../../domain/entities/user.entity";
 import {
   UserNotFoundError,
   InvalidUserNameError,
-  RepositoryError,
 } from "../../domain/exceptions/user.exceptions";
 
 describe("UpdateUserNameUseCase", () => {

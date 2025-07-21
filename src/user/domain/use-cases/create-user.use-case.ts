@@ -1,7 +1,6 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { UserRepositoryInterface } from "@/user/domain/interfaces/user.repository.interface";
 import { User } from "@/user/domain/entities/user.entity";
-import { UserPolicy } from "@/user/domain/policies/user.policy";
 import {
   EmailDuplicateError,
   InvalidEmailFormatError,
@@ -18,8 +17,7 @@ export interface CreateUserCommand {
 export class CreateUserUseCase {
   constructor(
     @Inject("UserRepositoryInterface")
-    private readonly userRepository: UserRepositoryInterface,
-    private readonly userPolicy: UserPolicy
+    private readonly userRepository: UserRepositoryInterface
   ) {}
 
   async execute(command: CreateUserCommand): Promise<User> {
@@ -29,7 +27,7 @@ export class CreateUserUseCase {
       throw new InvalidEmailFormatError(email);
     }
 
-    const isDuplicate = await this.userPolicy.isEmailDuplicate(email);
+    const isDuplicate = await this.isEmailDuplicate(email);
     if (isDuplicate) {
       throw new EmailDuplicateError(email);
     }
@@ -45,5 +43,9 @@ export class CreateUserUseCase {
     });
 
     return this.userRepository.save(user);
+  }
+
+  private async isEmailDuplicate(email: string): Promise<boolean> {
+    return this.userRepository.exists(email);
   }
 }
