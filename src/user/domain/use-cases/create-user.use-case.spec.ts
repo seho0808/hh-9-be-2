@@ -1,7 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { CreateUserUseCase, CreateUserCommand } from "./create-user.use-case";
 import { UserRepositoryInterface } from "../../domain/interfaces/user.repository.interface";
-import { UserPolicy } from "../../domain/policies/user.policy";
 import { User } from "../../domain/entities/user.entity";
 import {
   EmailDuplicateError,
@@ -12,7 +11,6 @@ import {
 describe("CreateUserUseCase", () => {
   let createUserUseCase: CreateUserUseCase;
   let mockUserRepository: jest.Mocked<UserRepositoryInterface>;
-  let userPolicy: UserPolicy;
 
   beforeEach(async () => {
     mockUserRepository = {
@@ -27,7 +25,6 @@ describe("CreateUserUseCase", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CreateUserUseCase,
-        UserPolicy,
         {
           provide: "UserRepositoryInterface",
           useValue: mockUserRepository,
@@ -36,7 +33,6 @@ describe("CreateUserUseCase", () => {
     }).compile();
 
     createUserUseCase = module.get<CreateUserUseCase>(CreateUserUseCase);
-    userPolicy = module.get<UserPolicy>(UserPolicy);
   });
 
   afterEach(() => {
