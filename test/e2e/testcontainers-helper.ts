@@ -73,6 +73,15 @@ export class TestContainersHelper {
     this.app = moduleFixture.createNestApplication();
     this.app.setGlobalPrefix("api");
 
+    // ValidationPipe 설정 (main.ts와 동일)
+    this.app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        transform: true,
+        forbidNonWhitelisted: true,
+      })
+    );
+
     await this.app.init();
 
     this.dataSource = this.app.get(DataSource);
