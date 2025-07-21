@@ -128,12 +128,18 @@ export class TestContainersHelper {
   async clearDatabase(dataSource: DataSource): Promise<void> {
     const tables = ["users", "products"];
 
-    for (const table of tables) {
-      try {
-        await dataSource.query(`DELETE FROM ${table}`);
-      } catch (error) {
-        console.warn(`Failed to clear table ${table}:`, error);
+    try {
+      await dataSource.query("SET FOREIGN_KEY_CHECKS = 0");
+      for (const table of tables) {
+        try {
+          await dataSource.query(`TRUNCATE TABLE ${table}`);
+        } catch (error) {
+          console.warn(`Failed to truncate table ${table}:`, error.message);
+        }
       }
+      await dataSource.query("SET FOREIGN_KEY_CHECKS = 1");
+    } catch (error) {
+      console.warn("Database cleanup error:", error);
     }
   }
 
