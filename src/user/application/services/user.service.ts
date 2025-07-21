@@ -5,10 +5,6 @@ import {
   CreateUserUseCase,
   CreateUserCommand,
 } from "@/user/domain/use-cases/create-user.use-case";
-import {
-  UpdateUserNameUseCase,
-  UpdateUserNameCommand,
-} from "@/user/domain/use-cases/update-user-name.use-case";
 import { User } from "@/user/domain/entities/user.entity";
 
 @Injectable()
@@ -16,8 +12,7 @@ export class UserApplicationService {
   constructor(
     private readonly getUserByIdUseCase: GetUserByIdUseCase,
     private readonly getUserByEmailUseCase: GetUserByEmailUseCase,
-    private readonly createUserUseCase: CreateUserUseCase,
-    private readonly updateUserNameUseCase: UpdateUserNameUseCase
+    private readonly createUserUseCase: CreateUserUseCase
   ) {}
 
   async getUserById(userId: string): Promise<User> {
@@ -45,14 +40,5 @@ export class UserApplicationService {
     };
 
     return this.createUserUseCase.execute(command);
-  }
-
-  async updateUserName(userId: string, newName: string): Promise<User> {
-    const command: UpdateUserNameCommand = {
-      userId,
-      newName,
-    };
-
-    return await this.updateUserNameUseCase.execute(command);
   }
 }

@@ -7,7 +7,6 @@ import { UserTypeOrmEntity } from "./infrastructure/persistence/orm/user.typeorm
 import { GetUserByIdUseCase } from "./domain/use-cases/get-user-by-id.use-case";
 import { GetUserByEmailUseCase } from "./domain/use-cases/get-user-by-email.use-case";
 import { CreateUserUseCase } from "./domain/use-cases/create-user.use-case";
-import { UpdateUserNameUseCase } from "./domain/use-cases/update-user-name.use-case";
 import { AuthModule } from "@/auth/auth.module";
 
 @Module({
@@ -21,7 +20,6 @@ import { AuthModule } from "@/auth/auth.module";
     GetUserByIdUseCase,
     GetUserByEmailUseCase,
     CreateUserUseCase,
-    UpdateUserNameUseCase,
     {
       provide: "UserRepositoryInterface",
       useClass: UserRepository,
