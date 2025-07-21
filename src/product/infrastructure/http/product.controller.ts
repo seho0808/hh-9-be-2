@@ -1,4 +1,11 @@
-import { Controller, Get, Param, Query, UseGuards } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  UseGuards,
+  UseFilters,
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
@@ -6,7 +13,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from "@nestjs/swagger";
-import { ProductMockService } from "./services/product.mock.service";
+import { ProductApplicationService } from "@/product/application/services/product.service";
 import {
   ProductResponseDto,
   ProductQueryDto,
@@ -15,15 +22,20 @@ import {
 import {
   ApiResponseDto,
   PaginatedResponseDto,
-} from "../common/dto/response.dto";
+} from "@/common/dto/response.dto";
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
+import { Product } from "@/product/domain/entities/product.entity";
+import { ProductExceptionFilter } from "./filters/product-exception.filter";
 
 @ApiTags("상품")
 @Controller("products")
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth("access-token")
+@UseFilters(ProductExceptionFilter)
 export class ProductController {
-  constructor(private readonly productService: ProductMockService) {}
+  constructor(
+    private readonly productApplicationService: ProductApplicationService
+  ) {}
 
   @Get()
   @ApiOperation({ summary: "전체 상품 조회" })
@@ -35,9 +47,26 @@ export class ProductController {
   async getAllProducts(
     @Query() query: ProductQueryDto
   ): Promise<ApiResponseDto<PaginatedResponseDto<ProductResponseDto>>> {
-    const result = await this.productService.getAllProducts(query);
+    const result = await this.productApplicationService.getAllProducts({
+      page: query.page,
+      limit: query.limit,
+      search: query.search,
+      isActive: query.isActive,
+    });
+
+    const responseProducts = result.products.map((product) =>
+      this.productToProductResponseDto(product)
+    );
+
+    const paginatedResult = new PaginatedResponseDto(
+      responseProducts,
+      result.total,
+      result.page,
+      result.limit
+    );
+
     return ApiResponseDto.success(
-      result,
+      paginatedResult,
       "상품 목록을 성공적으로 조회했습니다"
     );
   }
@@ -50,7 +79,10 @@ export class ProductController {
     type: [PopularProductDto],
   })
   async getPopularProducts(): Promise<ApiResponseDto<PopularProductDto[]>> {
-    const result = await this.productService.getPopularProducts();
+    const popularProducts =
+      await this.productApplicationService.getPopularProducts();
+    const result = popularProducts;
+
     return ApiResponseDto.success(
       result,
       "인기 상품을 성공적으로 조회했습니다"
@@ -76,7 +108,25 @@ export class ProductController {
   async getProductById(
     @Param("productId") productId: string
   ): Promise<ApiResponseDto<ProductResponseDto>> {
-    const result = await this.productService.getProductById(productId);
+    const product =
+      await this.productApplicationService.getProductById(productId);
+    const result = this.productToProductResponseDto(product);
+
     return ApiResponseDto.success(result, "상품을 성공적으로 조회했습니다");
+  }
+
+  private productToProductResponseDto(product: Product): ProductResponseDto {
+    return {
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      totalStock: product.totalStock,
+      reservedStock: product.reservedStock,
+      isActive: product.isActive,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+      availableStock: product.getAvailableStock(),
+    };
   }
 }
