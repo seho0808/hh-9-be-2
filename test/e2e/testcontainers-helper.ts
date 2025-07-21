@@ -1,9 +1,10 @@
-import { INestApplication } from "@nestjs/common";
+import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { MySqlContainer, StartedMySqlContainer } from "@testcontainers/mysql";
 import { AppModule } from "../../src/app.module";
 import { UserTypeOrmEntity } from "../../src/user/infrastructure/persistence/orm/user.typeorm.entity";
+import { ProductTypeOrmEntity } from "../../src/product/infrastructure/persistence/orm/product.typeorm.entity";
 import { DataSource } from "typeorm";
 import * as request from "supertest";
 
@@ -56,7 +57,7 @@ export class TestContainersHelper {
           username: this.mysqlContainer.getUsername(),
           password: this.mysqlContainer.getUserPassword(),
           database: this.mysqlContainer.getDatabase(),
-          entities: [UserTypeOrmEntity],
+          entities: [UserTypeOrmEntity, ProductTypeOrmEntity],
           synchronize: true,
           dropSchema: true,
           logging: false, // 테스트 시 로깅 비활성화
@@ -71,6 +72,15 @@ export class TestContainersHelper {
     // NestJS 앱 생성 및 초기화
     this.app = moduleFixture.createNestApplication();
     this.app.setGlobalPrefix("api");
+
+    // ValidationPipe 설정 (main.ts와 동일)
+    this.app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        transform: true,
+        forbidNonWhitelisted: true,
+      })
+    );
 
     await this.app.init();
 
@@ -106,7 +116,7 @@ export class TestContainersHelper {
 
   static async clearDatabase(dataSource: DataSource): Promise<void> {
     // 테스트 간 데이터 정리
-    const tables = ["users"]; // 필요에 따라 테이블 추가
+    const tables = ["users", "products"]; // 필요에 따라 테이블 추가
 
     for (const table of tables) {
       try {

@@ -13,7 +13,7 @@ import {
   OrderItemResponseDto,
 } from "../dto/order.dto";
 import { PaginatedResponseDto } from "../../common/dto/response.dto";
-import { ProductMockService } from "../../product/services/product.mock.service";
+import { ProductApplicationService } from "../../product/application/services/product.service";
 import { WalletMockService } from "../../wallet/services/wallet.mock.service";
 import { CouponMockService } from "../../coupon/services/coupon.mock.service";
 
@@ -96,7 +96,7 @@ export class OrderMockService {
   private orderItemIdCounter = 3;
 
   constructor(
-    private readonly productService: ProductMockService,
+    private readonly productService: ProductApplicationService,
     private readonly walletService: WalletMockService,
     private readonly couponService: CouponMockService
   ) {}
@@ -136,9 +136,9 @@ export class OrderMockService {
         );
       }
 
-      if (product.availableStock < item.quantity) {
+      if (product.getAvailableStock() < item.quantity) {
         throw new BadRequestException(
-          `상품 '${product.name}'의 재고가 부족합니다 (요청: ${item.quantity}, 재고: ${product.availableStock})`
+          `상품 '${product.name}'의 재고가 부족합니다 (요청: ${item.quantity}, 재고: ${product.getAvailableStock()})`
         );
       }
 
