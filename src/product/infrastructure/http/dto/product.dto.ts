@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsOptional, IsString, IsBoolean, Min, Max } from "class-validator";
 import { Type } from "class-transformer";
+import { Product } from "@/product/domain/entities/product.entity";
 
 export class ProductResponseDto {
   @ApiProperty({ description: "상품 ID" })
@@ -32,6 +33,22 @@ export class ProductResponseDto {
 
   @ApiProperty({ description: "사용 가능한 재고" })
   availableStock: number;
+
+  static fromProduct(product: Product): ProductResponseDto {
+    const props = product.toPersistence();
+    return {
+      id: props.id,
+      name: props.name,
+      description: props.description,
+      price: props.price,
+      totalStock: props.totalStock,
+      reservedStock: props.reservedStock,
+      isActive: props.isActive,
+      createdAt: props.createdAt,
+      updatedAt: props.updatedAt,
+      availableStock: product.getAvailableStock(),
+    };
+  }
 }
 
 export class ProductQueryDto {

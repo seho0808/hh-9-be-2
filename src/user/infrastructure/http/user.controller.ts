@@ -49,18 +49,8 @@ export class UserController {
   ): Promise<ApiResponseDto<UserResponseDto>> {
     const result = await this.userApplicationService.getUserById(user.id);
     return ApiResponseDto.success(
-      this.userToUserResponseDto(result),
+      UserResponseDto.fromUser(result),
       "사용자 정보 조회에 성공했습니다"
     );
-  }
-
-  private userToUserResponseDto(user: User): UserResponseDto {
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
   }
 }
