@@ -50,7 +50,7 @@ describe("Order API E2E (with TestContainers)", () => {
   });
 
   describe("POST /api/orders", () => {
-    it("✅ 정상적인 주문 생성 및 결제가 이루어져야 함", async () => {
+    it("정상적인 주문을 생성할 때 주문 생성 및 결제가 이루어져야 함", async () => {
       // Given: 주문에 필요한 상품과 사용자 잔액 준비
       const testProduct = await ProductFactory.createAndSave(
         productRepository,
@@ -110,7 +110,7 @@ describe("Order API E2E (with TestContainers)", () => {
       expect(orders[0].status).toBe("SUCCESS");
     });
 
-    it("❌ 토큰 없이 접근하면 401 에러가 발생해야 함", async () => {
+    it("토큰 없이 접근할 때 401 에러가 발생해야 함", async () => {
       // When: 토큰 없이 주문 생성 시도
       const response = await request(app.getHttpServer())
         .post("/api/orders")
@@ -130,7 +130,7 @@ describe("Order API E2E (with TestContainers)", () => {
   });
 
   describe("GET /api/orders/:orderId", () => {
-    it("✅ 특정 주문을 상세 조회할 수 있어야 함", async () => {
+    it("특정 주문을 상세 조회할 때 올바른 주문 정보가 반환되어야 함", async () => {
       // Given: 테스트 주문 생성
       const testOrder = await OrderFactory.createAndSave(orderRepository, {
         id: "test-order-detail",
@@ -174,7 +174,7 @@ describe("Order API E2E (with TestContainers)", () => {
       expect(response.body.message).toBe("주문 정보를 조회했습니다");
     });
 
-    it("❌ 존재하지 않는 주문 조회 시 404 에러가 발생해야 함", async () => {
+    it("존재하지 않는 주문을 조회할 때 404 에러가 발생해야 함", async () => {
       // Given: 인증 헤더 준비
       const authHeaders = await testHelper.getAuthHeaders(app);
 
@@ -190,7 +190,7 @@ describe("Order API E2E (with TestContainers)", () => {
   });
 
   describe("GET /api/users/me/orders", () => {
-    it("✅ 내 주문 목록을 조회할 수 있어야 함", async () => {
+    it("내 주문 목록을 조회할 때 올바른 목록이 반환되어야 함", async () => {
       // Given: 사용자의 주문들 생성
       const userId = "user-123";
       await OrderFactory.createManyAndSave(orderRepository, 3, {
@@ -222,7 +222,7 @@ describe("Order API E2E (with TestContainers)", () => {
       });
     });
 
-    it("✅ 주문이 없는 경우 빈 배열을 반환해야 함", async () => {
+    it("주문이 없는 경우 조회할 때 빈 배열이 반환되어야 함", async () => {
       // Given: 주문이 없는 사용자
       const authHeaders = await testHelper.getAuthHeaders(app);
 
@@ -237,7 +237,7 @@ describe("Order API E2E (with TestContainers)", () => {
       expect(response.body.data).toHaveLength(0);
     });
 
-    it("❌ 토큰 없이 접근하면 401 에러가 발생해야 함", async () => {
+    it("토큰 없이 접근할 때 401 에러가 발생해야 함", async () => {
       // When: 토큰 없이 내 주문 목록 조회 시도
       const response = await request(app.getHttpServer())
         .get("/api/users/me/orders")
