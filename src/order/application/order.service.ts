@@ -212,6 +212,7 @@ export class OrderApplicationService {
 
         // 재고 확정
         await Promise.all(
+          // TODO: 한 번의 쿼리로 변경되도록 use-case 수정 필요함.
           stockReservationIds.map((stockReservationId) =>
             this.productApplicationService.confirmStock(
               {
@@ -250,6 +251,7 @@ export class OrderApplicationService {
   }) {
     await this.transactionService.runWithTransaction(async (manager) => {
       // 재고 예약 취소
+      // TODO: 한 번의 쿼리로 변경되도록 use-case 수정 필요함.
       await Promise.all(
         stockReservationIds.map((stockReservationId) =>
           this.productApplicationService.releaseStock(
