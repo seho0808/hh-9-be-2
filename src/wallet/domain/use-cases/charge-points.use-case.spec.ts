@@ -65,11 +65,9 @@ describe("ChargePointsUseCase", () => {
 
         // then
         expect(result.userBalance.balance).toBe(currentBalance + chargeAmount);
-        expect(result.pointTransaction.toPersistence().amount).toBe(
-          chargeAmount
-        );
-        expect(result.pointTransaction.toPersistence().type).toBe("CHARGE");
-        expect(result.pointTransaction.toPersistence().userId).toBe(mockUserId);
+        expect(result.pointTransaction.amount).toBe(chargeAmount);
+        expect(result.pointTransaction.type).toBe("CHARGE");
+        expect(result.pointTransaction.userId).toBe(mockUserId);
       });
     }
   );

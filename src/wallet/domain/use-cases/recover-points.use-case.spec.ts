@@ -74,11 +74,9 @@ describe("RecoverPointsUseCase", () => {
 
         // then
         expect(result.userBalance.balance).toBe(currentBalance + recoverAmount);
-        expect(result.pointTransaction.toPersistence().amount).toBe(
-          recoverAmount
-        );
-        expect(result.pointTransaction.toPersistence().type).toBe("RECOVER");
-        expect(result.pointTransaction.toPersistence().userId).toBe(mockUserId);
+        expect(result.pointTransaction.amount).toBe(recoverAmount);
+        expect(result.pointTransaction.type).toBe("RECOVER");
+        expect(result.pointTransaction.userId).toBe(mockUserId);
       });
     }
   );

@@ -131,4 +131,8 @@ export class Order {
   get updatedAt(): Date {
     return this.props.updatedAt;
   }
+
+  get orderItems(): OrderItem[] {
+    return this.props.OrderItems;
+  }
 }
