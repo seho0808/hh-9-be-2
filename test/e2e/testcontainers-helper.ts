@@ -5,6 +5,9 @@ import { MySqlContainer, StartedMySqlContainer } from "@testcontainers/mysql";
 import { AppModule } from "../../src/app.module";
 import { UserTypeOrmEntity } from "../../src/user/infrastructure/persistence/orm/user.typeorm.entity";
 import { ProductTypeOrmEntity } from "../../src/product/infrastructure/persistence/orm/product.typeorm.entity";
+import { StockReservationTypeOrmEntity } from "../../src/product/infrastructure/persistence/orm/stock-reservations.typeorm.entity";
+import { CouponTypeOrmEntity } from "../../src/coupon/infrastructure/persistence/orm/coupon.typeorm.entity";
+import { UserCouponTypeOrmEntity } from "../../src/coupon/infrastructure/persistence/orm/user-coupon.typeorm.entity";
 import { DataSource } from "typeorm";
 import * as request from "supertest";
 
@@ -60,7 +63,13 @@ export class TestContainersHelper {
           username: this.mysqlContainer.getUsername(),
           password: this.mysqlContainer.getUserPassword(),
           database: this.mysqlContainer.getDatabase(),
-          entities: [UserTypeOrmEntity, ProductTypeOrmEntity],
+          entities: [
+            UserTypeOrmEntity,
+            ProductTypeOrmEntity,
+            StockReservationTypeOrmEntity,
+            CouponTypeOrmEntity,
+            UserCouponTypeOrmEntity,
+          ],
           synchronize: true,
           dropSchema: true,
           logging: false, // 테스트 시 로깅 비활성화
@@ -126,7 +135,13 @@ export class TestContainersHelper {
   }
 
   async clearDatabase(dataSource: DataSource): Promise<void> {
-    const tables = ["users", "products"];
+    const tables = [
+      "users",
+      "products",
+      "stock_reservations",
+      "coupons",
+      "user_coupons",
+    ];
 
     try {
       await dataSource.query("SET FOREIGN_KEY_CHECKS = 0");
