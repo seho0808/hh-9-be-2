@@ -1,6 +1,5 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { UserBalance } from "../entities/user-balance.entity";
-import { UserBalanceNotFoundError } from "../exceptions/point.exception";
 import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
 
 export interface GetUserPointsUseCaseCommand {
@@ -26,7 +25,6 @@ export class GetUserPointsUseCase {
     const userBalance = await this.userBalanceRepository.findByUserId(userId);
 
     if (!userBalance) {
-      // Return a default balance of 0 instead of throwing an error
       const defaultBalance = UserBalance.create({
         userId,
         balance: 0,

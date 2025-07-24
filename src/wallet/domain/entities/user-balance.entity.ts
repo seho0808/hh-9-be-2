@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import {
   InvalidChargeAmountError,
   InvalidUseAmountError,
-} from "../exceptions/point.exception";
+} from "../exceptions/point.exceptions";
 
 export interface UserBalanceProps {
   id: string;

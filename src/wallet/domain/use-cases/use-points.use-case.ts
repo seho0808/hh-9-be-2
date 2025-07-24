@@ -4,7 +4,7 @@ import { UserBalance } from "../entities/user-balance.entity";
 import {
   InsufficientPointBalanceError,
   UserBalanceNotFoundError,
-} from "../exceptions/point.exception";
+} from "../exceptions/point.exceptions";
 import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository";
 import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
 

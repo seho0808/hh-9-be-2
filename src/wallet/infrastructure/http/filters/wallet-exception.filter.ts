@@ -12,7 +12,7 @@ import {
   InsufficientPointBalanceError,
   InvalidChargeAmountError,
   InvalidUseAmountError,
-} from "@/wallet/domain/exceptions/point.exception";
+} from "@/wallet/domain/exceptions/point.exceptions";
 
 @Catch(PointDomainError, BadRequestException)
 export class WalletExceptionFilter implements ExceptionFilter {

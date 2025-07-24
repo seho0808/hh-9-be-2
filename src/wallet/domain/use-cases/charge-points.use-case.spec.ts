@@ -3,7 +3,7 @@ import { UserBalance } from "../entities/user-balance.entity";
 import {
   InvalidChargeAmountError,
   UserBalanceNotFoundError,
-} from "../exceptions/point.exception";
+} from "../exceptions/point.exceptions";
 import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
 import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository";
 
