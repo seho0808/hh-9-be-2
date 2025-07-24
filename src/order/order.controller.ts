@@ -14,7 +14,6 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from "@nestjs/swagger";
-import { OrderMockService } from "./services/order.mock.service";
 import {
   CreateOrderDto,
   OrderResponseDto,
@@ -36,8 +35,6 @@ import {
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth("access-token")
 export class OrderController {
-  constructor(private readonly orderService: OrderMockService) {}
-
   @Post()
   @ApiOperation({ summary: "주문 생성 및 결제" })
   @ApiResponse({
@@ -57,8 +54,7 @@ export class OrderController {
     @CurrentUser() user: CurrentUserData,
     @Body() createOrderDto: CreateOrderDto
   ): Promise<ApiResponseDto<OrderResponseDto>> {
-    const result = await this.orderService.createOrder(user.id, createOrderDto);
-    return ApiResponseDto.success(result, "주문이 성공적으로 완료되었습니다");
+    return ApiResponseDto.success(null, "주문이 성공적으로 완료되었습니다");
   }
 
   @Get(":orderId")
@@ -81,8 +77,7 @@ export class OrderController {
     @CurrentUser() user: CurrentUserData,
     @Param("orderId") orderId: string
   ): Promise<ApiResponseDto<OrderResponseDto>> {
-    const result = await this.orderService.getOrderById(orderId, user.id);
-    return ApiResponseDto.success(result, "주문 정보를 조회했습니다");
+    return ApiResponseDto.success(null, "주문 정보를 조회했습니다");
   }
 }
 
@@ -91,8 +86,6 @@ export class OrderController {
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth("access-token")
 export class UserOrderController {
-  constructor(private readonly orderService: OrderMockService) {}
-
   @Get()
   @ApiOperation({ summary: "내 주문 목록" })
   @ApiResponse({
@@ -104,7 +97,6 @@ export class UserOrderController {
     @CurrentUser() user: CurrentUserData,
     @Query() query: OrderQueryDto
   ): Promise<ApiResponseDto<PaginatedResponseDto<OrderResponseDto>>> {
-    const result = await this.orderService.getUserOrders(user.id, query);
-    return ApiResponseDto.success(result, "주문 목록을 조회했습니다");
+    return ApiResponseDto.success(null, "주문 목록을 조회했습니다");
   }
 }

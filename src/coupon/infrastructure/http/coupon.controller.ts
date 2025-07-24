@@ -4,8 +4,8 @@ import {
   Post,
   Param,
   Body,
-  Query,
   UseGuards,
+  UseFilters,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -14,44 +14,40 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from "@nestjs/swagger";
-import { CouponMockService } from "./services/coupon.mock.service";
 import {
   CouponResponseDto,
   UserCouponResponseDto,
   ClaimCouponDto,
-  CouponQueryDto,
 } from "./dto/coupon.dto";
-import {
-  ApiResponseDto,
-  PaginatedResponseDto,
-} from "../common/dto/response.dto";
+import { ApiResponseDto } from "@/common/dto/response.dto";
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
 import {
   CurrentUser,
   CurrentUserData,
-} from "../common/decorators/current-user.decorator";
+} from "@/common/decorators/current-user.decorator";
+import { CouponApplicationService } from "@/coupon/application/services/coupon.service";
+import { CouponExceptionFilter } from "./filters/coupon-exception.filter";
 
 @ApiTags("쿠폰")
 @Controller("coupons")
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth("access-token")
+@UseFilters(CouponExceptionFilter)
 export class CouponController {
-  constructor(private readonly couponService: CouponMockService) {}
+  constructor(private readonly couponService: CouponApplicationService) {}
 
   @Get()
-  @ApiOperation({ summary: "사용 가능 쿠폰 목록" })
+  @ApiOperation({ summary: "전체 쿠폰 목록" })
   @ApiResponse({
     status: 200,
     description: "쿠폰 목록 조회 성공",
-    type: PaginatedResponseDto<CouponResponseDto>,
+    type: [CouponResponseDto],
   })
-  async getAvailableCoupons(
-    @Query() query: CouponQueryDto
-  ): Promise<ApiResponseDto<PaginatedResponseDto<CouponResponseDto>>> {
-    const result = await this.couponService.getAvailableCoupons(query);
+  async getAllCoupons(): Promise<ApiResponseDto<CouponResponseDto[]>> {
+    const result = await this.couponService.getAllCoupons();
     return ApiResponseDto.success(
-      result,
-      "사용 가능한 쿠폰 목록을 조회했습니다"
+      result.map(CouponResponseDto.fromCoupon),
+      "쿠폰 목록을 조회했습니다"
     );
   }
 
@@ -75,7 +71,10 @@ export class CouponController {
     @Param("couponId") couponId: string
   ): Promise<ApiResponseDto<CouponResponseDto>> {
     const result = await this.couponService.getCouponById(couponId);
-    return ApiResponseDto.success(result, "쿠폰 정보를 조회했습니다");
+    return ApiResponseDto.success(
+      CouponResponseDto.fromCoupon(result),
+      "쿠폰 정보를 조회했습니다"
+    );
   }
 
   @Post(":couponId/claims")
@@ -103,33 +102,14 @@ export class CouponController {
     @Param("couponId") couponId: string,
     @Body() claimDto: ClaimCouponDto
   ): Promise<ApiResponseDto<UserCouponResponseDto>> {
-    const result = await this.couponService.claimCoupon(
-      user.id,
+    const result = await this.couponService.issueUserCoupon({
       couponId,
-      claimDto
+      userId: user.id,
+      couponCode: claimDto.couponCode,
+    });
+    return ApiResponseDto.success(
+      UserCouponResponseDto.fromUserCoupon(result),
+      "쿠폰이 성공적으로 발급되었습니다"
     );
-    return ApiResponseDto.success(result, "쿠폰이 성공적으로 발급되었습니다");
-  }
-}
-
-@ApiTags("사용자 쿠폰")
-@Controller("users/me/coupons")
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth("access-token")
-export class UserCouponController {
-  constructor(private readonly couponService: CouponMockService) {}
-
-  @Get()
-  @ApiOperation({ summary: "내가 가진 쿠폰 목록" })
-  @ApiResponse({
-    status: 200,
-    description: "보유 쿠폰 조회 성공",
-    type: [UserCouponResponseDto],
-  })
-  async getMyCoupons(
-    @CurrentUser() user: CurrentUserData
-  ): Promise<ApiResponseDto<UserCouponResponseDto[]>> {
-    const result = await this.couponService.getUserCoupons(user.id);
-    return ApiResponseDto.success(result, "보유 쿠폰 목록을 조회했습니다");
   }
 }

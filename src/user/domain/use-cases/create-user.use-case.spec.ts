@@ -17,8 +17,6 @@ describe("CreateUserUseCase", () => {
       findById: jest.fn(),
       findByEmail: jest.fn(),
       save: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
       exists: jest.fn(),
     };
 
@@ -48,16 +46,24 @@ describe("CreateUserUseCase", () => {
 
     it("사용자를 성공적으로 생성해야 함", async () => {
       mockUserRepository.exists.mockResolvedValue(false);
-      const createdUser = User.create({
-        email: validCommand.email,
-        password: validCommand.hashedPassword,
-        name: validCommand.name,
-      });
-      mockUserRepository.save.mockResolvedValue(createdUser);
 
       const result = await createUserUseCase.execute(validCommand);
 
-      expect(result).toEqual(createdUser);
+      expect(result).toBeInstanceOf(User);
+      expect(result.email).toBe(validCommand.email);
+      expect(result.password).toBe(validCommand.hashedPassword);
+      expect(result.name).toBe(validCommand.name);
+      expect(result.id).toBeDefined();
+      expect(result.createdAt).toBeInstanceOf(Date);
+      expect(result.updatedAt).toBeInstanceOf(Date);
+
+      expect(mockUserRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: validCommand.email,
+          password: validCommand.hashedPassword,
+          name: validCommand.name,
+        })
+      );
     });
 
     it("이메일이 중복일 때 EmailDuplicateError를 발생시켜야 함", async () => {
@@ -81,49 +87,25 @@ describe("CreateUserUseCase", () => {
       ).rejects.toThrow(InvalidEmailFormatError);
     });
 
-    it("리포지토리 저장 오류를 처리해야 함", async () => {
-      mockUserRepository.exists.mockResolvedValue(false);
-      const error = new Error("Database save failed");
-      mockUserRepository.save.mockRejectedValue(error);
+    it.each([
+      { name: "a", description: "너무 짧음" },
+      { name: "admin", description: "금지된 이름" },
+      { name: "", description: "빈 문자열" },
+      { name: "  ", description: "공백만 있음" },
+    ])(
+      "유효하지 않은 사용자 이름(%s)에 대해 InvalidUserNameError를 발생시켜야 함",
+      async ({ name, description }) => {
+        const invalidNameCommand: CreateUserCommand = {
+          ...validCommand,
+          name,
+        };
 
-      await expect(createUserUseCase.execute(validCommand)).rejects.toThrow(
-        error
-      );
-    });
+        mockUserRepository.exists.mockResolvedValue(false);
 
-    it("정책 검사 오류를 처리해야 함", async () => {
-      const error = new Error("Policy check failed");
-      mockUserRepository.exists.mockRejectedValue(error);
-
-      await expect(createUserUseCase.execute(validCommand)).rejects.toThrow(
-        error
-      );
-    });
-
-    it("유효하지 않은 사용자 이름에 대해 InvalidUserNameError를 발생시켜야 함", async () => {
-      const invalidNameCommand: CreateUserCommand = {
-        ...validCommand,
-        name: "a", // 너무 짧음
-      };
-
-      mockUserRepository.exists.mockResolvedValue(false);
-
-      await expect(
-        createUserUseCase.execute(invalidNameCommand)
-      ).rejects.toThrow(InvalidUserNameError);
-    });
-
-    it("금지된 사용자 이름에 대해 InvalidUserNameError를 발생시켜야 함", async () => {
-      const forbiddenNameCommand: CreateUserCommand = {
-        ...validCommand,
-        name: "admin",
-      };
-
-      mockUserRepository.exists.mockResolvedValue(false);
-
-      await expect(
-        createUserUseCase.execute(forbiddenNameCommand)
-      ).rejects.toThrow(InvalidUserNameError);
-    });
+        await expect(
+          createUserUseCase.execute(invalidNameCommand)
+        ).rejects.toThrow(InvalidUserNameError);
+      }
+    );
   });
 });

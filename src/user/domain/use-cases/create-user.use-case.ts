@@ -42,7 +42,9 @@ export class CreateUserUseCase {
       name,
     });
 
-    return this.userRepository.save(user);
+    await this.userRepository.save(user);
+
+    return user;
   }
 
   private async isEmailDuplicate(email: string): Promise<boolean> {
