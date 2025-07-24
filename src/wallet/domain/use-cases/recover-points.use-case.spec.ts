@@ -6,8 +6,8 @@ import {
   PointTransactionNotFoundError,
   UserBalanceNotFoundError,
 } from "../exceptions/point.exceptions";
-import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
-import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository";
+import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository.interface";
+import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository.interface";
 import { v4 as uuidv4 } from "uuid";
 
 describe("RecoverPointsUseCase", () => {
@@ -74,11 +74,9 @@ describe("RecoverPointsUseCase", () => {
 
         // then
         expect(result.userBalance.balance).toBe(currentBalance + recoverAmount);
-        expect(result.pointTransaction.toPersistence().amount).toBe(
-          recoverAmount
-        );
-        expect(result.pointTransaction.toPersistence().type).toBe("RECOVER");
-        expect(result.pointTransaction.toPersistence().userId).toBe(mockUserId);
+        expect(result.pointTransaction.amount).toBe(recoverAmount);
+        expect(result.pointTransaction.type).toBe("RECOVER");
+        expect(result.pointTransaction.userId).toBe(mockUserId);
       });
     }
   );

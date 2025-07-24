@@ -55,7 +55,7 @@ export class ProductController {
     });
 
     const responseProducts = result.products.map((product) =>
-      ProductResponseDto.fromProduct(product)
+      ProductResponseDto.fromEntity(product)
     );
 
     const paginatedResult = new PaginatedResponseDto(
@@ -83,7 +83,7 @@ export class ProductController {
       await this.productApplicationService.getPopularProducts();
 
     const result = popularProducts.map((item) =>
-      PopularProductDto.fromProductWithStats(
+      PopularProductDto.fromEntity(
         item.product,
         item.statistics.totalQuantity,
         item.statistics.totalOrders
@@ -117,7 +117,7 @@ export class ProductController {
   ): Promise<ApiResponseDto<ProductResponseDto>> {
     const product =
       await this.productApplicationService.getProductById(productId);
-    const result = ProductResponseDto.fromProduct(product);
+    const result = ProductResponseDto.fromEntity(product);
 
     return ApiResponseDto.success(result, "상품을 성공적으로 조회했습니다");
   }

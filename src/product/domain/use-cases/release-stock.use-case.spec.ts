@@ -41,7 +41,6 @@ describe("ReleaseStockUseCase", () => {
     useCase = module.get<ReleaseStockUseCase>(ReleaseStockUseCase);
   });
 
-  // TODO: test each 유틸 함수 만들면 예쁘게 리팩토링 가능할듯함.
   const testCases: Array<
     [
       total: number,

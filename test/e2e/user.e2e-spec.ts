@@ -24,7 +24,7 @@ describe("User API E2E (with TestContainers)", () => {
   });
 
   describe("GET /api/users/me", () => {
-    it("✅ 유효한 토큰으로 사용자 정보를 조회할 수 있어야 함", async () => {
+    it("유효한 토큰으로 사용자 정보를 조회할 때 올바른 정보가 반환되어야 함", async () => {
       // Given: 테스트 사용자 생성
       const testUser = await testHelper.createTestUser(dataSource);
 
@@ -46,7 +46,7 @@ describe("User API E2E (with TestContainers)", () => {
       expect(response.body.message).toBe("사용자 정보 조회에 성공했습니다");
     });
 
-    it("❌ 토큰 없이 접근하면 401 에러가 발생해야 함", async () => {
+    it("토큰 없이 접근할 때 401 에러가 발생해야 함", async () => {
       // When: 토큰 없이 내 정보 조회 시도
       const response = await request(app.getHttpServer())
         .get("/api/users/me")
@@ -56,7 +56,7 @@ describe("User API E2E (with TestContainers)", () => {
       expect(response.body.message).toBe("토큰이 필요합니다");
     });
 
-    it("❌ 잘못된 토큰으로 접근하면 401 에러가 발생해야 함", async () => {
+    it("잘못된 토큰으로 접근할 때 401 에러가 발생해야 함", async () => {
       // When: 잘못된 토큰으로 내 정보 조회 시도
       const response = await request(app.getHttpServer())
         .get("/api/users/me")
@@ -67,7 +67,7 @@ describe("User API E2E (with TestContainers)", () => {
       expect(response.body.message).toBe("유효하지 않은 토큰입니다");
     });
 
-    it("❌ Bearer 형식이 아닌 토큰으로 접근하면 401 에러가 발생해야 함", async () => {
+    it("Bearer 형식이 아닌 토큰으로 접근할 때 401 에러가 발생해야 함", async () => {
       // When: 잘못된 형식의 토큰으로 접근
       const response = await request(app.getHttpServer())
         .get("/api/users/me")
@@ -78,7 +78,7 @@ describe("User API E2E (with TestContainers)", () => {
       expect(response.body.message).toBe("토큰이 필요합니다");
     });
 
-    it("❌ 유효한 토큰이지만 사용자가 DB에 존재하지 않으면 404 에러가 발생해야 함", async () => {
+    it("유효한 토큰이지만 사용자가 DB에 존재하지 않을 때 404 에러가 발생해야 함", async () => {
       // Given: 로그인을 위한 사용자를 먼저 생성한 후 삭제
       await testHelper.createTestUser(dataSource);
       const authHeaders = await testHelper.getAuthHeaders(app);
@@ -94,7 +94,7 @@ describe("User API E2E (with TestContainers)", () => {
       expect(response.body.message).toBe("사용자를 찾을 수 없습니다");
     });
 
-    it("🔄 여러 사용자 데이터로 테스트", async () => {
+    it("여러 사용자 데이터로 테스트할 때 올바른 사용자 정보가 반환되어야 함", async () => {
       // Given: 기본 테스트 사용자 생성 (test@example.com)
       await testHelper.createTestUser(dataSource, {
         id: "user-123",
@@ -123,7 +123,7 @@ describe("User API E2E (with TestContainers)", () => {
   });
 
   describe("Database Integration", () => {
-    it("🔧 DB 연결 상태 및 테이블 구조 확인", async () => {
+    it("DB 연결 상태 및 테이블 구조를 확인할 때 정상 동작해야 함", async () => {
       // DB 연결 확인
       const isConnected = await testHelper.verifyDatabaseConnection(dataSource);
       expect(isConnected).toBe(true);
@@ -143,7 +143,7 @@ describe("User API E2E (with TestContainers)", () => {
       expect(columnNames).toContain("name");
     });
 
-    it("📊 사용자 생성 후 조회가 제대로 동작해야 함", async () => {
+    it("사용자 생성 후 조회할 때 제대로 동작해야 함", async () => {
       // Given: 헬퍼를 사용해 테스트 사용자 생성
       const userData = await testHelper.createTestUser(dataSource, {
         id: "test-user-789",
@@ -163,7 +163,7 @@ describe("User API E2E (with TestContainers)", () => {
       expect(dbResult[0].name).toBe(userData.name);
     });
 
-    it("🔍 이메일 고유성 제약조건 테스트", async () => {
+    it("이메일 고유성 제약조건을 테스트할 때 중복 시 에러가 발생해야 함", async () => {
       // Given: 첫 번째 사용자 생성
       await testHelper.createTestUser(dataSource, {
         id: "user-001",

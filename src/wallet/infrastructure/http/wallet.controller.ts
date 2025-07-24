@@ -50,7 +50,7 @@ export class WalletController {
   ): Promise<ApiResponseDto<BalanceResponseDto>> {
     const result = await this.walletApplicationService.getUserPoints(user.id);
     return ApiResponseDto.success(
-      BalanceResponseDto.fromUserBalance(result.userBalance),
+      BalanceResponseDto.fromEntity(result.userBalance),
       "잔액을 성공적으로 조회했습니다"
     );
   }
@@ -76,10 +76,7 @@ export class WalletController {
       chargeDto.idempotencyKey ?? uuidv4()
     );
     return ApiResponseDto.success(
-      ChargeResponseDto.fromPointTransaction(
-        result.userBalance,
-        result.pointTransaction
-      ),
+      ChargeResponseDto.fromEntity(result.userBalance, result.pointTransaction),
       "포인트 충전이 완료되었습니다"
     );
   }

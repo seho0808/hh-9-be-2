@@ -5,8 +5,8 @@ import {
   InsufficientPointBalanceError,
   UserBalanceNotFoundError,
 } from "../exceptions/point.exceptions";
-import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
-import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository";
+import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository.interface";
+import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository.interface";
 import { v4 as uuidv4 } from "uuid";
 
 describe("UsePointsUseCase", () => {
@@ -65,9 +65,9 @@ describe("UsePointsUseCase", () => {
 
         // then
         expect(result.userBalance.balance).toBe(currentBalance - useAmount);
-        expect(result.pointTransaction.toPersistence().amount).toBe(useAmount);
-        expect(result.pointTransaction.toPersistence().type).toBe("USE");
-        expect(result.pointTransaction.toPersistence().userId).toBe(mockUserId);
+        expect(result.pointTransaction.amount).toBe(useAmount);
+        expect(result.pointTransaction.type).toBe("USE");
+        expect(result.pointTransaction.userId).toBe(mockUserId);
       });
     }
   );

@@ -1,4 +1,4 @@
-import { PointTransactionRepositoryInterface } from "@/wallet/domain/interfaces/point-transaction.repository";
+import { PointTransactionRepositoryInterface } from "@/wallet/domain/interfaces/point-transaction.repository.interface";
 import { Injectable } from "@nestjs/common";
 import {
   PointTransactionType,

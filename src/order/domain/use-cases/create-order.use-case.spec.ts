@@ -79,7 +79,7 @@ describe("CreateOrderUseCase", () => {
         expect(result.order.discountPrice).toBe(0);
         expect(result.order.status).toBe(OrderStatus.PENDING);
         expect(result.order.idempotencyKey).toBe(idempotencyKey);
-        expect(result.order.toPersistence().OrderItems).toHaveLength(itemCount);
+        expect(result.order.orderItems).toHaveLength(itemCount);
       });
     }
   );
@@ -102,7 +102,7 @@ describe("CreateOrderUseCase", () => {
     // then
     expect(result.order.totalPrice).toBe(0);
     expect(result.order.finalPrice).toBe(0);
-    expect(result.order.toPersistence().OrderItems).toHaveLength(0);
+    expect(result.order.orderItems).toHaveLength(0);
   });
 
   it("주문 생성 시 초기 상태값들이 올바르게 설정되어야 한다", async () => {

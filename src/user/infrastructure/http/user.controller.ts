@@ -49,7 +49,7 @@ export class UserController {
   ): Promise<ApiResponseDto<UserResponseDto>> {
     const result = await this.userApplicationService.getUserById(user.id);
     return ApiResponseDto.success(
-      UserResponseDto.fromUser(result),
+      UserResponseDto.fromEntity(result),
       "사용자 정보 조회에 성공했습니다"
     );
   }

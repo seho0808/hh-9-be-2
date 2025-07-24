@@ -47,7 +47,7 @@ export class CouponController {
   async getAllCoupons(): Promise<ApiResponseDto<CouponResponseDto[]>> {
     const result = await this.couponService.getAllCoupons();
     return ApiResponseDto.success(
-      result.map(CouponResponseDto.fromCoupon),
+      result.map(CouponResponseDto.fromEntity),
       "쿠폰 목록을 조회했습니다"
     );
   }
@@ -73,7 +73,7 @@ export class CouponController {
   ): Promise<ApiResponseDto<CouponResponseDto>> {
     const result = await this.couponService.getCouponById(couponId);
     return ApiResponseDto.success(
-      CouponResponseDto.fromCoupon(result),
+      CouponResponseDto.fromEntity(result),
       "쿠폰 정보를 조회했습니다"
     );
   }
@@ -111,7 +111,7 @@ export class CouponController {
       idempotencyKey,
     });
     return ApiResponseDto.success(
-      UserCouponResponseDto.fromUserCoupon(result),
+      UserCouponResponseDto.fromEntity(result),
       "쿠폰이 성공적으로 발급되었습니다"
     );
   }

@@ -20,13 +20,13 @@ export class UserDto {
   name: string;
 
   @ApiProperty({
-    example: "2024-01-01T00:00:00.000Z",
+    example: "2024-01-15T10:30:00.000Z",
     description: "생성 일시",
   })
   createdAt: Date;
 
   @ApiProperty({
-    example: "2024-01-01T00:00:00.000Z",
+    example: "2024-01-15T10:30:00.000Z",
     description: "수정 일시",
   })
   updatedAt: Date;

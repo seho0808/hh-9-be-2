@@ -6,8 +6,8 @@ import {
   PointTransactionNotFoundError,
   UserBalanceNotFoundError,
 } from "../exceptions/point.exceptions";
-import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository";
-import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
+import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository.interface";
+import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository.interface";
 
 export interface RecoverPointsUseCaseCommand {
   userId: string;

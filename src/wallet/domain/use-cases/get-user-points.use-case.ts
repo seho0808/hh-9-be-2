@@ -1,6 +1,6 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { UserBalance } from "../entities/user-balance.entity";
-import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
+import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository.interface";
 
 export interface GetUserPointsUseCaseCommand {
   userId: string;

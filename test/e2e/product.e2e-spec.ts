@@ -45,7 +45,7 @@ describe("Product API E2E (with TestContainers)", () => {
   });
 
   describe("GET /api/products", () => {
-    it("✅ 전체 상품 목록을 조회할 수 있어야 함", async () => {
+    it("전체 상품 목록을 조회할 때 올바른 목록이 반환되어야 함", async () => {
       // Given: 테스트 상품들 생성
       await ProductFactory.createManyAndSave(productRepository, 3);
       const authHeaders = await testHelper.getAuthHeaders(app);
@@ -65,7 +65,7 @@ describe("Product API E2E (with TestContainers)", () => {
       expect(response.body.message).toBe("상품 목록을 성공적으로 조회했습니다");
     });
 
-    it("✅ 페이지네이션이 올바르게 동작해야 함", async () => {
+    it("페이지네이션으로 조회할 때 올바르게 동작해야 함", async () => {
       // Given: 테스트 상품들 생성 (5개)
       await ProductFactory.createManyAndSave(productRepository, 5);
       const authHeaders = await testHelper.getAuthHeaders(app);
@@ -83,7 +83,7 @@ describe("Product API E2E (with TestContainers)", () => {
       expect(response.body.data.limit).toBe(2);
     });
 
-    it("✅ 활성화 상태 필터가 올바르게 동작해야 함", async () => {
+    it("활성화 상태 필터로 조회할 때 올바르게 동작해야 함", async () => {
       // Given: 활성/비활성 상품들 생성
       await ProductFactory.createManyAndSave(productRepository, 3, {
         isActive: true,
@@ -106,7 +106,7 @@ describe("Product API E2E (with TestContainers)", () => {
       });
     });
 
-    it("✅ 검색 필터가 올바르게 동작해야 함", async () => {
+    it("검색 필터로 조회할 때 올바르게 동작해야 함", async () => {
       // Given: 특정 이름의 상품 생성
       await ProductFactory.createAndSave(productRepository, {
         id: "search-test-1",
@@ -131,7 +131,7 @@ describe("Product API E2E (with TestContainers)", () => {
       expect(response.body.data.items[0].name).toContain("iPhone");
     });
 
-    it("❌ 토큰 없이 접근하면 401 에러가 발생해야 함", async () => {
+    it("토큰 없이 접근할 때 401 에러가 발생해야 함", async () => {
       // When: 토큰 없이 상품 목록 조회 시도
       const response = await request(app.getHttpServer())
         .get("/api/products")
@@ -143,7 +143,7 @@ describe("Product API E2E (with TestContainers)", () => {
   });
 
   describe("GET /api/products/popular", () => {
-    it("✅ 인기 상품 목록을 조회할 수 있어야 함", async () => {
+    it("인기 상품 목록을 조회할 때 올바른 목록이 반환되어야 함", async () => {
       // Given: 테스트 상품들과 주문 데이터 생성
       const products = await ProductFactory.createManyAndSave(
         productRepository,
@@ -193,7 +193,7 @@ describe("Product API E2E (with TestContainers)", () => {
       });
     });
 
-    it("✅ 인기 상품은 최대 5개까지 반환되어야 함", async () => {
+    it("인기 상품을 조회할 때 최대 5개까지 반환되어야 함", async () => {
       // Given: 테스트 상품들과 주문 데이터 생성 (더 많은 상품을 생성하여 제한 테스트)
       const products = await ProductFactory.createManyAndSave(
         productRepository,
@@ -233,7 +233,7 @@ describe("Product API E2E (with TestContainers)", () => {
       expect(response.body.message).toBe("인기 상품을 성공적으로 조회했습니다");
     });
 
-    it("❌ 토큰 없이 접근하면 401 에러가 발생해야 함", async () => {
+    it("토큰 없이 접근할 때 401 에러가 발생해야 함", async () => {
       // When: 토큰 없이 인기 상품 조회 시도
       const response = await request(app.getHttpServer())
         .get("/api/products/popular")
@@ -245,7 +245,7 @@ describe("Product API E2E (with TestContainers)", () => {
   });
 
   describe("GET /api/products/:productId", () => {
-    it("✅ 특정 상품을 조회할 수 있어야 함", async () => {
+    it("특정 상품을 조회할 때 올바른 정보가 반환되어야 함", async () => {
       // Given: 테스트 상품 생성
       const testProduct = await ProductFactory.createAndSave(
         productRepository,
@@ -281,7 +281,7 @@ describe("Product API E2E (with TestContainers)", () => {
       expect(response.body.message).toBe("상품을 성공적으로 조회했습니다");
     });
 
-    it("❌ 존재하지 않는 상품 조회 시 404 에러가 발생해야 함", async () => {
+    it("존재하지 않는 상품을 조회할 때 404 에러가 발생해야 함", async () => {
       // Given: 인증 헤더 준비
       const authHeaders = await testHelper.getAuthHeaders(app);
 
@@ -295,7 +295,7 @@ describe("Product API E2E (with TestContainers)", () => {
       expect(response.body.message).toBe("상품을 찾을 수 없습니다");
     });
 
-    it("❌ 토큰 없이 접근하면 401 에러가 발생해야 함", async () => {
+    it("토큰 없이 접근할 때 401 에러가 발생해야 함", async () => {
       // Given: 테스트 상품 생성
       const testProduct = await ProductFactory.createAndSave(productRepository);
 
@@ -308,7 +308,7 @@ describe("Product API E2E (with TestContainers)", () => {
       expect(response.body.message).toBe("토큰이 필요합니다");
     });
 
-    it("❌ 잘못된 토큰으로 접근하면 401 에러가 발생해야 함", async () => {
+    it("잘못된 토큰으로 접근할 때 401 에러가 발생해야 함", async () => {
       // Given: 테스트 상품 생성
       const testProduct = await ProductFactory.createAndSave(productRepository);
 
@@ -324,7 +324,7 @@ describe("Product API E2E (with TestContainers)", () => {
   });
 
   describe("Database Integration", () => {
-    it("📊 상품 생성 후 조회가 제대로 동작해야 함", async () => {
+    it("상품 생성 후 조회할 때 제대로 동작해야 함", async () => {
       // Given: 헬퍼를 사용해 테스트 상품 생성
       const productData = await ProductFactory.createAndSave(
         productRepository,
@@ -351,7 +351,7 @@ describe("Product API E2E (with TestContainers)", () => {
       expect(dbResult!.totalStock).toBe(productData.totalStock);
     });
 
-    it("🔧 DB 연결 상태 및 테이블 구조 확인", async () => {
+    it("DB 연결 상태 및 테이블 구조를 확인할 때 정상 동작해야 함", async () => {
       // DB 연결 확인
       const isConnected = await testHelper.verifyDatabaseConnection(dataSource);
       expect(isConnected).toBe(true);
@@ -374,7 +374,7 @@ describe("Product API E2E (with TestContainers)", () => {
       expect(columnNames).toContain("is_active");
     });
 
-    it("🔍 상품명 고유성 제약조건 테스트", async () => {
+    it("상품명 고유성 제약조건을 테스트할 때 중복 시 에러가 발생해야 함", async () => {
       // Given: 첫 번째 상품 생성
       const duplicateName = "중복 테스트 상품";
       await ProductFactory.createAndSave(productRepository, {
@@ -393,7 +393,7 @@ describe("Product API E2E (with TestContainers)", () => {
       ).rejects.toThrow();
     });
 
-    it("🔄 여러 상품 데이터로 테스트", async () => {
+    it("여러 상품 데이터로 테스트할 때 각각 올바르게 조회되어야 함", async () => {
       // Given: 여러 테스트 상품들 생성
       const products = await ProductFactory.createManyAndSave(
         productRepository,

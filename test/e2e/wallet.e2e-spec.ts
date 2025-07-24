@@ -36,7 +36,7 @@ describe("Wallet API E2E (with TestContainers)", () => {
   });
 
   describe("GET /api/users/me/points/balance", () => {
-    it("✅ 내 잔액을 조회할 수 있어야 함", async () => {
+    it("내 잔액을 조회할 때 올바른 잔액 정보가 반환되어야 함", async () => {
       // Given: 테스트 사용자의 잔액 생성
       const testBalance = await UserBalanceFactory.createAndSave(
         userBalanceRepository,
@@ -62,7 +62,7 @@ describe("Wallet API E2E (with TestContainers)", () => {
       expect(response.body.message).toBe("잔액을 성공적으로 조회했습니다");
     });
 
-    it("✅ 지갑이 없는 경우 0원으로 반환되어야 함", async () => {
+    it("지갑이 없는 경우 잔액을 조회할 때 0원으로 반환되어야 함", async () => {
       // Given: 지갑이 없는 사용자
       const authHeaders = await testHelper.getAuthHeaders(app);
 
@@ -77,7 +77,7 @@ describe("Wallet API E2E (with TestContainers)", () => {
       expect(response.body.data.balance).toBe(0);
     });
 
-    it("❌ 토큰 없이 접근하면 401 에러가 발생해야 함", async () => {
+    it("토큰 없이 접근할 때 401 에러가 발생해야 함", async () => {
       // When: 토큰 없이 잔액 조회 시도
       const response = await request(app.getHttpServer())
         .get("/api/users/me/points/balance")
@@ -89,7 +89,7 @@ describe("Wallet API E2E (with TestContainers)", () => {
   });
 
   describe("POST /api/users/me/points/charges", () => {
-    it("✅ 포인트를 충전할 수 있어야 함", async () => {
+    it("유효한 금액으로 포인트를 충전할 때 충전이 성공적으로 이루어져야 함", async () => {
       // Given: 테스트 사용자의 잔액 생성
       const testBalance = await UserBalanceFactory.createAndSave(
         userBalanceRepository,
@@ -125,7 +125,7 @@ describe("Wallet API E2E (with TestContainers)", () => {
       expect(transactions[0].type).toBe("CHARGE");
     });
 
-    it("❌ 잘못된 충전 금액으로 요청하면 400 에러가 발생해야 함", async () => {
+    it("잘못된 충전 금액으로 요청할 때 400 에러가 발생해야 함", async () => {
       // Given: 인증 헤더 준비
       const authHeaders = await testHelper.getAuthHeaders(app);
 
@@ -141,7 +141,7 @@ describe("Wallet API E2E (with TestContainers)", () => {
       expect(response.body.message).toContain("최소 충전 금액은 1,000원입니다");
     });
 
-    it("❌ 토큰 없이 접근하면 401 에러가 발생해야 함", async () => {
+    it("토큰 없이 접근할 때 401 에러가 발생해야 함", async () => {
       // When: 토큰 없이 충전 시도
       const response = await request(app.getHttpServer())
         .post("/api/users/me/points/charges")
