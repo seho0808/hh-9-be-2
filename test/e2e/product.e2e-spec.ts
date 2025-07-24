@@ -292,7 +292,7 @@ describe("Product API E2E (with TestContainers)", () => {
         .expect(404);
 
       // Then: 상품을 찾을 수 없다는 에러 메시지가 반환되어야 함
-      expect(response.body.message).toBe("상품을 찾을 수 없습니다.");
+      expect(response.body.message).toBe("상품을 찾을 수 없습니다");
     });
 
     it("❌ 토큰 없이 접근하면 401 에러가 발생해야 함", async () => {
