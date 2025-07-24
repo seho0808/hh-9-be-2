@@ -1,5 +1,5 @@
 import { Injectable, Inject } from "@nestjs/common";
-import { DataSource } from "typeorm";
+import { DataSource, EntityManager } from "typeorm";
 import {
   ChargePointsUseCase,
   ChargePointsUseCaseResult,
@@ -26,11 +26,12 @@ import {
 } from "../domain/use-cases/validate-use-points.use-case";
 import { UserBalanceRepository } from "../infrastructure/persistence/use-balance.repository";
 import { PointTransactionRepository } from "../infrastructure/persistence/point-transaction.repository";
+import { TransactionService } from "@/common/services/transaction.service";
 
 @Injectable()
 export class WalletApplicationService {
   constructor(
-    private readonly dataSource: DataSource,
+    private readonly transactionService: TransactionService,
     @Inject("UserBalanceRepositoryInterface")
     private readonly userBalanceRepository: UserBalanceRepository,
     @Inject("PointTransactionRepositoryInterface")
@@ -60,7 +61,8 @@ export class WalletApplicationService {
   async usePoints(
     userId: string,
     amount: number,
-    idempotencyKey: string
+    idempotencyKey: string,
+    parentManager?: EntityManager
   ): Promise<UsePointsUseCaseResult> {
     return await this.executeInTransaction(async () => {
       return await this.usePointsUseCase.execute({
@@ -68,13 +70,14 @@ export class WalletApplicationService {
         amount,
         idempotencyKey,
       });
-    });
+    }, parentManager);
   }
 
   async recoverPoints(
     userId: string,
     amount: number,
-    idempotencyKey: string
+    idempotencyKey: string,
+    parentManager?: EntityManager
   ): Promise<RecoverPointsUseCaseResult> {
     return await this.executeInTransaction(async () => {
       return await this.recoverPointsUseCase.execute({
@@ -82,7 +85,7 @@ export class WalletApplicationService {
         amount,
         idempotencyKey,
       });
-    });
+    }, parentManager);
   }
 
   async getUserPoints(userId: string): Promise<GetUserPointsUseCaseResult> {
@@ -105,18 +108,18 @@ export class WalletApplicationService {
   }
 
   private async executeInTransaction<T>(
-    operation: () => Promise<T>
+    operation: (manager?: EntityManager) => Promise<T>,
+    parentManager?: EntityManager
   ): Promise<T> {
-    return await this.dataSource.transaction(async (manager) => {
-      this.userBalanceRepository.setEntityManager(manager);
-      this.pointTransactionRepository.setEntityManager(manager);
+    const repositories = [
+      this.userBalanceRepository,
+      this.pointTransactionRepository,
+    ];
 
-      try {
-        return await operation();
-      } finally {
-        this.userBalanceRepository.clearEntityManager();
-        this.pointTransactionRepository.clearEntityManager();
-      }
-    });
+    return await this.transactionService.executeInTransaction(
+      repositories,
+      operation,
+      parentManager
+    );
   }
 }

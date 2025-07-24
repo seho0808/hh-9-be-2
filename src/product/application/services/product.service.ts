@@ -26,11 +26,12 @@ import { StockReservation } from "@/product/domain/entities/stock-reservation.en
 import { GetProductByIdsUseCase } from "@/product/domain/use-cases/get-product-by-ids.use-case";
 import { ProductRepository } from "@/product/infrastructure/persistence/product.repository";
 import { StockReservationRepository } from "@/product/infrastructure/persistence/stock-reservations.repository";
+import { TransactionService } from "@/common/services/transaction.service";
 
 @Injectable()
 export class ProductApplicationService {
   constructor(
-    private readonly dataSource: DataSource,
+    private readonly transactionService: TransactionService,
     @Inject("ProductRepositoryInterface")
     private readonly productRepository: ProductRepository,
     @Inject("StockReservationRepositoryInterface")
@@ -63,25 +64,32 @@ export class ProductApplicationService {
   }
 
   async reserveStock(
-    command: ReserveStockCommand
+    command: ReserveStockCommand,
+    parentManager?: EntityManager
   ): Promise<{ product: Product; stockReservation: StockReservation }> {
     return await this.executeInTransaction(async () => {
       return await this.reserveStockUseCase.execute(command);
-    });
+    }, parentManager);
   }
 
-  async releaseStock(command: ReleaseStockCommand): Promise<Product> {
+  async releaseStock(
+    command: ReleaseStockCommand,
+    parentManager?: EntityManager
+  ): Promise<Product> {
     return await this.executeInTransaction(async () => {
       const { product } = await this.releaseStockUseCase.execute(command);
       return product;
-    });
+    }, parentManager);
   }
 
-  async confirmStock(command: ConfirmStockCommand): Promise<Product> {
+  async confirmStock(
+    command: ConfirmStockCommand,
+    parentManager?: EntityManager
+  ): Promise<Product> {
     return await this.executeInTransaction(async () => {
       const { product } = await this.confirmStockUseCase.execute(command);
       return product;
-    });
+    }, parentManager);
   }
 
   async getPopularProducts(limit?: number): Promise<any[]> {
@@ -90,18 +98,18 @@ export class ProductApplicationService {
   }
 
   private async executeInTransaction<T>(
-    operation: () => Promise<T>
+    operation: (manager?: EntityManager) => Promise<T>,
+    parentManager?: EntityManager
   ): Promise<T> {
-    return await this.dataSource.transaction(async (manager) => {
-      this.productRepository.setEntityManager(manager);
-      this.stockReservationRepository.setEntityManager(manager);
+    const repositories = [
+      this.productRepository,
+      this.stockReservationRepository,
+    ];
 
-      try {
-        return await operation();
-      } finally {
-        this.productRepository.clearEntityManager();
-        this.stockReservationRepository.clearEntityManager();
-      }
-    });
+    return await this.transactionService.executeInTransaction(
+      repositories,
+      operation,
+      parentManager
+    );
   }
 }

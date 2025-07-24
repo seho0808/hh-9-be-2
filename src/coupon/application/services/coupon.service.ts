@@ -1,5 +1,5 @@
 import { Injectable, Inject } from "@nestjs/common";
-import { DataSource } from "typeorm";
+import { DataSource, EntityManager } from "typeorm";
 import { GetAllCouponsUseCase } from "@/coupon/domain/use-cases/get-all-coupons.use-case";
 import { GetAllUserCouponsUseCase } from "@/coupon/domain/use-cases/get-all-user-couponse.use-case";
 import { IssueUserCouponUseCase } from "@/coupon/domain/use-cases/issue-user-coupon.use-case";
@@ -12,11 +12,12 @@ import { GetCouponByIdUseCase } from "@/coupon/domain/use-cases/get-coupon-by-id
 import { RecoverUserCouponUseCase } from "@/coupon/domain/use-cases/recover-user-coupon.use-case";
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
+import { TransactionService } from "@/common/services/transaction.service";
 
 @Injectable()
 export class CouponApplicationService {
   constructor(
-    private readonly dataSource: DataSource,
+    private readonly transactionService: TransactionService,
     @Inject("CouponRepositoryInterface")
     private readonly couponRepository: CouponRepository,
     @Inject("UserCouponRepositoryInterface")
@@ -54,11 +55,13 @@ export class CouponApplicationService {
     userId,
     couponCode,
     idempotencyKey,
+    parentManager,
   }: {
     couponId: string;
     userId: string;
     couponCode: string;
     idempotencyKey: string;
+    parentManager?: EntityManager;
   }): Promise<UserCoupon> {
     return await this.executeInTransaction(async () => {
       const result = await this.issueUserCouponUseCase.execute({
@@ -68,7 +71,7 @@ export class CouponApplicationService {
         idempotencyKey,
       });
       return result.userCoupon;
-    });
+    }, parentManager);
   }
 
   async useUserCoupon(
@@ -76,7 +79,8 @@ export class CouponApplicationService {
     userId: string,
     orderId: string,
     orderPrice: number,
-    idempotencyKey: string
+    idempotencyKey: string,
+    parentManager?: EntityManager
   ): Promise<UserCoupon> {
     return await this.executeInTransaction(async () => {
       const result = await this.useUserCouponUseCase.execute({
@@ -87,7 +91,7 @@ export class CouponApplicationService {
         idempotencyKey,
       });
       return result.userCoupon;
-    });
+    }, parentManager);
   }
 
   async validateUserCoupon(
@@ -123,7 +127,8 @@ export class CouponApplicationService {
 
   async recoverUserCoupon(
     userCouponId: string,
-    idempotencyKey: string
+    idempotencyKey: string,
+    parentManager?: EntityManager
   ): Promise<UserCoupon> {
     return await this.executeInTransaction(async () => {
       const result = await this.recoverUserCouponUseCase.execute({
@@ -131,22 +136,19 @@ export class CouponApplicationService {
         idempotencyKey,
       });
       return result.userCoupon;
-    });
+    }, parentManager);
   }
 
   private async executeInTransaction<T>(
-    operation: () => Promise<T>
+    operation: (manager?: EntityManager) => Promise<T>,
+    parentManager?: EntityManager
   ): Promise<T> {
-    return await this.dataSource.transaction(async (manager) => {
-      this.couponRepository.setEntityManager(manager);
-      this.userCouponRepository.setEntityManager(manager);
+    const repositories = [this.couponRepository, this.userCouponRepository];
 
-      try {
-        return await operation();
-      } finally {
-        this.couponRepository.clearEntityManager();
-        this.userCouponRepository.clearEntityManager();
-      }
-    });
+    return await this.transactionService.executeInTransaction(
+      repositories,
+      operation,
+      parentManager
+    );
   }
 }

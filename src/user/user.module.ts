@@ -9,6 +9,7 @@ import { GetUserByEmailUseCase } from "./domain/use-cases/get-user-by-email.use-
 import { CreateUserUseCase } from "./domain/use-cases/create-user.use-case";
 import { AuthModule } from "@/auth/auth.module";
 import { WalletModule } from "@/wallet/wallet.module";
+import { TransactionService } from "@/common/services/transaction.service";
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { WalletModule } from "@/wallet/wallet.module";
   ],
   controllers: [UserController],
   providers: [
+    TransactionService,
     UserApplicationService,
     GetUserByIdUseCase,
     GetUserByEmailUseCase,

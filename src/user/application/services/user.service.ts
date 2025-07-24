@@ -1,5 +1,5 @@
 import { Injectable, Inject } from "@nestjs/common";
-import { DataSource } from "typeorm";
+import { DataSource, EntityManager } from "typeorm";
 import { GetUserByIdUseCase } from "@/user/domain/use-cases/get-user-by-id.use-case";
 import { GetUserByEmailUseCase } from "@/user/domain/use-cases/get-user-by-email.use-case";
 import {
@@ -9,11 +9,12 @@ import {
 import { User } from "@/user/domain/entities/user.entity";
 import { WalletApplicationService } from "@/wallet/application/wallet.service";
 import { UserRepository } from "@/user/infrastructure/persistence/user.repository";
+import { TransactionService } from "@/common/services/transaction.service";
 
 @Injectable()
 export class UserApplicationService {
   constructor(
-    private readonly dataSource: DataSource,
+    private readonly transactionService: TransactionService,
     @Inject("UserRepositoryInterface")
     private readonly userRepository: UserRepository,
     private readonly walletApplicationService: WalletApplicationService,
@@ -55,16 +56,15 @@ export class UserApplicationService {
   }
 
   private async executeInTransaction<T>(
-    operation: () => Promise<T>
+    operation: (manager?: EntityManager) => Promise<T>,
+    parentManager?: EntityManager
   ): Promise<T> {
-    return await this.dataSource.transaction(async (manager) => {
-      this.userRepository.setEntityManager(manager);
+    const repositories = [this.userRepository];
 
-      try {
-        return await operation();
-      } finally {
-        this.userRepository.clearEntityManager();
-      }
-    });
+    return await this.transactionService.executeInTransaction(
+      repositories,
+      operation,
+      parentManager
+    );
   }
 }
