@@ -82,6 +82,7 @@ export class CouponApplicationService {
   ): Promise<{
     isValid: boolean;
     discountPrice: number;
+    discountedPrice: number;
   }> {
     const result = await this.validateCouponUseCase.execute({
       couponId,
@@ -92,6 +93,7 @@ export class CouponApplicationService {
     return {
       isValid: result.isValid,
       discountPrice: result.discountPrice,
+      discountedPrice: result.discountedPrice,
     };
   }
 

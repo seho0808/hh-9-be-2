@@ -12,6 +12,7 @@ export interface ValidateCouponCommand {
 export interface ValidateCouponResult {
   isValid: boolean;
   discountPrice: number;
+  discountedPrice: number;
 }
 
 @Injectable()
@@ -40,6 +41,7 @@ export class ValidateCouponUseCase {
       return {
         isValid: false,
         discountPrice: 0,
+        discountedPrice: orderPrice,
       };
     }
 
@@ -47,6 +49,7 @@ export class ValidateCouponUseCase {
       return {
         isValid: false,
         discountPrice: 0,
+        discountedPrice: orderPrice,
       };
     }
 
@@ -55,6 +58,7 @@ export class ValidateCouponUseCase {
     return {
       isValid: true,
       discountPrice,
+      discountedPrice: orderPrice - discountPrice,
     };
   }
 }
