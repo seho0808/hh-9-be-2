@@ -42,6 +42,8 @@ import { GetOrderByIdUseCase } from "./domain/use-cases/get-order-by-id.use-case
 import { GetOrderByUserIdUseCase } from "./domain/use-cases/get-order-by-user-id.use-case";
 import { FindStalePendingOrdersUseCase } from "./domain/use-cases/find-stale-pending-orders.use-case";
 import { FindFailedOrdersUseCase } from "./domain/use-cases/find-failed-orders.use-case";
+import { GetPopularProductsUseCase } from "./domain/use-cases/get-popular-products.use-case";
+import { OrderStatApplicationService } from "./application/order-stat.service";
 
 @Module({
   imports: [
@@ -64,6 +66,7 @@ import { FindFailedOrdersUseCase } from "./domain/use-cases/find-failed-orders.u
   providers: [
     TransactionService,
     OrderApplicationService,
+    OrderStatApplicationService,
     OrderRecoveryService,
     CreateOrderUseCase,
     ApplyDiscountUseCase,
@@ -72,6 +75,7 @@ import { FindFailedOrdersUseCase } from "./domain/use-cases/find-failed-orders.u
     GetOrderByUserIdUseCase,
     FindStalePendingOrdersUseCase,
     FindFailedOrdersUseCase,
+    GetPopularProductsUseCase,
     {
       provide: "OrderRepositoryInterface",
       useClass: OrderRepository,
@@ -105,6 +109,6 @@ import { FindFailedOrdersUseCase } from "./domain/use-cases/find-failed-orders.u
       useClass: PointTransactionRepository,
     },
   ],
-  exports: [OrderApplicationService],
+  exports: [OrderApplicationService, OrderStatApplicationService],
 })
 export class OrderModule {}

@@ -81,7 +81,14 @@ export class ProductController {
   async getPopularProducts(): Promise<ApiResponseDto<PopularProductDto[]>> {
     const popularProducts =
       await this.productApplicationService.getPopularProducts();
-    const result = popularProducts;
+
+    const result = popularProducts.map((item) =>
+      PopularProductDto.fromProductWithStats(
+        item.product,
+        item.statistics.totalQuantity,
+        item.statistics.totalOrders
+      )
+    );
 
     return ApiResponseDto.success(
       result,

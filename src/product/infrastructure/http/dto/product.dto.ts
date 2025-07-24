@@ -112,9 +112,26 @@ export class PopularProductDto {
   @ApiProperty({ description: "사용 가능한 재고" })
   availableStock: number;
 
-  @ApiProperty({ description: "최근 3일간 판매량" })
+  @ApiProperty({ description: "총 판매량" })
   salesCount: number;
 
-  @ApiProperty({ description: "마지막 주문 시간" })
-  lastOrderAt: Date;
+  @ApiProperty({ description: "총 주문 횟수" })
+  totalOrders: number;
+
+  static fromProductWithStats(
+    product: Product,
+    totalQuantity: number,
+    totalOrders: number
+  ): PopularProductDto {
+    const props = product.toPersistence();
+    return {
+      id: props.id,
+      name: props.name,
+      description: props.description,
+      price: props.price,
+      availableStock: product.getAvailableStock(),
+      salesCount: totalQuantity,
+      totalOrders: totalOrders,
+    };
+  }
 }

@@ -15,6 +15,7 @@ import { GetOrderByIdUseCase } from "../domain/use-cases/get-order-by-id.use-cas
 import { GetOrderByUserIdUseCase } from "../domain/use-cases/get-order-by-user-id.use-case";
 import { FindStalePendingOrdersUseCase } from "../domain/use-cases/find-stale-pending-orders.use-case";
 import { FindFailedOrdersUseCase } from "../domain/use-cases/find-failed-orders.use-case";
+import { GetPopularProductsUseCase } from "../domain/use-cases/get-popular-products.use-case";
 import { TransactionService } from "@/common/services/transaction.service";
 
 export interface PlaceOrderCommand {
@@ -42,7 +43,8 @@ export class OrderApplicationService {
     private readonly getOrderByIdUseCase: GetOrderByIdUseCase,
     private readonly getOrderByUserIdUseCase: GetOrderByUserIdUseCase,
     private readonly findStalePendingOrdersUseCase: FindStalePendingOrdersUseCase,
-    private readonly findFailedOrdersUseCase: FindFailedOrdersUseCase
+    private readonly findFailedOrdersUseCase: FindFailedOrdersUseCase,
+    private readonly getPopularProductsUseCase: GetPopularProductsUseCase
   ) {}
 
   async placeOrder(command: PlaceOrderCommand): Promise<PlaceOrderResult> {
@@ -237,7 +239,6 @@ export class OrderApplicationService {
     return { order: successOrder };
   }
 
-  // TODO: cronjob으로도 지속적으로 최근 Order들에 대해 다시 호출 해야함.
   async recoverOrder({
     order,
     couponId,

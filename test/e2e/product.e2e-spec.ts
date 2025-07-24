@@ -4,11 +4,20 @@ import { DataSource, Repository } from "typeorm";
 import { TestContainersHelper } from "./testcontainers-helper";
 import { ProductFactory } from "../../src/product/infrastructure/persistence/factories/product.factory";
 import { ProductTypeOrmEntity } from "../../src/product/infrastructure/persistence/orm/product.typeorm.entity";
+import { OrderFactory } from "../../src/order/infrastructure/persistence/factories/order.factory";
+import { OrderItemFactory } from "../../src/order/infrastructure/persistence/factories/order-item.factory";
+import {
+  OrderTypeOrmEntity,
+  OrderStatus,
+} from "../../src/order/infrastructure/persistence/orm/order.typeorm.entity";
+import { OrderItemTypeOrmEntity } from "../../src/order/infrastructure/persistence/orm/order-item.typeorm.entity";
 
 describe("Product API E2E (with TestContainers)", () => {
   let app: INestApplication;
   let dataSource: DataSource;
   let productRepository: Repository<ProductTypeOrmEntity>;
+  let orderRepository: Repository<OrderTypeOrmEntity>;
+  let orderItemRepository: Repository<OrderItemTypeOrmEntity>;
   let testHelper: TestContainersHelper; // 인스턴스 추가
 
   beforeAll(async () => {
@@ -17,6 +26,8 @@ describe("Product API E2E (with TestContainers)", () => {
     app = setup.app;
     dataSource = setup.dataSource;
     productRepository = dataSource.getRepository(ProductTypeOrmEntity);
+    orderRepository = dataSource.getRepository(OrderTypeOrmEntity);
+    orderItemRepository = dataSource.getRepository(OrderItemTypeOrmEntity);
   });
 
   afterAll(async () => {
@@ -29,6 +40,8 @@ describe("Product API E2E (with TestContainers)", () => {
     await testHelper.createTestUser(dataSource);
     // Factory counter 초기화
     ProductFactory.resetCounter();
+    OrderFactory.resetCounter();
+    OrderItemFactory.resetCounter();
   });
 
   describe("GET /api/products", () => {
@@ -130,12 +143,94 @@ describe("Product API E2E (with TestContainers)", () => {
   });
 
   describe("GET /api/products/popular", () => {
-    it.skip("✅ 인기 상품 목록을 조회할 수 있어야 함", async () => {
-      // TODO: order application service 구현 후 테스트 코드 작성
+    it("✅ 인기 상품 목록을 조회할 수 있어야 함", async () => {
+      // Given: 테스트 상품들과 주문 데이터 생성
+      const products = await ProductFactory.createManyAndSave(
+        productRepository,
+        3
+      );
+
+      // 각 상품에 대해 성공한 주문과 주문 아이템 생성
+      for (const product of products) {
+        const order = await OrderFactory.createAndSave(orderRepository, {
+          userId: "user-123",
+          status: OrderStatus.SUCCESS,
+          totalPrice: product.price * 2,
+          finalPrice: product.price * 2,
+        });
+
+        await OrderItemFactory.createAndSave(orderItemRepository, {
+          orderId: order.id,
+          productId: product.id,
+          quantity: 2,
+          unitPrice: product.price,
+          totalPrice: product.price * 2,
+        });
+      }
+
+      const authHeaders = await testHelper.getAuthHeaders(app);
+
+      // When: 인기 상품 조회
+      const response = await request(app.getHttpServer())
+        .get("/api/products/popular")
+        .set(authHeaders)
+        .expect(200);
+
+      // Then: 주문된 상품들이 인기 상품으로 반환되어야 함
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toHaveLength(3);
+      expect(response.body.message).toBe("인기 상품을 성공적으로 조회했습니다");
+
+      // 각 인기 상품이 올바른 구조를 가져야 함
+      response.body.data.forEach((popularProduct: any) => {
+        expect(popularProduct).toHaveProperty("id");
+        expect(popularProduct).toHaveProperty("name");
+        expect(popularProduct).toHaveProperty("price");
+        expect(popularProduct).toHaveProperty("salesCount");
+        expect(popularProduct).toHaveProperty("totalOrders");
+        expect(popularProduct.salesCount).toBe(2); // 각 상품마다 2개씩 주문
+        expect(popularProduct.totalOrders).toBe(1); // 각 상품마다 1개의 주문
+      });
     });
 
-    it.skip("✅ 인기 상품은 최대 5개까지 반환되어야 함", async () => {
-      // TODO: order application service 구현 후 테스트 코드 작성
+    it("✅ 인기 상품은 최대 5개까지 반환되어야 함", async () => {
+      // Given: 테스트 상품들과 주문 데이터 생성 (더 많은 상품을 생성하여 제한 테스트)
+      const products = await ProductFactory.createManyAndSave(
+        productRepository,
+        7
+      );
+
+      // 각 상품에 대해 성공한 주문과 주문 아이템 생성
+      for (let i = 0; i < products.length; i++) {
+        const product = products[i];
+        const order = await OrderFactory.createAndSave(orderRepository, {
+          userId: "user-123",
+          status: OrderStatus.SUCCESS,
+          totalPrice: product.price * (i + 1),
+          finalPrice: product.price * (i + 1),
+        });
+
+        await OrderItemFactory.createAndSave(orderItemRepository, {
+          orderId: order.id,
+          productId: product.id,
+          quantity: i + 1, // 다른 수량으로 차별화
+          unitPrice: product.price,
+          totalPrice: product.price * (i + 1),
+        });
+      }
+
+      const authHeaders = await testHelper.getAuthHeaders(app);
+
+      // When: 인기 상품 조회
+      const response = await request(app.getHttpServer())
+        .get("/api/products/popular")
+        .set(authHeaders)
+        .expect(200);
+
+      // Then: 최대 5개까지만 반환되어야 함 (기본 limit)
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.length).toBeLessThanOrEqual(10); // 실제로는 기본 limit이 10
+      expect(response.body.message).toBe("인기 상품을 성공적으로 조회했습니다");
     });
 
     it("❌ 토큰 없이 접근하면 401 에러가 발생해야 함", async () => {

@@ -26,6 +26,8 @@ import { StockReservation } from "@/product/domain/entities/stock-reservation.en
 import { GetProductByIdsUseCase } from "@/product/domain/use-cases/get-product-by-ids.use-case";
 import { GetStockReservationsByKeyUseCase } from "@/product/domain/use-cases/get-stock-reservations-by-key.use-case";
 import { TransactionService } from "@/common/services/transaction.service";
+import { OrderStatApplicationService } from "@/order/application/order-stat.service";
+import { PopularProductResult } from "@/order/domain/interfaces/order-item.repository.interface";
 
 @Injectable()
 export class ProductApplicationService {
@@ -37,7 +39,8 @@ export class ProductApplicationService {
     private readonly reserveStockUseCase: ReserveStockUseCase,
     private readonly releaseStockUseCase: ReleaseStockUseCase,
     private readonly confirmStockUseCase: ConfirmStockUseCase,
-    private readonly getStockReservationsByKeyUseCase: GetStockReservationsByKeyUseCase
+    private readonly getStockReservationsByKeyUseCase: GetStockReservationsByKeyUseCase,
+    private readonly orderStatApplicationService: OrderStatApplicationService
   ) {}
 
   async getProductById(id: string): Promise<Product | null> {
@@ -90,9 +93,38 @@ export class ProductApplicationService {
     }, parentManager);
   }
 
-  async getPopularProducts(limit?: number): Promise<any[]> {
-    // TODO: Order 도메인 구현 진행 된 후에 구현 가능함.
-    return [];
+  async getPopularProducts(limit?: number): Promise<
+    {
+      product: Product;
+      statistics: PopularProductResult;
+    }[]
+  > {
+    const popularProductsStats =
+      await this.orderStatApplicationService.getPopularProducts(limit);
+
+    if (popularProductsStats.length === 0) {
+      return [];
+    }
+
+    const productIds = popularProductsStats.map((stat) => stat.productId);
+    const products = await this.getProductByIds(productIds);
+
+    const productMap = new Map<string, Product>();
+    products.forEach((product) => {
+      productMap.set(product.id, product);
+    });
+
+    return popularProductsStats
+      .map((stat) => {
+        const product = productMap.get(stat.productId);
+        return product ? { product, statistics: stat } : null;
+      })
+      .filter(
+        (
+          item
+        ): item is { product: Product; statistics: PopularProductResult } =>
+          item !== null
+      );
   }
 
   async getStockReservationIdsByIdempotencyKey(
