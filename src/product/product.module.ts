@@ -5,6 +5,7 @@ import { ProductApplicationService } from "./application/services/product.servic
 import { ProductRepository } from "./infrastructure/persistence/product.repository";
 import { ProductTypeOrmEntity } from "./infrastructure/persistence/orm/product.typeorm.entity";
 import { GetProductByIdUseCase } from "./domain/use-cases/get-product-by-id.use-case";
+import { GetProductByIdsUseCase } from "./domain/use-cases/get-product-by-ids.use-case";
 import { GetAllProductsUseCase } from "./domain/use-cases/get-all-products.use-case";
 import { ReserveStockUseCase } from "./domain/use-cases/reserve-stock.use-case";
 import { ReleaseStockUseCase } from "./domain/use-cases/release-stock.use-case";
@@ -25,6 +26,7 @@ import { StockReservationRepository } from "./infrastructure/persistence/stock-r
   providers: [
     ProductApplicationService,
     GetProductByIdUseCase,
+    GetProductByIdsUseCase,
     GetAllProductsUseCase,
     ReserveStockUseCase,
     ReleaseStockUseCase,

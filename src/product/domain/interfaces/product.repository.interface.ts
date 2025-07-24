@@ -2,6 +2,7 @@ import { Product } from "../entities/product.entity";
 
 export interface ProductRepositoryInterface {
   findById(id: string): Promise<Product | null>;
+  findByIds(ids: string[]): Promise<Product[]>;
   findByName(name: string): Promise<Product | null>;
   save(product: Product): Promise<Product>;
   findPaginated(

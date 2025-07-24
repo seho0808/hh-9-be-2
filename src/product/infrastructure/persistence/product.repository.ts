@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { ProductRepositoryInterface } from "@/product/domain/interfaces/product.repository.interface";
 import { Product } from "@/product/domain/entities/product.entity";
 import { ProductTypeOrmEntity } from "./orm/product.typeorm.entity";
@@ -15,6 +15,13 @@ export class ProductRepository implements ProductRepositoryInterface {
   async findById(id: string): Promise<Product | null> {
     const entity = await this.productRepository.findOne({ where: { id } });
     return entity ? this.toDomain(entity) : null;
+  }
+
+  async findByIds(ids: string[]): Promise<Product[]> {
+    const entities = await this.productRepository.find({
+      where: { id: In(ids) },
+    });
+    return entities.map((entity) => this.toDomain(entity));
   }
 
   async findByName(name: string): Promise<Product | null> {

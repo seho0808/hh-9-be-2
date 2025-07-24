@@ -9,6 +9,7 @@ import { RecoverPointsUseCase } from "./domain/use-cases/recover-points.use-case
 import { UsePointsUseCase } from "./domain/use-cases/use-points.use-case";
 import { GetUserPointsUseCase } from "./domain/use-cases/get-user-points.use-case";
 import { CreateUserBalanceUseCase } from "./domain/use-cases/create-user-balance.use-case";
+import { ValidateUsePointsUseCase } from "./domain/use-cases/validate-use-points.use-case";
 import { UserBalanceTypeOrmEntity } from "./infrastructure/persistence/orm/user-balance.typeorm.entity";
 import { PointTransactionTypeOrmEntity } from "./infrastructure/persistence/orm/point-transaction.typeorm.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
@@ -28,8 +29,8 @@ import { TypeOrmModule } from "@nestjs/typeorm";
     RecoverPointsUseCase,
     UsePointsUseCase,
     GetUserPointsUseCase,
-
     CreateUserBalanceUseCase,
+    ValidateUsePointsUseCase,
     {
       provide: "UserBalanceRepositoryInterface",
       useClass: UserBalanceRepository,

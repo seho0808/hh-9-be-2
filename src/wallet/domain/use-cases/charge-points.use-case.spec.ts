@@ -3,7 +3,7 @@ import { UserBalance } from "../entities/user-balance.entity";
 import {
   InvalidChargeAmountError,
   UserBalanceNotFoundError,
-} from "../exceptions/point.exception";
+} from "../exceptions/point.exceptions";
 import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
 import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository";
 
@@ -53,12 +53,6 @@ describe("ChargePointsUseCase", () => {
         });
 
         userBalanceRepository.findByUserId.mockResolvedValue(existingBalance);
-        userBalanceRepository.save.mockImplementation((balance) =>
-          Promise.resolve(balance)
-        );
-        pointTransactionRepository.save.mockImplementation((transaction) =>
-          Promise.resolve(transaction)
-        );
 
         // when
         const result = await useCase.execute({

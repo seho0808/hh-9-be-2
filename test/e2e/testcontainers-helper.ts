@@ -8,6 +8,8 @@ import { ProductTypeOrmEntity } from "../../src/product/infrastructure/persisten
 import { StockReservationTypeOrmEntity } from "../../src/product/infrastructure/persistence/orm/stock-reservations.typeorm.entity";
 import { CouponTypeOrmEntity } from "../../src/coupon/infrastructure/persistence/orm/coupon.typeorm.entity";
 import { UserCouponTypeOrmEntity } from "../../src/coupon/infrastructure/persistence/orm/user-coupon.typeorm.entity";
+import { OrderTypeOrmEntity } from "../../src/order/infrastructure/persistence/orm/order.typeorm.entity";
+import { OrderItemTypeOrmEntity } from "../../src/order/infrastructure/persistence/orm/order-item.typeorm.entity";
 import { DataSource } from "typeorm";
 import * as request from "supertest";
 import { PointTransactionTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
@@ -73,6 +75,8 @@ export class TestContainersHelper {
             UserCouponTypeOrmEntity,
             UserBalanceTypeOrmEntity,
             PointTransactionTypeOrmEntity,
+            OrderTypeOrmEntity,
+            OrderItemTypeOrmEntity,
           ],
           synchronize: true,
           dropSchema: true,
@@ -147,6 +151,8 @@ export class TestContainersHelper {
       "user_coupons",
       "user_balances",
       "point_transactions",
+      "orders",
+      "order_items",
     ];
 
     try {

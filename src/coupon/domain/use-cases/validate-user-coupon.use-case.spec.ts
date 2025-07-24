@@ -77,6 +77,7 @@ describe("ValidateCouponUseCase", () => {
 
       expect(result.isValid).toBe(true);
       expect(result.discountPrice).toBe(10000);
+      expect(result.discountedPrice).toBe(50000); // 60000 - 10000
     });
 
     it("주문 금액이 최소 주문 금액 미만일 때 할인이 적용되지 않아야 한다", async () => {
@@ -113,6 +114,7 @@ describe("ValidateCouponUseCase", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.discountPrice).toBe(0);
+      expect(result.discountedPrice).toBe(40000); // 원래 주문 금액 그대로
     });
   });
 
@@ -151,6 +153,7 @@ describe("ValidateCouponUseCase", () => {
 
       expect(result.isValid).toBe(true);
       expect(result.discountPrice).toBe(20000);
+      expect(result.discountedPrice).toBe(80000); // 100000 - 20000
     });
 
     it("최대 할인 금액 제한이 없을 때 퍼센트 할인이 그대로 적용되어야 한다", async () => {
@@ -187,6 +190,7 @@ describe("ValidateCouponUseCase", () => {
 
       expect(result.isValid).toBe(true);
       expect(result.discountPrice).toBe(30000); // 100000 * 0.3
+      expect(result.discountedPrice).toBe(70000); // 100000 - 30000
     });
   });
 
@@ -225,6 +229,7 @@ describe("ValidateCouponUseCase", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.discountPrice).toBe(0);
+      expect(result.discountedPrice).toBe(60000); // 원래 주문 금액 그대로
     });
 
     it("이미 사용된 쿠폰은 사용할 수 없어야 한다", async () => {
@@ -263,6 +268,7 @@ describe("ValidateCouponUseCase", () => {
 
       expect(result.isValid).toBe(false);
       expect(result.discountPrice).toBe(0);
+      expect(result.discountedPrice).toBe(60000); // 원래 주문 금액 그대로
     });
   });
 
