@@ -1,8 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsOptional, IsEnum, Min, Max } from "class-validator";
 import { Type } from "class-transformer";
+import { Coupon } from "@/coupon/domain/entities/coupon.entity";
+import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 
-export enum CouponType {
+export enum CouponDiscountType {
   PERCENTAGE = "PERCENTAGE",
   FIXED_AMOUNT = "FIXED_AMOUNT",
 }
@@ -18,17 +20,14 @@ export class CouponResponseDto {
   @ApiProperty({ description: "쿠폰 ID" })
   id: string;
 
-  @ApiProperty({ description: "쿠폰 코드" })
-  code: string;
-
   @ApiProperty({ description: "쿠폰명" })
   name: string;
 
   @ApiProperty({
     description: "할인 타입",
-    enum: CouponType,
+    enum: CouponDiscountType,
   })
-  type: CouponType;
+  type: CouponDiscountType;
 
   @ApiProperty({ description: "할인값 (% 또는 고정금액)" })
   discountValue: number;
@@ -54,11 +53,24 @@ export class CouponResponseDto {
   @ApiProperty({ description: "유효 종료일" })
   validTo: Date;
 
-  @ApiProperty({ description: "활성화 상태" })
-  isActive: boolean;
-
-  @ApiProperty({ description: "발급 가능 여부" })
-  canIssue: boolean;
+  static fromCoupon(coupon: Coupon): CouponResponseDto {
+    return {
+      id: coupon.id,
+      name: coupon.name,
+      type:
+        coupon.discountType === "FIXED"
+          ? CouponDiscountType.FIXED_AMOUNT
+          : CouponDiscountType.PERCENTAGE,
+      discountValue: coupon.discountValue,
+      maxDiscount: coupon.maxDiscountPrice,
+      minOrderAmount: coupon.minimumOrderPrice,
+      totalQuantity: coupon.totalCount,
+      usedQuantity: coupon.usedCount,
+      remainingQuantity: coupon.totalCount - coupon.usedCount,
+      validFrom: coupon.startDate,
+      validTo: coupon.endDate,
+    };
+  }
 }
 
 export class UserCouponResponseDto {
@@ -85,6 +97,25 @@ export class UserCouponResponseDto {
 
   @ApiProperty({ description: "사용 가능 여부" })
   canUse: boolean;
+
+  static fromUserCoupon(userCoupon: UserCoupon): UserCouponResponseDto {
+    return {
+      id: userCoupon.id,
+      userId: userCoupon.userId,
+      coupon: null, // TODO: 쿠폰 정보 추가
+      status:
+        userCoupon.expiresAt && userCoupon.expiresAt < new Date()
+          ? CouponStatus.EXPIRED
+          : userCoupon.status === "ISSUED"
+            ? CouponStatus.ACTIVE
+            : userCoupon.status === "USED"
+              ? CouponStatus.USED
+              : CouponStatus.CANCELED,
+      issuedAt: userCoupon.createdAt,
+      usedAt: userCoupon.usedAt,
+      canUse: userCoupon.canUse(),
+    };
+  }
 }
 
 export class ClaimCouponDto {
@@ -94,49 +125,6 @@ export class ClaimCouponDto {
   })
   @IsString()
   couponCode: string;
-}
-
-export class CouponQueryDto {
-  @ApiProperty({
-    description: "쿠폰 타입 필터",
-    enum: CouponType,
-    required: false,
-  })
-  @IsOptional()
-  @IsEnum(CouponType)
-  type?: CouponType;
-
-  @ApiProperty({
-    description: "활성화 상태 필터",
-    required: false,
-    default: true,
-  })
-  @IsOptional()
-  isActive?: boolean;
-
-  @ApiProperty({
-    description: "페이지 번호",
-    required: false,
-    default: 1,
-    minimum: 1,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @Min(1)
-  page?: number = 1;
-
-  @ApiProperty({
-    description: "페이지당 항목 수",
-    required: false,
-    default: 10,
-    minimum: 1,
-    maximum: 100,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @Min(1)
-  @Max(100)
-  limit?: number = 10;
 }
 
 export class DiscountCalculationDto {
