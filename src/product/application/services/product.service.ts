@@ -1,4 +1,4 @@
-import { Injectable, Inject } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { DataSource, EntityManager } from "typeorm";
 import { GetProductByIdUseCase } from "@/product/domain/use-cases/get-product-by-id.use-case";
 import { GetAllProductsUseCase } from "@/product/domain/use-cases/get-all-products.use-case";
@@ -24,8 +24,7 @@ import {
 } from "@/product/domain/use-cases/confirm-stock.use-case";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { GetProductByIdsUseCase } from "@/product/domain/use-cases/get-product-by-ids.use-case";
-import { ProductRepository } from "@/product/infrastructure/persistence/product.repository";
-import { StockReservationRepository } from "@/product/infrastructure/persistence/stock-reservations.repository";
+import { GetStockReservationsByKeyUseCase } from "@/product/domain/use-cases/get-stock-reservations-by-key.use-case";
 import { TransactionService } from "@/common/services/transaction.service";
 
 @Injectable()
@@ -37,7 +36,8 @@ export class ProductApplicationService {
     private readonly getAllProductsUseCase: GetAllProductsUseCase,
     private readonly reserveStockUseCase: ReserveStockUseCase,
     private readonly releaseStockUseCase: ReleaseStockUseCase,
-    private readonly confirmStockUseCase: ConfirmStockUseCase
+    private readonly confirmStockUseCase: ConfirmStockUseCase,
+    private readonly getStockReservationsByKeyUseCase: GetStockReservationsByKeyUseCase
   ) {}
 
   async getProductById(id: string): Promise<Product | null> {
@@ -93,5 +93,15 @@ export class ProductApplicationService {
   async getPopularProducts(limit?: number): Promise<any[]> {
     // TODO: Order 도메인 구현 진행 된 후에 구현 가능함.
     return [];
+  }
+
+  async getStockReservationIdsByIdempotencyKey(
+    idempotencyKey: string
+  ): Promise<string[]> {
+    const { stockReservations } =
+      await this.getStockReservationsByKeyUseCase.execute({
+        idempotencyKey,
+      });
+    return stockReservations.map((reservation) => reservation.id);
   }
 }

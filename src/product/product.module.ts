@@ -11,6 +11,7 @@ import { GetAllProductsUseCase } from "./domain/use-cases/get-all-products.use-c
 import { ReserveStockUseCase } from "./domain/use-cases/reserve-stock.use-case";
 import { ReleaseStockUseCase } from "./domain/use-cases/release-stock.use-case";
 import { ConfirmStockUseCase } from "./domain/use-cases/confirm-stock.use-case";
+import { GetStockReservationsByKeyUseCase } from "./domain/use-cases/get-stock-reservations-by-key.use-case";
 import { AuthModule } from "../auth/auth.module";
 import { StockReservationTypeOrmEntity } from "./infrastructure/persistence/orm/stock-reservations.typeorm.entity";
 import { StockReservationRepository } from "./infrastructure/persistence/stock-reservations.repository";
@@ -33,6 +34,7 @@ import { StockReservationRepository } from "./infrastructure/persistence/stock-r
     ReserveStockUseCase,
     ReleaseStockUseCase,
     ConfirmStockUseCase,
+    GetStockReservationsByKeyUseCase,
     {
       provide: "ProductRepositoryInterface",
       useClass: ProductRepository,

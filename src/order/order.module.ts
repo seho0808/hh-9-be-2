@@ -29,6 +29,7 @@ import { PointTransactionTypeOrmEntity } from "../wallet/infrastructure/persiste
 
 // Application
 import { OrderApplicationService } from "./application/order.service";
+import { OrderRecoveryService } from "./application/order-recovery.service";
 
 // Common services
 import { TransactionService } from "../common/services/transaction.service";
@@ -39,6 +40,8 @@ import { ApplyDiscountUseCase } from "./domain/use-cases/apply-discount.use-case
 import { ChangeOrderStatusUseCase } from "./domain/use-cases/change-order-status.use-case";
 import { GetOrderByIdUseCase } from "./domain/use-cases/get-order-by-id.use-case";
 import { GetOrderByUserIdUseCase } from "./domain/use-cases/get-order-by-user-id.use-case";
+import { FindStalePendingOrdersUseCase } from "./domain/use-cases/find-stale-pending-orders.use-case";
+import { FindFailedOrdersUseCase } from "./domain/use-cases/find-failed-orders.use-case";
 
 @Module({
   imports: [
@@ -61,11 +64,14 @@ import { GetOrderByUserIdUseCase } from "./domain/use-cases/get-order-by-user-id
   providers: [
     TransactionService,
     OrderApplicationService,
+    OrderRecoveryService,
     CreateOrderUseCase,
     ApplyDiscountUseCase,
     ChangeOrderStatusUseCase,
     GetOrderByIdUseCase,
     GetOrderByUserIdUseCase,
+    FindStalePendingOrdersUseCase,
+    FindFailedOrdersUseCase,
     {
       provide: "OrderRepositoryInterface",
       useClass: OrderRepository,

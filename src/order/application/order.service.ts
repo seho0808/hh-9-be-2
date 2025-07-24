@@ -13,6 +13,8 @@ import {
 } from "./order.exceptions";
 import { GetOrderByIdUseCase } from "../domain/use-cases/get-order-by-id.use-case";
 import { GetOrderByUserIdUseCase } from "../domain/use-cases/get-order-by-user-id.use-case";
+import { FindStalePendingOrdersUseCase } from "../domain/use-cases/find-stale-pending-orders.use-case";
+import { FindFailedOrdersUseCase } from "../domain/use-cases/find-failed-orders.use-case";
 import { TransactionService } from "@/common/services/transaction.service";
 
 export interface PlaceOrderCommand {
@@ -38,7 +40,9 @@ export class OrderApplicationService {
     private readonly changeOrderStatusUseCase: ChangeOrderStatusUseCase,
     private readonly applyDiscountUseCase: ApplyDiscountUseCase,
     private readonly getOrderByIdUseCase: GetOrderByIdUseCase,
-    private readonly getOrderByUserIdUseCase: GetOrderByUserIdUseCase
+    private readonly getOrderByUserIdUseCase: GetOrderByUserIdUseCase,
+    private readonly findStalePendingOrdersUseCase: FindStalePendingOrdersUseCase,
+    private readonly findFailedOrdersUseCase: FindFailedOrdersUseCase
   ) {}
 
   async placeOrder(command: PlaceOrderCommand): Promise<PlaceOrderResult> {
@@ -292,6 +296,26 @@ export class OrderApplicationService {
   async getOrdersByUserId(userId: string): Promise<Order[]> {
     return await this.transactionService.runWithTransaction(async (manager) => {
       return await this.getOrderByUserIdUseCase.execute(userId);
+    });
+  }
+
+  async findStalePendingOrders(
+    minutesThreshold: number,
+    limit: number
+  ): Promise<Order[]> {
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      return (
+        await this.findStalePendingOrdersUseCase.execute({
+          minutesThreshold,
+          limit,
+        })
+      ).orders;
+    });
+  }
+
+  async findFailedOrders(limit: number): Promise<Order[]> {
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      return (await this.findFailedOrdersUseCase.execute({ limit })).orders;
     });
   }
 }
