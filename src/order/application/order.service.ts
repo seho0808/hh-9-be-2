@@ -135,6 +135,7 @@ export class OrderApplicationService {
           productId: item.productId,
           userId,
           quantity: item.quantity,
+          idempotencyKey,
         });
       stockReservationIds.push(stockReservation.id);
     }
@@ -188,6 +189,7 @@ export class OrderApplicationService {
       stockReservationIds.map((stockReservationId) =>
         this.productApplicationService.confirmStock({
           stockReservationId,
+          idempotencyKey,
         })
       )
     );
@@ -213,14 +215,14 @@ export class OrderApplicationService {
     order: Order;
     couponId: string | null;
     stockReservationIds: string[];
-    idempotencyKey: string;
+    idempotencyKey: string; // order idempotencyKey 기준으로 모두 처리
   }) {
     // 재고 예약 취소
-    // TODO: 재고 예약 idempotencyKey 기준으로 처리해야함. product 쪽 모두 필드 추가해주어야함.
     await Promise.all(
       stockReservationIds.map((stockReservationId) =>
         this.productApplicationService.releaseStock({
           stockReservationId,
+          idempotencyKey,
         })
       )
     );
