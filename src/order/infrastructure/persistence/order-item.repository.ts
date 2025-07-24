@@ -1,7 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, EntityManager } from "typeorm";
-import { OrderItemRepositoryInterface } from "@/order/domain/interfaces/order-item.repository.interface";
+import {
+  OrderItemRepositoryInterface,
+  PopularProductResult,
+} from "@/order/domain/interfaces/order-item.repository.interface";
 import { OrderItem } from "@/order/domain/entities/order-item.entity";
 import { OrderItemTypeOrmEntity } from "./orm/order-item.typeorm.entity";
 import { TransactionContext } from "@/common/services/transaction.service";
@@ -35,6 +38,28 @@ export class OrderItemRepository implements OrderItemRepositoryInterface {
     const repository = this.getRepository();
     const entity = this.fromDomain(orderItem);
     await repository.save(entity);
+  }
+
+  async findPopularProducts(limit: number): Promise<PopularProductResult[]> {
+    const repository = this.getRepository();
+
+    const result = await repository
+      .createQueryBuilder("orderItem")
+      .innerJoin("orderItem.order", "order")
+      .select("orderItem.productId", "productId")
+      .addSelect("SUM(orderItem.quantity)", "totalQuantity")
+      .addSelect("COUNT(DISTINCT orderItem.orderId)", "totalOrders")
+      .where("order.status = :status", { status: "SUCCESS" })
+      .groupBy("orderItem.productId")
+      .orderBy("SUM(orderItem.quantity)", "DESC")
+      .limit(limit)
+      .getRawMany();
+
+    return result.map((row) => ({
+      productId: row.productId,
+      totalQuantity: parseInt(row.totalQuantity),
+      totalOrders: parseInt(row.totalOrders),
+    }));
   }
 
   private fromDomain(orderItem: OrderItem): OrderItemTypeOrmEntity {
