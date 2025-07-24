@@ -5,24 +5,42 @@ import {
 import { UserCouponRepositoryInterface } from "@/coupon/domain/interfaces/user-coupon.repository.interface";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, EntityManager } from "typeorm";
 import { UserCouponTypeOrmEntity } from "./orm/user-coupon.typeorm.entity";
 
 @Injectable()
 export class UserCouponRepository implements UserCouponRepositoryInterface {
+  private entityManager?: EntityManager;
+
   constructor(
     @InjectRepository(UserCouponTypeOrmEntity)
     private readonly userCouponRepository: Repository<UserCouponTypeOrmEntity>
   ) {}
 
+  setEntityManager(manager: EntityManager): void {
+    this.entityManager = manager;
+  }
+
+  clearEntityManager(): void {
+    this.entityManager = undefined;
+  }
+
+  private getRepository(): Repository<UserCouponTypeOrmEntity> {
+    return this.entityManager
+      ? this.entityManager.getRepository(UserCouponTypeOrmEntity)
+      : this.userCouponRepository;
+  }
+
   async save(userCoupon: UserCoupon): Promise<UserCoupon> {
+    const repository = this.getRepository();
     const entity = this.fromDomain(userCoupon);
-    const savedEntity = await this.userCouponRepository.save(entity);
+    const savedEntity = await repository.save(entity);
     return this.toDomain(savedEntity);
   }
 
   async findById(id: string): Promise<UserCoupon | null> {
-    const entity = await this.userCouponRepository.findOne({
+    const repository = this.getRepository();
+    const entity = await repository.findOne({
       where: { id },
     });
     return entity ? this.toDomain(entity) : null;
@@ -32,14 +50,16 @@ export class UserCouponRepository implements UserCouponRepositoryInterface {
     couponId: string,
     userId: string
   ): Promise<UserCoupon | null> {
-    const entity = await this.userCouponRepository.findOne({
+    const repository = this.getRepository();
+    const entity = await repository.findOne({
       where: { couponId, userId },
     });
     return entity ? this.toDomain(entity) : null;
   }
 
   async findByUserId(userId: string): Promise<UserCoupon[]> {
-    const entities = await this.userCouponRepository.find({
+    const repository = this.getRepository();
+    const entities = await repository.find({
       where: { userId },
     });
     return entities.map((entity) => this.toDomain(entity));
