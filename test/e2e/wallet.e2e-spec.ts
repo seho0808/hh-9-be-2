@@ -1,7 +1,7 @@
 import { INestApplication } from "@nestjs/common";
 import * as request from "supertest";
 import { DataSource, Repository } from "typeorm";
-import { TestContainersHelper } from "./testcontainers-helper";
+import { TestContainersHelper } from "../testcontainers-helper";
 import { UserBalanceFactory } from "../../src/wallet/infrastructure/persistence/factories/user-balance.factory";
 import { PointTransactionFactory } from "../../src/wallet/infrastructure/persistence/factories/point-transaction.factory";
 import { UserBalanceTypeOrmEntity } from "../../src/wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";

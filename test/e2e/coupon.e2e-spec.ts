@@ -1,7 +1,7 @@
 import { INestApplication } from "@nestjs/common";
 import * as request from "supertest";
 import { DataSource, Repository } from "typeorm";
-import { TestContainersHelper } from "./testcontainers-helper";
+import { TestContainersHelper } from "../testcontainers-helper";
 import { CouponFactory } from "../../src/coupon/infrastructure/persistence/factories/coupon.factory";
 import { UserCouponFactory } from "../../src/coupon/infrastructure/persistence/factories/user-coupon.factory";
 import { CouponTypeOrmEntity } from "../../src/coupon/infrastructure/persistence/orm/coupon.typeorm.entity";

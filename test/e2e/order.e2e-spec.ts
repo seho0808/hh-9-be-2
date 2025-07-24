@@ -1,7 +1,7 @@
 import { INestApplication } from "@nestjs/common";
 import * as request from "supertest";
 import { DataSource, Repository } from "typeorm";
-import { TestContainersHelper } from "./testcontainers-helper";
+import { TestContainersHelper } from "../testcontainers-helper";
 import { OrderFactory } from "../../src/order/infrastructure/persistence/factories/order.factory";
 import { OrderItemFactory } from "../../src/order/infrastructure/persistence/factories/order-item.factory";
 import {
