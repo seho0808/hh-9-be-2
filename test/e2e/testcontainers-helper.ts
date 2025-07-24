@@ -10,6 +10,8 @@ import { CouponTypeOrmEntity } from "../../src/coupon/infrastructure/persistence
 import { UserCouponTypeOrmEntity } from "../../src/coupon/infrastructure/persistence/orm/user-coupon.typeorm.entity";
 import { DataSource } from "typeorm";
 import * as request from "supertest";
+import { PointTransactionTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
+import { UserBalanceTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
 
 export interface TestContainerConfig {
   mysqlVersion?: string;
@@ -69,6 +71,8 @@ export class TestContainersHelper {
             StockReservationTypeOrmEntity,
             CouponTypeOrmEntity,
             UserCouponTypeOrmEntity,
+            UserBalanceTypeOrmEntity,
+            PointTransactionTypeOrmEntity,
           ],
           synchronize: true,
           dropSchema: true,
@@ -141,6 +145,8 @@ export class TestContainersHelper {
       "stock_reservations",
       "coupons",
       "user_coupons",
+      "user_balances",
+      "point_transactions",
     ];
 
     try {
