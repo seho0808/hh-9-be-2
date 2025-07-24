@@ -55,7 +55,7 @@ export class ProductController {
     });
 
     const responseProducts = result.products.map((product) =>
-      this.productToProductResponseDto(product)
+      ProductResponseDto.fromProduct(product)
     );
 
     const paginatedResult = new PaginatedResponseDto(
@@ -110,23 +110,8 @@ export class ProductController {
   ): Promise<ApiResponseDto<ProductResponseDto>> {
     const product =
       await this.productApplicationService.getProductById(productId);
-    const result = this.productToProductResponseDto(product);
+    const result = ProductResponseDto.fromProduct(product);
 
     return ApiResponseDto.success(result, "상품을 성공적으로 조회했습니다");
-  }
-
-  private productToProductResponseDto(product: Product): ProductResponseDto {
-    return {
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      totalStock: product.totalStock,
-      reservedStock: product.reservedStock,
-      isActive: product.isActive,
-      createdAt: product.createdAt,
-      updatedAt: product.updatedAt,
-      availableStock: product.getAvailableStock(),
-    };
   }
 }

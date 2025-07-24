@@ -1,0 +1,52 @@
+import { Injectable, Inject } from "@nestjs/common";
+import { PointTransaction } from "../entities/point-transaction.entity";
+import { UserBalance } from "../entities/user-balance.entity";
+import { UserBalanceNotFoundError } from "../exceptions/point.exception";
+import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository";
+import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
+
+export interface RecoverPointsUseCaseCommand {
+  userId: string;
+  amount: number;
+}
+
+export interface RecoverPointsUseCaseResult {
+  userBalance: UserBalance;
+  pointTransaction: PointTransaction;
+}
+
+@Injectable()
+export class RecoverPointsUseCase {
+  constructor(
+    @Inject("UserBalanceRepositoryInterface")
+    private readonly userBalanceRepository: UserBalanceRepositoryInterface,
+    @Inject("PointTransactionRepositoryInterface")
+    private readonly pointTransactionRepository: PointTransactionRepositoryInterface
+  ) {}
+
+  async execute(
+    command: RecoverPointsUseCaseCommand
+  ): Promise<RecoverPointsUseCaseResult> {
+    const { userId, amount } = command;
+
+    const userBalance = await this.userBalanceRepository.findByUserId(userId);
+
+    if (!userBalance) {
+      throw new UserBalanceNotFoundError(userId);
+    }
+
+    userBalance.addBalance(amount);
+    const pointTransaction = PointTransaction.create({
+      userId,
+      amount,
+      type: "RECOVER",
+    });
+
+    await Promise.all([
+      this.userBalanceRepository.save(userBalance),
+      this.pointTransactionRepository.save(pointTransaction),
+    ]);
+
+    return { userBalance, pointTransaction };
+  }
+}
