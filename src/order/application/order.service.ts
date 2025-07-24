@@ -1,4 +1,5 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
+import { EntityManager } from "typeorm";
 import { WalletApplicationService } from "@/wallet/application/wallet.service";
 import { Order, OrderStatus } from "../domain/entities/order.entitiy";
 import { ApplyDiscountUseCase } from "../domain/use-cases/apply-discount.use-case";
@@ -12,6 +13,9 @@ import {
 } from "./order.exceptions";
 import { GetOrderByIdUseCase } from "../domain/use-cases/get-order-by-id.use-case";
 import { GetOrderByUserIdUseCase } from "../domain/use-cases/get-order-by-user-id.use-case";
+import { FindStalePendingOrdersUseCase } from "../domain/use-cases/find-stale-pending-orders.use-case";
+import { FindFailedOrdersUseCase } from "../domain/use-cases/find-failed-orders.use-case";
+import { TransactionService } from "@/common/services/transaction.service";
 
 export interface PlaceOrderCommand {
   userId: string;
@@ -27,6 +31,8 @@ export interface PlaceOrderResult {
 @Injectable()
 export class OrderApplicationService {
   constructor(
+    private readonly transactionService: TransactionService,
+    // Remove repository dependencies - they're now auto-managed by TransactionContext
     private readonly couponApplicationService: CouponApplicationService,
     private readonly productApplicationService: ProductApplicationService,
     private readonly walletApplicationService: WalletApplicationService,
@@ -34,10 +40,11 @@ export class OrderApplicationService {
     private readonly changeOrderStatusUseCase: ChangeOrderStatusUseCase,
     private readonly applyDiscountUseCase: ApplyDiscountUseCase,
     private readonly getOrderByIdUseCase: GetOrderByIdUseCase,
-    private readonly getOrderByUserIdUseCase: GetOrderByUserIdUseCase
+    private readonly getOrderByUserIdUseCase: GetOrderByUserIdUseCase,
+    private readonly findStalePendingOrdersUseCase: FindStalePendingOrdersUseCase,
+    private readonly findFailedOrdersUseCase: FindFailedOrdersUseCase
   ) {}
 
-  // TODO: transaction 적용
   async placeOrder(command: PlaceOrderCommand): Promise<PlaceOrderResult> {
     const { userId, couponId, idempotencyKey, itemsWithoutPrices } = command;
 
@@ -48,7 +55,7 @@ export class OrderApplicationService {
       await this.prepareOrder({ userId, couponId, items, idempotencyKey });
 
     try {
-      // 할인/결제/재고 확정 적용
+      // 쿠폰/잔고/재고 확정 적용
       return await this.processOrder({
         userId,
         couponId,
@@ -59,6 +66,7 @@ export class OrderApplicationService {
         idempotencyKey,
       });
     } catch (error) {
+      // 주문 복구
       await this.recoverOrder({
         order,
         couponId,
@@ -96,11 +104,16 @@ export class OrderApplicationService {
     let discountedPrice: number = 0;
     let stockReservationIds: string[] = [];
 
-    const { order } = await this.createOrderUseCase.execute({
-      userId,
-      idempotencyKey,
-      items,
-    });
+    // 주문 생성
+    const { order } = await this.transactionService.runWithTransaction(
+      async (manager) => {
+        return await this.createOrderUseCase.execute({
+          userId,
+          idempotencyKey,
+          items,
+        });
+      }
+    );
 
     // 쿠폰 확인
     if (couponId) {
@@ -129,16 +142,21 @@ export class OrderApplicationService {
     }
 
     // 재고 예약
-    for (const item of items) {
-      const { stockReservation } =
-        await this.productApplicationService.reserveStock({
-          productId: item.productId,
-          userId,
-          quantity: item.quantity,
-          idempotencyKey,
-        });
-      stockReservationIds.push(stockReservation.id);
-    }
+    await this.transactionService.runWithTransaction(async (manager) => {
+      for (const item of items) {
+        const { stockReservation } =
+          await this.productApplicationService.reserveStock(
+            {
+              productId: item.productId,
+              userId,
+              quantity: item.quantity,
+              idempotencyKey,
+            },
+            manager
+          );
+        stockReservationIds.push(stockReservation.id);
+      }
+    });
 
     return { order, discountPrice, discountedPrice, stockReservationIds };
   }
@@ -160,49 +178,59 @@ export class OrderApplicationService {
     stockReservationIds: string[];
     idempotencyKey: string;
   }): Promise<{ order: Order }> {
-    // 쿠폰 적용
-    if (couponId) {
-      const { order: discountedOrder } =
-        await this.applyDiscountUseCase.execute({
-          orderId: order.id,
-          appliedCouponId: couponId,
-          discountPrice,
-          discountedPrice,
-        });
-      order = discountedOrder;
+    const successOrder = await this.transactionService.runWithTransaction(
+      async (manager) => {
+        // 쿠폰 적용
+        if (couponId) {
+          const { order: discountedOrder } =
+            await this.applyDiscountUseCase.execute({
+              orderId: order.id,
+              appliedCouponId: couponId,
+              discountPrice,
+              discountedPrice,
+            });
+          order = discountedOrder;
 
-      await this.couponApplicationService.useUserCoupon(
-        couponId,
-        userId,
-        order.id,
-        order.totalPrice,
-        idempotencyKey
-      );
-    }
+          await this.couponApplicationService.useUserCoupon(
+            couponId,
+            userId,
+            order.id,
+            order.totalPrice,
+            idempotencyKey,
+            manager
+          );
+        }
 
-    // 잔고 사용
-    const finalAmountToPay = order.finalPrice;
-    await this.walletApplicationService.usePoints(
-      userId,
-      finalAmountToPay,
-      idempotencyKey
-    );
-
-    // 재고 확정
-    await Promise.all(
-      stockReservationIds.map((stockReservationId) =>
-        this.productApplicationService.confirmStock({
-          stockReservationId,
+        // 잔고 사용
+        const finalAmountToPay = order.finalPrice;
+        await this.walletApplicationService.usePoints(
+          userId,
+          finalAmountToPay,
           idempotencyKey,
-        })
-      )
-    );
+          manager
+        );
 
-    // 주문 상태 변경
-    const { order: successOrder } = await this.changeOrderStatusUseCase.execute(
-      {
-        orderId: order.id,
-        status: OrderStatus.SUCCESS,
+        // 재고 확정
+        await Promise.all(
+          // TODO: 한 번의 쿼리로 변경되도록 use-case 수정 필요함.
+          stockReservationIds.map((stockReservationId) =>
+            this.productApplicationService.confirmStock(
+              {
+                stockReservationId,
+                idempotencyKey,
+              },
+              manager
+            )
+          )
+        );
+
+        // 주문 상태 변경
+        const { order: successOrder } =
+          await this.changeOrderStatusUseCase.execute({
+            orderId: order.id,
+            status: OrderStatus.SUCCESS,
+          });
+        return successOrder;
       }
     );
 
@@ -210,7 +238,7 @@ export class OrderApplicationService {
   }
 
   // TODO: cronjob으로도 지속적으로 최근 Order들에 대해 다시 호출 해야함.
-  private async recoverOrder({
+  async recoverOrder({
     order,
     couponId,
     stockReservationIds,
@@ -221,43 +249,75 @@ export class OrderApplicationService {
     stockReservationIds: string[];
     idempotencyKey: string; // order idempotencyKey 기준으로 모두 처리
   }) {
-    // 재고 예약 취소
-    await Promise.all(
-      stockReservationIds.map((stockReservationId) =>
-        this.productApplicationService.releaseStock({
-          stockReservationId,
-          idempotencyKey,
-        })
-      )
-    );
-
-    // 쿠폰 해제
-    if (couponId) {
-      await this.couponApplicationService.recoverUserCoupon(
-        couponId,
-        idempotencyKey
+    await this.transactionService.runWithTransaction(async (manager) => {
+      // 재고 예약 취소
+      // TODO: 한 번의 쿼리로 변경되도록 use-case 수정 필요함.
+      await Promise.all(
+        stockReservationIds.map((stockReservationId) =>
+          this.productApplicationService.releaseStock(
+            {
+              stockReservationId,
+              idempotencyKey,
+            },
+            manager
+          )
+        )
       );
-    }
 
-    // 잔고 복구
-    await this.walletApplicationService.recoverPoints(
-      order.userId,
-      order.discountPrice,
-      idempotencyKey
-    );
+      // 쿠폰 해제
+      if (couponId) {
+        await this.couponApplicationService.recoverUserCoupon(
+          couponId,
+          idempotencyKey,
+          manager
+        );
+      }
 
-    // 주문 상태 변경
-    await this.changeOrderStatusUseCase.execute({
-      orderId: order.id,
-      status: OrderStatus.FAILED,
+      // 잔고 복구
+      await this.walletApplicationService.recoverPoints(
+        order.userId,
+        order.discountPrice,
+        idempotencyKey,
+        manager
+      );
+
+      // 주문 상태 변경
+      await this.changeOrderStatusUseCase.execute({
+        orderId: order.id,
+        status: OrderStatus.FAILED,
+      });
     });
   }
 
   async getOrderById(orderId: string): Promise<Order | null> {
-    return this.getOrderByIdUseCase.execute(orderId);
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      return await this.getOrderByIdUseCase.execute(orderId);
+    });
   }
 
   async getOrdersByUserId(userId: string): Promise<Order[]> {
-    return this.getOrderByUserIdUseCase.execute(userId);
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      return await this.getOrderByUserIdUseCase.execute(userId);
+    });
+  }
+
+  async findStalePendingOrders(
+    minutesThreshold: number,
+    limit: number
+  ): Promise<Order[]> {
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      return (
+        await this.findStalePendingOrdersUseCase.execute({
+          minutesThreshold,
+          limit,
+        })
+      ).orders;
+    });
+  }
+
+  async findFailedOrders(limit: number): Promise<Order[]> {
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      return (await this.findFailedOrdersUseCase.execute({ limit })).orders;
+    });
   }
 }

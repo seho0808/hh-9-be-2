@@ -1,33 +1,55 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, EntityManager } from "typeorm";
 import { CouponRepositoryInterface } from "@/coupon/domain/interfaces/coupon.repository.interface";
 import {
   Coupon,
   CouponDiscountType,
 } from "@/coupon/domain/entities/coupon.entity";
 import { CouponTypeOrmEntity } from "./orm/coupon.typeorm.entity";
+import { TransactionContext } from "@/common/services/transaction.service";
 
 @Injectable()
 export class CouponRepository implements CouponRepositoryInterface {
+  private entityManager?: EntityManager;
+
   constructor(
     @InjectRepository(CouponTypeOrmEntity)
     private readonly couponRepository: Repository<CouponTypeOrmEntity>
-  ) {}
+  ) {
+    TransactionContext.registerRepository(this);
+  }
+
+  setEntityManager(manager: EntityManager): void {
+    this.entityManager = manager;
+  }
+
+  clearEntityManager(): void {
+    this.entityManager = undefined;
+  }
+
+  private getRepository(): Repository<CouponTypeOrmEntity> {
+    return this.entityManager
+      ? this.entityManager.getRepository(CouponTypeOrmEntity)
+      : this.couponRepository;
+  }
 
   async findById(id: string): Promise<Coupon | null> {
-    const entity = await this.couponRepository.findOne({ where: { id } });
+    const repository = this.getRepository();
+    const entity = await repository.findOne({ where: { id } });
     return entity ? this.toDomain(entity) : null;
   }
 
   async findAll(): Promise<Coupon[]> {
-    const entities = await this.couponRepository.find();
+    const repository = this.getRepository();
+    const entities = await repository.find();
     return entities.map((entity) => this.toDomain(entity));
   }
 
   async save(coupon: Coupon): Promise<Coupon> {
+    const repository = this.getRepository();
     const entity = this.fromDomain(coupon);
-    const savedEntity = await this.couponRepository.save(entity);
+    const savedEntity = await repository.save(entity);
     return this.toDomain(savedEntity);
   }
 

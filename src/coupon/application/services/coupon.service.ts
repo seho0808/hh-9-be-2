@@ -1,4 +1,5 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
+import { DataSource, EntityManager } from "typeorm";
 import { GetAllCouponsUseCase } from "@/coupon/domain/use-cases/get-all-coupons.use-case";
 import { GetAllUserCouponsUseCase } from "@/coupon/domain/use-cases/get-all-user-couponse.use-case";
 import { IssueUserCouponUseCase } from "@/coupon/domain/use-cases/issue-user-coupon.use-case";
@@ -9,10 +10,14 @@ import { Coupon } from "@/coupon/domain/entities/coupon.entity";
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 import { GetCouponByIdUseCase } from "@/coupon/domain/use-cases/get-coupon-by-id.use-case";
 import { RecoverUserCouponUseCase } from "@/coupon/domain/use-cases/recover-user-coupon.use-case";
+import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
+import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
+import { TransactionService } from "@/common/services/transaction.service";
 
 @Injectable()
 export class CouponApplicationService {
   constructor(
+    private readonly transactionService: TransactionService,
     private readonly getAllCouponsUseCase: GetAllCouponsUseCase,
     private readonly getAllUserCouponsUseCase: GetAllUserCouponsUseCase,
     private readonly getCouponByIdUseCase: GetCouponByIdUseCase,
@@ -25,22 +30,17 @@ export class CouponApplicationService {
 
   async getAllCoupons(): Promise<Coupon[]> {
     const result = await this.getAllCouponsUseCase.execute();
-
     return result.coupons;
   }
 
-  async getAllUserCoupons(userId: string): Promise<UserCoupon[]> {
-    const result = await this.getAllUserCouponsUseCase.execute({
-      userId,
-    });
-
-    return result.userCoupons;
+  async getCouponById(id: string): Promise<Coupon | null> {
+    const result = await this.getCouponByIdUseCase.execute({ couponId: id });
+    return result.coupon;
   }
 
-  async getCouponById(couponId: string): Promise<Coupon> {
-    const result = await this.getCouponByIdUseCase.execute({ couponId });
-
-    return result.coupon;
+  async getAllUserCoupons(userId: string): Promise<UserCoupon[]> {
+    const result = await this.getAllUserCouponsUseCase.execute({ userId });
+    return result.userCoupons;
   }
 
   async issueUserCoupon({
@@ -48,20 +48,23 @@ export class CouponApplicationService {
     userId,
     couponCode,
     idempotencyKey,
+    parentManager,
   }: {
     couponId: string;
     userId: string;
     couponCode: string;
     idempotencyKey: string;
+    parentManager?: EntityManager;
   }): Promise<UserCoupon> {
-    const result = await this.issueUserCouponUseCase.execute({
-      couponId,
-      userId,
-      couponCode,
-      idempotencyKey,
-    });
-
-    return result.userCoupon;
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      const result = await this.issueUserCouponUseCase.execute({
+        couponId,
+        userId,
+        couponCode,
+        idempotencyKey,
+      });
+      return result.userCoupon;
+    }, parentManager);
   }
 
   async useUserCoupon(
@@ -69,17 +72,19 @@ export class CouponApplicationService {
     userId: string,
     orderId: string,
     orderPrice: number,
-    idempotencyKey: string
+    idempotencyKey: string,
+    parentManager?: EntityManager
   ): Promise<UserCoupon> {
-    const result = await this.useUserCouponUseCase.execute({
-      couponId,
-      userId,
-      orderId,
-      orderPrice,
-      idempotencyKey,
-    });
-
-    return result.userCoupon;
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      const result = await this.useUserCouponUseCase.execute({
+        couponId,
+        userId,
+        orderId,
+        orderPrice,
+        idempotencyKey,
+      });
+      return result.userCoupon;
+    }, parentManager);
   }
 
   async validateUserCoupon(
@@ -91,36 +96,43 @@ export class CouponApplicationService {
     discountPrice: number;
     discountedPrice: number;
   }> {
-    const result = await this.validateCouponUseCase.execute({
-      couponId,
-      userId,
-      orderPrice,
-    });
+    const { isValid, discountPrice, discountedPrice } =
+      await this.validateCouponUseCase.execute({
+        couponId,
+        userId,
+        orderPrice,
+      });
 
     return {
-      isValid: result.isValid,
-      discountPrice: result.discountPrice,
-      discountedPrice: result.discountedPrice,
+      isValid,
+      discountPrice,
+      discountedPrice,
     };
   }
 
-  async cancelUserCoupon(userCouponId: string): Promise<UserCoupon> {
-    const result = await this.cancelUserCouponUseCase.execute({
-      userCouponId,
-    });
-
-    return result.userCoupon;
+  async cancelUserCoupon(
+    userCouponId: string,
+    parentManager?: EntityManager
+  ): Promise<UserCoupon> {
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      const result = await this.cancelUserCouponUseCase.execute({
+        userCouponId,
+      });
+      return result.userCoupon;
+    }, parentManager);
   }
 
   async recoverUserCoupon(
     userCouponId: string,
-    idempotencyKey: string
+    idempotencyKey: string,
+    parentManager?: EntityManager
   ): Promise<UserCoupon> {
-    const result = await this.recoverUserCouponUseCase.execute({
-      userCouponId,
-      idempotencyKey,
-    });
-
-    return result.userCoupon;
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      const result = await this.recoverUserCouponUseCase.execute({
+        userCouponId,
+        idempotencyKey,
+      });
+      return result.userCoupon;
+    }, parentManager);
   }
 }

@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { CouponController } from "./infrastructure/http/coupon.controller";
 import { AuthModule } from "../auth/auth.module";
+import { TransactionService } from "../common/services/transaction.service";
 import { UserCouponController } from "./infrastructure/http/user-coupon.controller";
 import { CouponApplicationService } from "./application/services/coupon.service";
 import { GetAllCouponsUseCase } from "./domain/use-cases/get-all-coupons.use-case";
@@ -24,6 +25,7 @@ import { RecoverUserCouponUseCase } from "./domain/use-cases/recover-user-coupon
   ],
   controllers: [CouponController, UserCouponController],
   providers: [
+    TransactionService,
     CouponApplicationService,
     GetAllCouponsUseCase,
     GetAllUserCouponsUseCase,

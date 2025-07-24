@@ -1,4 +1,5 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
+import { DataSource, EntityManager } from "typeorm";
 import {
   ChargePointsUseCase,
   ChargePointsUseCaseResult,
@@ -23,10 +24,12 @@ import {
   ValidateUsePointsUseCase,
   ValidateUsePointsUseCaseResult,
 } from "../domain/use-cases/validate-use-points.use-case";
+import { TransactionService } from "@/common/services/transaction.service";
 
 @Injectable()
 export class WalletApplicationService {
   constructor(
+    private readonly transactionService: TransactionService,
     private readonly chargePointsUseCase: ChargePointsUseCase,
     private readonly usePointsUseCase: UsePointsUseCase,
     private readonly recoverPointsUseCase: RecoverPointsUseCase,
@@ -40,63 +43,61 @@ export class WalletApplicationService {
     amount: number,
     idempotencyKey: string
   ): Promise<ChargePointsUseCaseResult> {
-    // TODO: 외부 결제 api 검증 호출
-    const result = await this.chargePointsUseCase.execute({
-      userId,
-      amount,
-      idempotencyKey,
-    }); // TODO: 트랜잭션으로 묶어서 동시에 outbox payment 테이블에 등록 => 외부/다른곳에서 알아서 비동기로 결제 호출
-    return result;
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      return await this.chargePointsUseCase.execute({
+        userId,
+        amount,
+        idempotencyKey,
+      });
+    });
   }
 
   async usePoints(
     userId: string,
     amount: number,
-    idempotencyKey: string
+    idempotencyKey: string,
+    parentManager?: EntityManager
   ): Promise<UsePointsUseCaseResult> {
-    const result = await this.usePointsUseCase.execute({
-      userId,
-      amount,
-      idempotencyKey,
-    });
-
-    return result;
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      return await this.usePointsUseCase.execute({
+        userId,
+        amount,
+        idempotencyKey,
+      });
+    }, parentManager);
   }
 
   async recoverPoints(
     userId: string,
     amount: number,
-    idempotencyKey: string
+    idempotencyKey: string,
+    parentManager?: EntityManager
   ): Promise<RecoverPointsUseCaseResult> {
-    const result = await this.recoverPointsUseCase.execute({
-      userId,
-      amount,
-      idempotencyKey,
-    });
-
-    return result;
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      return await this.recoverPointsUseCase.execute({
+        userId,
+        amount,
+        idempotencyKey,
+      });
+    }, parentManager);
   }
 
   async getUserPoints(userId: string): Promise<GetUserPointsUseCaseResult> {
-    const result = await this.getUserPointsUseCase.execute({ userId });
-    return result;
+    return await this.getUserPointsUseCase.execute({ userId });
   }
 
   async createUserBalance(
     userId: string
   ): Promise<CreateUserBalanceUseCaseResult> {
-    const result = await this.createUserBalanceUseCase.execute({ userId });
-    return result;
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      return await this.createUserBalanceUseCase.execute({ userId });
+    });
   }
 
   async validateUsePoints(
     userId: string,
     amount: number
   ): Promise<ValidateUsePointsUseCaseResult> {
-    const result = await this.validateUsePointsUseCase.execute({
-      userId,
-      amount,
-    });
-    return result;
+    return await this.validateUsePointsUseCase.execute({ userId, amount });
   }
 }

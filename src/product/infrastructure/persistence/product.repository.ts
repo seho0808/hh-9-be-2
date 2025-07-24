@@ -1,37 +1,60 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, Repository } from "typeorm";
+import { In, Repository, EntityManager } from "typeorm";
 import { ProductRepositoryInterface } from "@/product/domain/interfaces/product.repository.interface";
 import { Product } from "@/product/domain/entities/product.entity";
 import { ProductTypeOrmEntity } from "./orm/product.typeorm.entity";
+import { TransactionContext } from "@/common/services/transaction.service";
 
 @Injectable()
 export class ProductRepository implements ProductRepositoryInterface {
+  private entityManager?: EntityManager;
+
   constructor(
     @InjectRepository(ProductTypeOrmEntity)
     private readonly productRepository: Repository<ProductTypeOrmEntity>
-  ) {}
+  ) {
+    TransactionContext.registerRepository(this);
+  }
+
+  setEntityManager(manager: EntityManager): void {
+    this.entityManager = manager;
+  }
+
+  clearEntityManager(): void {
+    this.entityManager = undefined;
+  }
+
+  private getRepository(): Repository<ProductTypeOrmEntity> {
+    return this.entityManager
+      ? this.entityManager.getRepository(ProductTypeOrmEntity)
+      : this.productRepository;
+  }
 
   async findById(id: string): Promise<Product | null> {
-    const entity = await this.productRepository.findOne({ where: { id } });
+    const repository = this.getRepository();
+    const entity = await repository.findOne({ where: { id } });
     return entity ? this.toDomain(entity) : null;
   }
 
   async findByIds(ids: string[]): Promise<Product[]> {
-    const entities = await this.productRepository.find({
+    const repository = this.getRepository();
+    const entities = await repository.find({
       where: { id: In(ids) },
     });
     return entities.map((entity) => this.toDomain(entity));
   }
 
   async findByName(name: string): Promise<Product | null> {
-    const entity = await this.productRepository.findOne({ where: { name } });
+    const repository = this.getRepository();
+    const entity = await repository.findOne({ where: { name } });
     return entity ? this.toDomain(entity) : null;
   }
 
   async save(product: Product): Promise<Product> {
+    const repository = this.getRepository();
     const entity = this.fromDomain(product);
-    const savedEntity = await this.productRepository.save(entity);
+    const savedEntity = await repository.save(entity);
     return this.toDomain(savedEntity);
   }
 
@@ -43,7 +66,8 @@ export class ProductRepository implements ProductRepositoryInterface {
       search?: string;
     }
   ): Promise<{ products: Product[]; total: number }> {
-    const queryBuilder = this.productRepository.createQueryBuilder("product");
+    const repository = this.getRepository();
+    const queryBuilder = repository.createQueryBuilder("product");
 
     // 활성화 상태 필터
     if (filters?.isActive !== undefined) {

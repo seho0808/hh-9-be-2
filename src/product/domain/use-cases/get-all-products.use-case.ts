@@ -2,7 +2,7 @@ import { Injectable, Inject } from "@nestjs/common";
 import { ProductRepositoryInterface } from "@/product/domain/interfaces/product.repository.interface";
 import { Product } from "@/product/domain/entities/product.entity";
 
-export interface GetAllProductsQuery {
+export interface GetAllProductsCommand {
   page?: number;
   limit?: number;
   search?: string;
@@ -24,14 +24,14 @@ export class GetAllProductsUseCase {
     private readonly productRepository: ProductRepositoryInterface
   ) {}
 
-  async execute(query: GetAllProductsQuery): Promise<GetAllProductsResult> {
-    const page = query.page || 1;
-    const limit = query.limit || 10;
+  async execute(command: GetAllProductsCommand): Promise<GetAllProductsResult> {
+    const page = command.page || 1;
+    const limit = command.limit || 10;
     const offset = (page - 1) * limit;
 
     const filters = {
-      isActive: query.isActive,
-      search: query.search,
+      isActive: command.isActive,
+      search: command.search,
     };
 
     const { products, total } = await this.productRepository.findPaginated(

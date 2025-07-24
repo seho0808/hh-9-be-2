@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { DataSource, EntityManager } from "typeorm";
 import { GetProductByIdUseCase } from "@/product/domain/use-cases/get-product-by-id.use-case";
 import { GetAllProductsUseCase } from "@/product/domain/use-cases/get-all-products.use-case";
 import {
@@ -23,24 +24,28 @@ import {
 } from "@/product/domain/use-cases/confirm-stock.use-case";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { GetProductByIdsUseCase } from "@/product/domain/use-cases/get-product-by-ids.use-case";
+import { GetStockReservationsByKeyUseCase } from "@/product/domain/use-cases/get-stock-reservations-by-key.use-case";
+import { TransactionService } from "@/common/services/transaction.service";
 
 @Injectable()
 export class ProductApplicationService {
   constructor(
+    private readonly transactionService: TransactionService,
     private readonly getProductByIdUseCase: GetProductByIdUseCase,
     private readonly getProductByIdsUseCase: GetProductByIdsUseCase,
     private readonly getAllProductsUseCase: GetAllProductsUseCase,
     private readonly reserveStockUseCase: ReserveStockUseCase,
     private readonly releaseStockUseCase: ReleaseStockUseCase,
-    private readonly confirmStockUseCase: ConfirmStockUseCase
+    private readonly confirmStockUseCase: ConfirmStockUseCase,
+    private readonly getStockReservationsByKeyUseCase: GetStockReservationsByKeyUseCase
   ) {}
 
-  async getProductById(productId: string): Promise<Product> {
-    return await this.getProductByIdUseCase.execute(productId);
+  async getProductById(id: string): Promise<Product | null> {
+    return await this.getProductByIdUseCase.execute(id);
   }
 
-  async getProductByIds(productIds: string[]): Promise<Product[]> {
-    return await this.getProductByIdsUseCase.execute(productIds);
+  async getProductByIds(ids: string[]): Promise<Product[]> {
+    return await this.getProductByIdsUseCase.execute(ids);
   }
 
   async getAllProducts(
@@ -51,29 +56,52 @@ export class ProductApplicationService {
       throw new ProductValidationException(errors);
     });
 
-    return this.getAllProductsUseCase.execute(dto);
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      return await this.getAllProductsUseCase.execute(dto);
+    });
   }
 
   async reserveStock(
-    command: ReserveStockCommand
+    command: ReserveStockCommand,
+    parentManager?: EntityManager
   ): Promise<{ product: Product; stockReservation: StockReservation }> {
-    const { product, stockReservation } =
-      await this.reserveStockUseCase.execute(command);
-    return { product, stockReservation };
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      return await this.reserveStockUseCase.execute(command);
+    }, parentManager);
   }
 
-  async releaseStock(command: ReleaseStockCommand): Promise<Product> {
-    const { product } = await this.releaseStockUseCase.execute(command);
-    return product;
+  async releaseStock(
+    command: ReleaseStockCommand,
+    parentManager?: EntityManager
+  ): Promise<Product> {
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      const { product } = await this.releaseStockUseCase.execute(command);
+      return product;
+    }, parentManager);
   }
 
-  async confirmStock(command: ConfirmStockCommand): Promise<Product> {
-    const { product } = await this.confirmStockUseCase.execute(command);
-    return product;
+  async confirmStock(
+    command: ConfirmStockCommand,
+    parentManager?: EntityManager
+  ): Promise<Product> {
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      const { product } = await this.confirmStockUseCase.execute(command);
+      return product;
+    }, parentManager);
   }
 
   async getPopularProducts(limit?: number): Promise<any[]> {
     // TODO: Order 도메인 구현 진행 된 후에 구현 가능함.
     return [];
+  }
+
+  async getStockReservationIdsByIdempotencyKey(
+    idempotencyKey: string
+  ): Promise<string[]> {
+    const { stockReservations } =
+      await this.getStockReservationsByKeyUseCase.execute({
+        idempotencyKey,
+      });
+    return stockReservations.map((reservation) => reservation.id);
   }
 }

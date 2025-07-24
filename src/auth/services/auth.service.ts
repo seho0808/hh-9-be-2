@@ -30,11 +30,11 @@ export class AuthService {
 
     const hashedPassword = this.hashPassword(password);
 
-    const user = await this.userApplicationService.createUser(
+    const user = await this.userApplicationService.createUser({
       email,
       hashedPassword,
-      name
-    );
+      name,
+    });
 
     return this.userToRegisterResponseDto(user);
   }
