@@ -81,8 +81,8 @@ describe("ChangeOrderStatusUseCase", () => {
 
         orderRepository.findById.mockResolvedValue(mockOrder);
 
-        // 시간 차이를 보장하기 위해 1ms 대기
-        await new Promise((resolve) => setTimeout(resolve, 1));
+        jest.useFakeTimers();
+        jest.advanceTimersByTime(10);
 
         // when
         const result = await useCase.execute({
@@ -130,8 +130,8 @@ describe("ChangeOrderStatusUseCase", () => {
 
     orderRepository.findById.mockResolvedValue(mockOrder);
 
-    // 시간 차이를 보장하기 위해 1ms 대기
-    await new Promise((resolve) => setTimeout(resolve, 1));
+    jest.useFakeTimers();
+    jest.advanceTimersByTime(10);
 
     // when
     const result = await useCase.execute({
