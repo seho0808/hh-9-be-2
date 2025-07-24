@@ -5,20 +5,37 @@ import {
   PointTransactionTypeOrmEntity,
 } from "./orm/point-transaction.typeorm.entity";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, EntityManager } from "typeorm";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
 
 @Injectable()
 export class PointTransactionRepository
   implements PointTransactionRepositoryInterface
 {
+  private entityManager?: EntityManager;
+
   constructor(
     @InjectRepository(PointTransactionTypeOrmEntity)
     private readonly pointTransactionRepository: Repository<PointTransactionTypeOrmEntity>
   ) {}
 
+  setEntityManager(manager: EntityManager): void {
+    this.entityManager = manager;
+  }
+
+  clearEntityManager(): void {
+    this.entityManager = undefined;
+  }
+
+  private getRepository(): Repository<PointTransactionTypeOrmEntity> {
+    return this.entityManager
+      ? this.entityManager.getRepository(PointTransactionTypeOrmEntity)
+      : this.pointTransactionRepository;
+  }
+
   async findByUserId(userId: string): Promise<PointTransaction[]> {
-    const entities = await this.pointTransactionRepository.find({
+    const repository = this.getRepository();
+    const entities = await repository.find({
       where: { userId },
     });
     return entities.map((entity) => this.toDomain(entity));
@@ -28,15 +45,17 @@ export class PointTransactionRepository
     userId: string,
     idempotencyKey: string
   ): Promise<PointTransaction[]> {
-    const entities = await this.pointTransactionRepository.find({
+    const repository = this.getRepository();
+    const entities = await repository.find({
       where: { userId, idempotencyKey },
     });
     return entities.map((entity) => this.toDomain(entity));
   }
 
   async save(pointTransaction: PointTransaction): Promise<PointTransaction> {
+    const repository = this.getRepository();
     const entity = this.fromDomain(pointTransaction);
-    const savedEntity = await this.pointTransactionRepository.save(entity);
+    const savedEntity = await repository.save(entity);
     return this.toDomain(savedEntity);
   }
 

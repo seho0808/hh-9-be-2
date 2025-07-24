@@ -1,4 +1,5 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
+import { DataSource } from "typeorm";
 import {
   ChargePointsUseCase,
   ChargePointsUseCaseResult,
@@ -23,10 +24,17 @@ import {
   ValidateUsePointsUseCase,
   ValidateUsePointsUseCaseResult,
 } from "../domain/use-cases/validate-use-points.use-case";
+import { UserBalanceRepository } from "../infrastructure/persistence/use-balance.repository";
+import { PointTransactionRepository } from "../infrastructure/persistence/point-transaction.repository";
 
 @Injectable()
 export class WalletApplicationService {
   constructor(
+    private readonly dataSource: DataSource,
+    @Inject("UserBalanceRepositoryInterface")
+    private readonly userBalanceRepository: UserBalanceRepository,
+    @Inject("PointTransactionRepositoryInterface")
+    private readonly pointTransactionRepository: PointTransactionRepository,
     private readonly chargePointsUseCase: ChargePointsUseCase,
     private readonly usePointsUseCase: UsePointsUseCase,
     private readonly recoverPointsUseCase: RecoverPointsUseCase,
@@ -40,13 +48,13 @@ export class WalletApplicationService {
     amount: number,
     idempotencyKey: string
   ): Promise<ChargePointsUseCaseResult> {
-    // TODO: 외부 결제 api 검증 호출
-    const result = await this.chargePointsUseCase.execute({
-      userId,
-      amount,
-      idempotencyKey,
-    }); // TODO: 트랜잭션으로 묶어서 동시에 outbox payment 테이블에 등록 => 외부/다른곳에서 알아서 비동기로 결제 호출
-    return result;
+    return await this.executeInTransaction(async () => {
+      return await this.chargePointsUseCase.execute({
+        userId,
+        amount,
+        idempotencyKey,
+      });
+    });
   }
 
   async usePoints(
@@ -54,13 +62,13 @@ export class WalletApplicationService {
     amount: number,
     idempotencyKey: string
   ): Promise<UsePointsUseCaseResult> {
-    const result = await this.usePointsUseCase.execute({
-      userId,
-      amount,
-      idempotencyKey,
+    return await this.executeInTransaction(async () => {
+      return await this.usePointsUseCase.execute({
+        userId,
+        amount,
+        idempotencyKey,
+      });
     });
-
-    return result;
   }
 
   async recoverPoints(
@@ -68,35 +76,47 @@ export class WalletApplicationService {
     amount: number,
     idempotencyKey: string
   ): Promise<RecoverPointsUseCaseResult> {
-    const result = await this.recoverPointsUseCase.execute({
-      userId,
-      amount,
-      idempotencyKey,
+    return await this.executeInTransaction(async () => {
+      return await this.recoverPointsUseCase.execute({
+        userId,
+        amount,
+        idempotencyKey,
+      });
     });
-
-    return result;
   }
 
   async getUserPoints(userId: string): Promise<GetUserPointsUseCaseResult> {
-    const result = await this.getUserPointsUseCase.execute({ userId });
-    return result;
+    return await this.getUserPointsUseCase.execute({ userId });
   }
 
   async createUserBalance(
     userId: string
   ): Promise<CreateUserBalanceUseCaseResult> {
-    const result = await this.createUserBalanceUseCase.execute({ userId });
-    return result;
+    return await this.executeInTransaction(async () => {
+      return await this.createUserBalanceUseCase.execute({ userId });
+    });
   }
 
   async validateUsePoints(
     userId: string,
     amount: number
   ): Promise<ValidateUsePointsUseCaseResult> {
-    const result = await this.validateUsePointsUseCase.execute({
-      userId,
-      amount,
+    return await this.validateUsePointsUseCase.execute({ userId, amount });
+  }
+
+  private async executeInTransaction<T>(
+    operation: () => Promise<T>
+  ): Promise<T> {
+    return await this.dataSource.transaction(async (manager) => {
+      this.userBalanceRepository.setEntityManager(manager);
+      this.pointTransactionRepository.setEntityManager(manager);
+
+      try {
+        return await operation();
+      } finally {
+        this.userBalanceRepository.clearEntityManager();
+        this.pointTransactionRepository.clearEntityManager();
+      }
     });
-    return result;
   }
 }
