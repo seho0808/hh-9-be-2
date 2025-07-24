@@ -81,6 +81,7 @@ describe("ReserveStockUseCase", () => {
         productRepository.findById.mockResolvedValue(mockProduct);
 
         const result = await useCase.execute({
+          idempotencyKey: uuidv4(),
           productId: mockProduct.id,
           userId,
           quantity: reservationQuantity,
@@ -105,6 +106,7 @@ describe("ReserveStockUseCase", () => {
     async ({ quantity }) => {
       await expect(
         useCase.execute({
+          idempotencyKey: uuidv4(),
           productId: "product-1",
           userId: uuidv4(),
           quantity,
@@ -118,6 +120,7 @@ describe("ReserveStockUseCase", () => {
 
     await expect(
       useCase.execute({
+        idempotencyKey: uuidv4(),
         productId: "non-existent",
         userId: uuidv4(),
         quantity: 1,
@@ -139,6 +142,7 @@ describe("ReserveStockUseCase", () => {
 
     await expect(
       useCase.execute({
+        idempotencyKey: uuidv4(),
         productId: mockProduct.id,
         userId: uuidv4(),
         quantity: 1,
@@ -160,6 +164,7 @@ describe("ReserveStockUseCase", () => {
 
     await expect(
       useCase.execute({
+        idempotencyKey: uuidv4(),
         productId: mockProduct.id,
         userId: uuidv4(),
         quantity: 2,

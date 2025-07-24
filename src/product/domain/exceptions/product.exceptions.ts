@@ -68,3 +68,23 @@ export class StockReservationExpiredError extends ProductDomainError {
     super(`재고 예약이 만료되었습니다. ID: ${stockReservationId}`);
   }
 }
+
+export class StockReservationReleaseIdempotencyKeyMismatchError extends ProductDomainError {
+  readonly code = "STOCK_RESERVATION_RELEASE_IDEMPOTENCY_KEY_MISMATCH";
+
+  constructor(stockReservationId: string, idempotencyKey: string) {
+    super(
+      `재고 예약 취소를 위한 멱등성 키가 일치하지 않습니다. ID: ${stockReservationId}, 키: ${idempotencyKey}`
+    );
+  }
+}
+
+export class StockReservationConfirmStockIdempotencyKeyMismatchError extends ProductDomainError {
+  readonly code = "STOCK_RESERVATION_CONFIRM_STOCK_IDEMPOTENCY_KEY_MISMATCH";
+
+  constructor(stockReservationId: string, idempotencyKey: string) {
+    super(
+      `재고 예약 확정을 위한 멱등성 키가 일치하지 않습니다. ID: ${stockReservationId}, 키: ${idempotencyKey}`
+    );
+  }
+}

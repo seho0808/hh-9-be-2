@@ -81,6 +81,7 @@ describe("ReleaseStockUseCase", () => {
           productId: mockProduct.id,
           userId: uuidv4(),
           quantity: reservationQuantity,
+          idempotencyKey: uuidv4(),
         });
 
         stockReservationRepository.findById.mockResolvedValue(
@@ -90,6 +91,7 @@ describe("ReleaseStockUseCase", () => {
 
         const result = await useCase.execute({
           stockReservationId: "reservation-1",
+          idempotencyKey: mockStockReservation.idempotencyKey,
         });
 
         expect(mockStockReservation.isActive).toBe(false);
@@ -106,7 +108,10 @@ describe("ReleaseStockUseCase", () => {
     stockReservationRepository.findById.mockResolvedValue(null);
 
     await expect(
-      useCase.execute({ stockReservationId: "non-existent" })
+      useCase.execute({
+        stockReservationId: "non-existent",
+        idempotencyKey: "non-existent",
+      })
     ).rejects.toThrow(StockReservationNotFoundError);
   });
 
@@ -120,7 +125,10 @@ describe("ReleaseStockUseCase", () => {
     stockReservationRepository.findById.mockResolvedValue(inactiveReservation);
 
     await expect(
-      useCase.execute({ stockReservationId: "inactive-reservation" })
+      useCase.execute({
+        stockReservationId: "inactive-reservation",
+        idempotencyKey: "inactive-reservation",
+      })
     ).rejects.toThrow(StockReservationNotActiveError);
   });
 });

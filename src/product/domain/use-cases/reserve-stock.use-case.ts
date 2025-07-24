@@ -14,6 +14,7 @@ export interface ReserveStockCommand {
   productId: string;
   userId: string;
   quantity: number;
+  idempotencyKey: string;
 }
 
 @Injectable()
@@ -29,7 +30,7 @@ export class ReserveStockUseCase {
     stockReservation: StockReservation;
     product: Product;
   }> {
-    const { productId, userId, quantity } = command;
+    const { productId, userId, quantity, idempotencyKey } = command;
 
     if (quantity <= 0) {
       throw new InvalidQuantityError(quantity);
@@ -55,6 +56,7 @@ export class ReserveStockUseCase {
       productId,
       userId,
       quantity,
+      idempotencyKey,
     });
 
     // TODO: service 계층에서 transaction 처리 필요.

@@ -56,6 +56,7 @@ describe("ConfirmStockUseCase", () => {
       productId: mockProduct.id,
       userId: uuidv4(),
       quantity: 2,
+      idempotencyKey: uuidv4(),
     });
 
     stockReservationRepository.findById.mockResolvedValue(mockStockReservation);
@@ -63,6 +64,7 @@ describe("ConfirmStockUseCase", () => {
 
     const result = await useCase.execute({
       stockReservationId: mockStockReservation.id,
+      idempotencyKey: mockStockReservation.idempotencyKey,
     });
 
     expect(result.stockReservation.isActive).toBe(false);
@@ -73,7 +75,10 @@ describe("ConfirmStockUseCase", () => {
     stockReservationRepository.findById.mockResolvedValue(null);
 
     await expect(
-      useCase.execute({ stockReservationId: "non-existent" })
+      useCase.execute({
+        stockReservationId: "non-existent",
+        idempotencyKey: uuidv4(),
+      })
     ).rejects.toThrow(StockReservationNotFoundError);
   });
 
@@ -82,14 +87,18 @@ describe("ConfirmStockUseCase", () => {
       productId: uuidv4(),
       userId: uuidv4(),
       quantity: 2,
+      idempotencyKey: uuidv4(),
     });
 
-    mockStockReservation.releaseStock();
+    mockStockReservation.releaseStock(mockStockReservation.idempotencyKey);
 
     stockReservationRepository.findById.mockResolvedValue(mockStockReservation);
 
     await expect(
-      useCase.execute({ stockReservationId: mockStockReservation.id })
+      useCase.execute({
+        stockReservationId: mockStockReservation.id,
+        idempotencyKey: mockStockReservation.idempotencyKey,
+      })
     ).rejects.toThrow(StockReservationNotActiveError);
   });
 
@@ -98,6 +107,7 @@ describe("ConfirmStockUseCase", () => {
       productId: uuidv4(),
       userId: uuidv4(),
       quantity: 2,
+      idempotencyKey: uuidv4(),
     });
 
     // 만료 시간을 과거로 설정하기 위해 fromPersistence 사용
@@ -112,7 +122,10 @@ describe("ConfirmStockUseCase", () => {
     stockReservationRepository.findById.mockResolvedValue(expiredReservation);
 
     await expect(
-      useCase.execute({ stockReservationId: expiredReservation.id })
+      useCase.execute({
+        stockReservationId: expiredReservation.id,
+        idempotencyKey: expiredReservation.idempotencyKey,
+      })
     ).rejects.toThrow(StockReservationExpiredError);
   });
 });

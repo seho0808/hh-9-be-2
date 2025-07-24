@@ -1,10 +1,15 @@
 import { v4 as uuidv4 } from "uuid";
+import {
+  StockReservationConfirmStockIdempotencyKeyMismatchError,
+  StockReservationReleaseIdempotencyKeyMismatchError,
+} from "../exceptions/product.exceptions";
 
 export interface StockReservationProps {
   id: string;
   productId: string;
   userId: string;
   quantity: number;
+  idempotencyKey: string;
   createdAt: Date;
   updatedAt: Date;
   expiresAt: Date;
@@ -32,12 +37,24 @@ export class StockReservation {
     });
   }
 
-  releaseStock(): void {
+  releaseStock(idempotencyKey: string): void {
+    if (this.props.idempotencyKey !== idempotencyKey) {
+      throw new StockReservationReleaseIdempotencyKeyMismatchError(
+        this.props.id,
+        idempotencyKey
+      );
+    }
     this.props.isActive = false;
     this.props.updatedAt = new Date();
   }
 
-  confirmStock(): void {
+  confirmStock(idempotencyKey: string): void {
+    if (this.props.idempotencyKey !== idempotencyKey) {
+      throw new StockReservationConfirmStockIdempotencyKeyMismatchError(
+        this.props.id,
+        idempotencyKey
+      );
+    }
     this.props.isActive = false;
     this.props.updatedAt = new Date();
   }
@@ -52,6 +69,7 @@ export class StockReservation {
       productId: this.props.productId,
       userId: this.props.userId,
       quantity: this.props.quantity,
+      idempotencyKey: this.props.idempotencyKey,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
       expiresAt: this.props.expiresAt,
@@ -73,6 +91,10 @@ export class StockReservation {
 
   get quantity(): number {
     return this.props.quantity;
+  }
+
+  get idempotencyKey(): string {
+    return this.props.idempotencyKey;
   }
 
   get createdAt(): Date {

@@ -10,6 +10,7 @@ import { StockReservation } from "@/product/domain/entities/stock-reservation.en
 
 export interface ReleaseStockCommand {
   stockReservationId: string;
+  idempotencyKey: string;
 }
 
 @Injectable()
@@ -25,7 +26,7 @@ export class ReleaseStockUseCase {
     stockReservation: StockReservation;
     product: Product;
   }> {
-    const { stockReservationId } = command;
+    const { stockReservationId, idempotencyKey } = command;
 
     const stockReservation =
       await this.stockReservationRepository.findById(stockReservationId);
@@ -42,7 +43,7 @@ export class ReleaseStockUseCase {
       stockReservation.productId
     );
 
-    stockReservation.releaseStock();
+    stockReservation.releaseStock(idempotencyKey);
     product.releaseStock(stockReservation.quantity);
 
     await this.stockReservationRepository.save(stockReservation);
