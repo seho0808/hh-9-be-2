@@ -5,6 +5,7 @@ export interface PointTransactionProps {
   userId: string;
   amount: number;
   type: "CHARGE" | "USE" | "RECOVER";
+  idempotencyKey: string;
   createdAt: Date;
 }
 
@@ -29,5 +30,29 @@ export class PointTransaction {
     return {
       ...this.props,
     };
+  }
+
+  get id(): string {
+    return this.props.id;
+  }
+
+  get userId(): string {
+    return this.props.userId;
+  }
+
+  get amount(): number {
+    return this.props.amount;
+  }
+
+  get type(): "CHARGE" | "USE" | "RECOVER" {
+    return this.props.type;
+  }
+
+  get idempotencyKey(): string {
+    return this.props.idempotencyKey;
+  }
+
+  get createdAt(): Date {
+    return this.props.createdAt;
   }
 }

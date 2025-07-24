@@ -6,6 +6,7 @@ import {
 } from "../exceptions/point.exceptions";
 import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
 import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository";
+import { v4 as uuidv4 } from "uuid";
 
 describe("ChargePointsUseCase", () => {
   let useCase: ChargePointsUseCase;
@@ -22,6 +23,7 @@ describe("ChargePointsUseCase", () => {
 
     pointTransactionRepository = {
       findByUserId: jest.fn(),
+      findByOrderIdempotencyKey: jest.fn(),
       save: jest.fn(),
     };
 
@@ -58,6 +60,7 @@ describe("ChargePointsUseCase", () => {
         const result = await useCase.execute({
           userId: mockUserId,
           amount: chargeAmount,
+          idempotencyKey: uuidv4(),
         });
 
         // then
@@ -80,6 +83,7 @@ describe("ChargePointsUseCase", () => {
       useCase.execute({
         userId: mockUserId,
         amount: 10000,
+        idempotencyKey: uuidv4(),
       })
     ).rejects.toThrow(UserBalanceNotFoundError);
   });
@@ -110,6 +114,7 @@ describe("ChargePointsUseCase", () => {
           useCase.execute({
             userId: mockUserId,
             amount: chargeAmount,
+            idempotencyKey: uuidv4(),
           })
         ).rejects.toThrow(InvalidChargeAmountError);
       });
