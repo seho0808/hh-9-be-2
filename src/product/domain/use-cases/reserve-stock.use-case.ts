@@ -59,7 +59,6 @@ export class ReserveStockUseCase {
       idempotencyKey,
     });
 
-    // TODO: service 계층에서 transaction 처리 필요.
     await this.stockReservationRepository.save(stockReservation);
     await this.productRepository.save(product);
 

@@ -1,4 +1,5 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
+import { DataSource, EntityManager } from "typeorm";
 import { GetProductByIdUseCase } from "@/product/domain/use-cases/get-product-by-id.use-case";
 import { GetAllProductsUseCase } from "@/product/domain/use-cases/get-all-products.use-case";
 import {
@@ -23,10 +24,17 @@ import {
 } from "@/product/domain/use-cases/confirm-stock.use-case";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { GetProductByIdsUseCase } from "@/product/domain/use-cases/get-product-by-ids.use-case";
+import { ProductRepository } from "@/product/infrastructure/persistence/product.repository";
+import { StockReservationRepository } from "@/product/infrastructure/persistence/stock-reservations.repository";
 
 @Injectable()
 export class ProductApplicationService {
   constructor(
+    private readonly dataSource: DataSource,
+    @Inject("ProductRepositoryInterface")
+    private readonly productRepository: ProductRepository,
+    @Inject("StockReservationRepositoryInterface")
+    private readonly stockReservationRepository: StockReservationRepository,
     private readonly getProductByIdUseCase: GetProductByIdUseCase,
     private readonly getProductByIdsUseCase: GetProductByIdsUseCase,
     private readonly getAllProductsUseCase: GetAllProductsUseCase,
@@ -57,23 +65,43 @@ export class ProductApplicationService {
   async reserveStock(
     command: ReserveStockCommand
   ): Promise<{ product: Product; stockReservation: StockReservation }> {
-    const { product, stockReservation } =
-      await this.reserveStockUseCase.execute(command);
-    return { product, stockReservation };
+    return await this.executeInTransaction(async () => {
+      return await this.reserveStockUseCase.execute(command);
+    });
   }
 
   async releaseStock(command: ReleaseStockCommand): Promise<Product> {
-    const { product } = await this.releaseStockUseCase.execute(command);
-    return product;
+    return await this.executeInTransaction(async () => {
+      const { product } = await this.releaseStockUseCase.execute(command);
+      return product;
+    });
   }
 
   async confirmStock(command: ConfirmStockCommand): Promise<Product> {
-    const { product } = await this.confirmStockUseCase.execute(command);
-    return product;
+    return await this.executeInTransaction(async () => {
+      const { product } = await this.confirmStockUseCase.execute(command);
+      return product;
+    });
   }
 
   async getPopularProducts(limit?: number): Promise<any[]> {
     // TODO: Order 도메인 구현 진행 된 후에 구현 가능함.
     return [];
+  }
+
+  private async executeInTransaction<T>(
+    operation: () => Promise<T>
+  ): Promise<T> {
+    return await this.dataSource.transaction(async (manager) => {
+      this.productRepository.setEntityManager(manager);
+      this.stockReservationRepository.setEntityManager(manager);
+
+      try {
+        return await operation();
+      } finally {
+        this.productRepository.clearEntityManager();
+        this.stockReservationRepository.clearEntityManager();
+      }
+    });
   }
 }
