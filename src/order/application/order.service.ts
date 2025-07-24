@@ -49,16 +49,22 @@ export class OrderApplicationService {
 
     try {
       // 할인/결제/재고 확정 적용
-      return await this.processOrder(
+      return await this.processOrder({
         userId,
         couponId,
         order,
         discountPrice,
         discountedPrice,
-        stockReservationIds
-      );
+        stockReservationIds,
+        idempotencyKey,
+      });
     } catch (error) {
-      await this.recoverOrder(order, couponId, stockReservationIds);
+      await this.recoverOrder({
+        order,
+        couponId,
+        stockReservationIds,
+        idempotencyKey,
+      });
       throw error;
     }
   }
@@ -136,14 +142,23 @@ export class OrderApplicationService {
     return { order, discountPrice, discountedPrice, stockReservationIds };
   }
 
-  private async processOrder(
-    userId: string,
-    couponId: string | null,
-    order: Order,
-    discountPrice: number,
-    discountedPrice: number,
-    stockReservationIds: string[]
-  ): Promise<{ order: Order }> {
+  private async processOrder({
+    userId,
+    couponId,
+    order,
+    discountPrice,
+    discountedPrice,
+    stockReservationIds,
+    idempotencyKey,
+  }: {
+    userId: string;
+    couponId: string | null;
+    order: Order;
+    discountPrice: number;
+    discountedPrice: number;
+    stockReservationIds: string[];
+    idempotencyKey: string;
+  }): Promise<{ order: Order }> {
     // 쿠폰 적용
     if (couponId) {
       const { order: discountedOrder } =
@@ -154,6 +169,14 @@ export class OrderApplicationService {
           discountedPrice,
         });
       order = discountedOrder;
+
+      await this.couponApplicationService.useUserCoupon(
+        couponId,
+        userId,
+        order.id,
+        order.totalPrice,
+        idempotencyKey
+      );
     }
 
     // 잔고 사용
@@ -181,11 +204,17 @@ export class OrderApplicationService {
   }
 
   // TODO: cronjob으로도 지속적으로 최근 Order들에 대해 다시 호출 해야함.
-  private async recoverOrder(
-    order: Order,
-    couponId: string | null,
-    stockReservationIds: string[]
-  ) {
+  private async recoverOrder({
+    order,
+    couponId,
+    stockReservationIds,
+    idempotencyKey,
+  }: {
+    order: Order;
+    couponId: string | null;
+    stockReservationIds: string[];
+    idempotencyKey: string;
+  }) {
     // 재고 예약 취소
     // TODO: 재고 예약 idempotencyKey 기준으로 처리해야함. product 쪽 모두 필드 추가해주어야함.
     await Promise.all(
@@ -198,8 +227,10 @@ export class OrderApplicationService {
 
     // 쿠폰 해제
     if (couponId) {
-      // TODO: 쿠폰 복구 유스케이스 구현해야함
-      // await this.couponApplicationService.recoverCoupon(couponId);
+      await this.couponApplicationService.recoverUserCoupon(
+        couponId,
+        idempotencyKey
+      );
     }
 
     // 잔고 복구
