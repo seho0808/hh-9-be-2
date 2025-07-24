@@ -87,24 +87,28 @@ describe("CreateUserUseCase", () => {
       ).rejects.toThrow(InvalidEmailFormatError);
     });
 
-    it.each([
+    const invalidNameTestCases: Array<{ name: string; description: string }> = [
       { name: "a", description: "너무 짧음" },
       { name: "admin", description: "금지된 이름" },
       { name: "", description: "빈 문자열" },
       { name: "  ", description: "공백만 있음" },
-    ])(
-      "유효하지 않은 사용자 이름(%s)에 대해 InvalidUserNameError를 발생시켜야 함",
-      async ({ name, description }) => {
-        const invalidNameCommand: CreateUserCommand = {
-          ...validCommand,
-          name,
-        };
+    ];
 
-        mockUserRepository.exists.mockResolvedValue(false);
+    describe.each(invalidNameTestCases)(
+      "유효하지 않은 사용자 이름에 대해 InvalidUserNameError를 발생시켜야 함",
+      ({ name, description }) => {
+        it(`${description}`, async () => {
+          const invalidNameCommand: CreateUserCommand = {
+            ...validCommand,
+            name,
+          };
 
-        await expect(
-          createUserUseCase.execute(invalidNameCommand)
-        ).rejects.toThrow(InvalidUserNameError);
+          mockUserRepository.exists.mockResolvedValue(false);
+
+          await expect(
+            createUserUseCase.execute(invalidNameCommand)
+          ).rejects.toThrow(InvalidUserNameError);
+        });
       }
     );
   });

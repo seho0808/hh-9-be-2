@@ -97,13 +97,11 @@ describe("ReserveStockUseCase", () => {
     }
   );
 
-  // TODO: 추후 each 문법 통일 필요.
-  it.each([
+  describe.each([
     { quantity: 0, desc: "0일 때" },
     { quantity: -1, desc: "음수일 때" },
-  ])(
-    "수량이 유효하지 않을 때 에러가 발생해야 한다: $desc",
-    async ({ quantity }) => {
+  ])("수량이 유효하지 않을 때 에러가 발생해야 한다", ({ quantity, desc }) => {
+    it(`${desc}`, async () => {
       await expect(
         useCase.execute({
           idempotencyKey: uuidv4(),
@@ -112,8 +110,8 @@ describe("ReserveStockUseCase", () => {
           quantity,
         })
       ).rejects.toThrow(InvalidQuantityError);
-    }
-  );
+    });
+  });
 
   it("존재하지 않는 상품 ID로 요청시 에러가 발생해야 한다", async () => {
     productRepository.findById.mockResolvedValue(null);
