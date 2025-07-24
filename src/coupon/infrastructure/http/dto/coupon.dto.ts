@@ -125,6 +125,15 @@ export class ClaimCouponDto {
   })
   @IsString()
   couponCode: string;
+
+  @ApiProperty({
+    description: "중복 요청 방지 ID",
+    example: "1234567890",
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  idempotencyKey?: string;
 }
 
 export class DiscountCalculationDto {

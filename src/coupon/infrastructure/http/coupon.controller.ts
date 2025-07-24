@@ -27,6 +27,7 @@ import {
 } from "@/common/decorators/current-user.decorator";
 import { CouponApplicationService } from "@/coupon/application/services/coupon.service";
 import { CouponExceptionFilter } from "./filters/coupon-exception.filter";
+import { v4 as uuidv4 } from "uuid";
 
 @ApiTags("쿠폰")
 @Controller("coupons")
@@ -102,10 +103,12 @@ export class CouponController {
     @Param("couponId") couponId: string,
     @Body() claimDto: ClaimCouponDto
   ): Promise<ApiResponseDto<UserCouponResponseDto>> {
+    const idempotencyKey = claimDto.idempotencyKey || uuidv4();
     const result = await this.couponService.issueUserCoupon({
       couponId,
       userId: user.id,
       couponCode: claimDto.couponCode,
+      idempotencyKey,
     });
     return ApiResponseDto.success(
       UserCouponResponseDto.fromUserCoupon(result),

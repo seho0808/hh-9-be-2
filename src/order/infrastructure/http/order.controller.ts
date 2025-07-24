@@ -59,7 +59,7 @@ export class OrderController {
     @CurrentUser() user: CurrentUserData,
     @Body() createOrderDto: CreateOrderDto
   ): Promise<ApiResponseDto<OrderResponseDto>> {
-    const idempotencyKey = createOrderDto.requestId || uuidv4();
+    const idempotencyKey = createOrderDto.idempotencyKey || uuidv4();
 
     const { order } = await this.orderApplicationService.placeOrder({
       userId: user.id,
