@@ -15,6 +15,8 @@ import { GetStockReservationsByKeyUseCase } from "./domain/use-cases/get-stock-r
 import { AuthModule } from "../auth/auth.module";
 import { StockReservationTypeOrmEntity } from "./infrastructure/persistence/orm/stock-reservations.typeorm.entity";
 import { StockReservationRepository } from "./infrastructure/persistence/stock-reservations.repository";
+import { forwardRef } from "@nestjs/common";
+import { OrderModule } from "../order/order.module";
 
 @Module({
   imports: [
@@ -23,6 +25,7 @@ import { StockReservationRepository } from "./infrastructure/persistence/stock-r
       StockReservationTypeOrmEntity,
     ]),
     AuthModule,
+    forwardRef(() => OrderModule),
   ],
   controllers: [ProductController],
   providers: [
