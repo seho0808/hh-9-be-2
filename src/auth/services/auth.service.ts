@@ -86,11 +86,12 @@ export class AuthService {
 
   private userToRegisterResponseDto(user: User): RegisterResponseDto {
     return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      accessToken: this.authJwtService.generateAccessToken(
+        this.userToUserInfoDto(user)
+      ),
+      tokenType: "Bearer",
+      expiresIn: this.authJwtService.getTokenExpiresIn(),
+      user: this.userToUserInfoDto(user),
     };
   }
 
