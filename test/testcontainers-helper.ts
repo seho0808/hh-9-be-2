@@ -93,6 +93,13 @@ export class TestContainersHelper {
     this.app = moduleFixture.createNestApplication();
     this.app.setGlobalPrefix("api");
 
+    // GlobalExceptionFilter 설정 (main.ts와 동일)
+    this.app.useGlobalFilters(
+      new (
+        await import("../src/common/filters/global-exception.filter")
+      ).GlobalExceptionFilter()
+    );
+
     // ValidationPipe 설정 (main.ts와 동일)
     this.app.useGlobalPipes(
       new ValidationPipe({
