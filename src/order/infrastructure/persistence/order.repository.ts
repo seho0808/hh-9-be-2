@@ -1,26 +1,44 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, EntityManager, LessThan } from "typeorm";
 import { OrderRepositoryInterface } from "@/order/domain/interfaces/order.repository.interface";
-import { Order } from "@/order/domain/entities/order.entitiy";
+import { Order, OrderStatus } from "@/order/domain/entities/order.entitiy";
 import { OrderTypeOrmEntity } from "./orm/order.typeorm.entity";
 import { OrderItem } from "@/order/domain/entities/order-item.entity";
 
 @Injectable()
 export class OrderRepository implements OrderRepositoryInterface {
+  private entityManager?: EntityManager;
+
   constructor(
     @InjectRepository(OrderTypeOrmEntity)
     private readonly orderRepository: Repository<OrderTypeOrmEntity>
   ) {}
 
+  setEntityManager(manager: EntityManager): void {
+    this.entityManager = manager;
+  }
+
+  clearEntityManager(): void {
+    this.entityManager = undefined;
+  }
+
+  private getRepository(): Repository<OrderTypeOrmEntity> {
+    return this.entityManager
+      ? this.entityManager.getRepository(OrderTypeOrmEntity)
+      : this.orderRepository;
+  }
+
   async save(order: Order): Promise<Order> {
+    const repository = this.getRepository();
     const entity = this.fromDomain(order);
-    const savedEntity = await this.orderRepository.save(entity);
+    const savedEntity = await repository.save(entity);
     return this.toDomain(savedEntity);
   }
 
   async findById(id: string): Promise<Order | null> {
-    const entity = await this.orderRepository.findOne({
+    const repository = this.getRepository();
+    const entity = await repository.findOne({
       where: { id },
       relations: ["orderItems"],
     });
@@ -28,7 +46,8 @@ export class OrderRepository implements OrderRepositoryInterface {
   }
 
   async findByUserId(userId: string): Promise<Order[]> {
-    const entities = await this.orderRepository.find({
+    const repository = this.getRepository();
+    const entities = await repository.find({
       where: { userId },
       relations: ["orderItems"],
       order: { createdAt: "DESC" },
