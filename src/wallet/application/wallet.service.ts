@@ -19,6 +19,10 @@ import {
   CreateUserBalanceUseCase,
   CreateUserBalanceUseCaseResult,
 } from "../domain/use-cases/create-user-balance.use-case";
+import {
+  ValidateUsePointsUseCase,
+  ValidateUsePointsUseCaseResult,
+} from "../domain/use-cases/validate-use-points.use-case";
 
 @Injectable()
 export class WalletApplicationService {
@@ -27,7 +31,8 @@ export class WalletApplicationService {
     private readonly usePointsUseCase: UsePointsUseCase,
     private readonly recoverPointsUseCase: RecoverPointsUseCase,
     private readonly getUserPointsUseCase: GetUserPointsUseCase,
-    private readonly createUserBalanceUseCase: CreateUserBalanceUseCase
+    private readonly createUserBalanceUseCase: CreateUserBalanceUseCase,
+    private readonly validateUsePointsUseCase: ValidateUsePointsUseCase
   ) {}
 
   async chargePoints(
@@ -75,6 +80,17 @@ export class WalletApplicationService {
     userId: string
   ): Promise<CreateUserBalanceUseCaseResult> {
     const result = await this.createUserBalanceUseCase.execute({ userId });
+    return result;
+  }
+
+  async validateUsePoints(
+    userId: string,
+    amount: number
+  ): Promise<ValidateUsePointsUseCaseResult> {
+    const result = await this.validateUsePointsUseCase.execute({
+      userId,
+      amount,
+    });
     return result;
   }
 }
