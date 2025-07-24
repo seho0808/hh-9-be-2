@@ -50,12 +50,6 @@ describe("RecoverPointsUseCase", () => {
         });
 
         userBalanceRepository.findByUserId.mockResolvedValue(existingBalance);
-        userBalanceRepository.save.mockImplementation((balance) =>
-          Promise.resolve(balance)
-        );
-        pointTransactionRepository.save.mockImplementation((transaction) =>
-          Promise.resolve(transaction)
-        );
 
         // when
         const result = await useCase.execute({
