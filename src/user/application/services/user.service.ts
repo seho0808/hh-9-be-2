@@ -1,4 +1,5 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
+import { DataSource } from "typeorm";
 import { GetUserByIdUseCase } from "@/user/domain/use-cases/get-user-by-id.use-case";
 import { GetUserByEmailUseCase } from "@/user/domain/use-cases/get-user-by-email.use-case";
 import {
@@ -7,10 +8,14 @@ import {
 } from "@/user/domain/use-cases/create-user.use-case";
 import { User } from "@/user/domain/entities/user.entity";
 import { WalletApplicationService } from "@/wallet/application/wallet.service";
+import { UserRepository } from "@/user/infrastructure/persistence/user.repository";
 
 @Injectable()
 export class UserApplicationService {
   constructor(
+    private readonly dataSource: DataSource,
+    @Inject("UserRepositoryInterface")
+    private readonly userRepository: UserRepository,
     private readonly walletApplicationService: WalletApplicationService,
     private readonly getUserByIdUseCase: GetUserByIdUseCase,
     private readonly getUserByEmailUseCase: GetUserByEmailUseCase,
@@ -35,16 +40,31 @@ export class UserApplicationService {
     hashedPassword: string,
     name: string
   ): Promise<User> {
-    const command: CreateUserCommand = {
-      email,
-      hashedPassword,
-      name,
-    };
+    return await this.executeInTransaction(async () => {
+      const command: CreateUserCommand = {
+        email,
+        hashedPassword,
+        name,
+      };
 
-    // TODO: transaction으로 묶어서 동시에 유저 생성과 지갑 생성 처리
-    const user = await this.createUserUseCase.execute(command);
-    await this.walletApplicationService.createUserBalance(user.id);
+      const user = await this.createUserUseCase.execute(command);
+      await this.walletApplicationService.createUserBalance(user.id);
 
-    return user;
+      return user;
+    });
+  }
+
+  private async executeInTransaction<T>(
+    operation: () => Promise<T>
+  ): Promise<T> {
+    return await this.dataSource.transaction(async (manager) => {
+      this.userRepository.setEntityManager(manager);
+
+      try {
+        return await operation();
+      } finally {
+        this.userRepository.clearEntityManager();
+      }
+    });
   }
 }
