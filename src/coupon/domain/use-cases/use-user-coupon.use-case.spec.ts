@@ -169,6 +169,43 @@ describe("UserCouponUseCase", () => {
         expect(result.discountPrice).toBe(30000);
         expect(result.discountedPrice).toBe(70000);
       });
+
+      it("소수점이 발생하는 퍼센트 할인 시 소수점 버림이 적용되어야 한다", async () => {
+        const coupon = Coupon.create({
+          name: "10% 할인 쿠폰",
+          description: "소수점 버림 테스트",
+          couponCode: "PERCENT10",
+          discountType: CouponDiscountType.PERCENTAGE,
+          discountValue: 10,
+          minimumOrderPrice: 1000,
+          maxDiscountPrice: null,
+          totalCount: 100,
+          startDate: new Date(),
+          endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          expiresInDays: 7,
+        });
+
+        const userCoupon = UserCoupon.create({
+          couponId: coupon.id,
+          userId: uuidv4(),
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        });
+
+        couponRepository.findById.mockResolvedValue(coupon);
+        userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
+          userCoupon
+        );
+
+        const result = await useCase.execute({
+          couponId: coupon.id,
+          userId: userCoupon.userId,
+          orderId: uuidv4(),
+          orderPrice: 1235, // 10% = 123.5원 → 123원 (소수점 버림)
+        });
+
+        expect(result.discountPrice).toBe(123); // 123.5가 아닌 123원
+        expect(result.discountedPrice).toBe(1112); // 1235 - 123 = 1112원
+      });
     });
   });
 
