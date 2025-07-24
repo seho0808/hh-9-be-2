@@ -6,10 +6,12 @@ import {
   CreateUserCommand,
 } from "@/user/domain/use-cases/create-user.use-case";
 import { User } from "@/user/domain/entities/user.entity";
+import { WalletApplicationService } from "@/wallet/application/wallet.service";
 
 @Injectable()
 export class UserApplicationService {
   constructor(
+    private readonly walletApplicationService: WalletApplicationService,
     private readonly getUserByIdUseCase: GetUserByIdUseCase,
     private readonly getUserByEmailUseCase: GetUserByEmailUseCase,
     private readonly createUserUseCase: CreateUserUseCase
@@ -39,6 +41,10 @@ export class UserApplicationService {
       name,
     };
 
-    return this.createUserUseCase.execute(command);
+    // TODO: transaction으로 묶어서 동시에 유저 생성과 지갑 생성 처리
+    const user = await this.createUserUseCase.execute(command);
+    await this.walletApplicationService.createUserBalance(user.id);
+
+    return user;
   }
 }

@@ -8,11 +8,13 @@ import { GetUserByIdUseCase } from "./domain/use-cases/get-user-by-id.use-case";
 import { GetUserByEmailUseCase } from "./domain/use-cases/get-user-by-email.use-case";
 import { CreateUserUseCase } from "./domain/use-cases/create-user.use-case";
 import { AuthModule } from "@/auth/auth.module";
+import { WalletModule } from "@/wallet/wallet.module";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserTypeOrmEntity]),
     forwardRef(() => AuthModule),
+    forwardRef(() => WalletModule),
   ],
   controllers: [UserController],
   providers: [
