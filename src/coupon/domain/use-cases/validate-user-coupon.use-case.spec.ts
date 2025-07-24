@@ -62,6 +62,7 @@ describe("ValidateCouponUseCase", () => {
         couponId: coupon.id,
         userId: uuidv4(),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        issuedIdempotencyKey: uuidv4(),
       });
 
       couponRepository.findById.mockResolvedValue(coupon);
@@ -99,6 +100,7 @@ describe("ValidateCouponUseCase", () => {
         couponId: coupon.id,
         userId: uuidv4(),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        issuedIdempotencyKey: uuidv4(),
       });
 
       couponRepository.findById.mockResolvedValue(coupon);
@@ -138,6 +140,7 @@ describe("ValidateCouponUseCase", () => {
         couponId: coupon.id,
         userId: uuidv4(),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        issuedIdempotencyKey: uuidv4(),
       });
 
       couponRepository.findById.mockResolvedValue(coupon);
@@ -175,6 +178,7 @@ describe("ValidateCouponUseCase", () => {
         couponId: coupon.id,
         userId: uuidv4(),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        issuedIdempotencyKey: uuidv4(),
       });
 
       couponRepository.findById.mockResolvedValue(coupon);
@@ -214,6 +218,7 @@ describe("ValidateCouponUseCase", () => {
         couponId: coupon.id,
         userId: uuidv4(),
         expiresAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 하루 전 만료
+        issuedIdempotencyKey: uuidv4(),
       });
 
       couponRepository.findById.mockResolvedValue(coupon);
@@ -251,9 +256,10 @@ describe("ValidateCouponUseCase", () => {
         couponId: coupon.id,
         userId: uuidv4(),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        issuedIdempotencyKey: uuidv4(),
       });
 
-      usedUserCoupon.use("order-1", 10000); // 쿠폰 사용 처리
+      usedUserCoupon.use("order-1", 10000, uuidv4()); // 쿠폰 사용 처리
 
       couponRepository.findById.mockResolvedValue(coupon);
       userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(

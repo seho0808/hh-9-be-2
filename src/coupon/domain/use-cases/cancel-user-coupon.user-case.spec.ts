@@ -73,6 +73,7 @@ describe("CancelUserCouponUseCase", () => {
         couponId: coupon.id,
         userId: uuidv4(),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        issuedIdempotencyKey: uuidv4(),
       });
 
       userCouponRepository.findById.mockResolvedValue(userCoupon);
@@ -106,11 +107,12 @@ describe("CancelUserCouponUseCase", () => {
         couponId: coupon.id,
         userId: uuidv4(),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        issuedIdempotencyKey: uuidv4(),
       });
 
       // NOTE: 다른 유스케이스 가져다가 써야할수도
       const { discountPrice } = coupon.use(50000);
-      userCoupon.use("order-1", discountPrice);
+      userCoupon.use("order-1", discountPrice, uuidv4());
 
       const initialUsedCount = coupon.usedCount;
 
@@ -145,6 +147,7 @@ describe("CancelUserCouponUseCase", () => {
         couponId: coupon.id,
         userId: uuidv4(),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        issuedIdempotencyKey: uuidv4(),
       });
 
       userCouponRepository.findById.mockResolvedValue(userCoupon);
@@ -180,6 +183,7 @@ describe("CancelUserCouponUseCase", () => {
         couponId: uuidv4(),
         userId: uuidv4(),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        issuedIdempotencyKey: uuidv4(),
       });
 
       userCouponRepository.findById.mockResolvedValue(userCoupon);

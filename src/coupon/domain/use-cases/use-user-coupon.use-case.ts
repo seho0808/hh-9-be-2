@@ -10,6 +10,7 @@ export interface UseUserCouponCommand {
   userId: string;
   orderId: string;
   orderPrice: number;
+  idempotencyKey: string;
 }
 
 export interface UseUserCouponResult {
@@ -29,7 +30,7 @@ export class UserCouponUseCase {
   ) {}
 
   async execute(command: UseUserCouponCommand): Promise<UseUserCouponResult> {
-    const { couponId, userId, orderId, orderPrice } = command;
+    const { couponId, userId, orderId, orderPrice, idempotencyKey } = command;
 
     const coupon = await this.couponRepository.findById(couponId);
     if (!coupon) {
@@ -42,7 +43,7 @@ export class UserCouponUseCase {
     );
 
     const { discountPrice, discountedPrice } = coupon.use(orderPrice);
-    userCoupon.use(orderId, discountPrice);
+    userCoupon.use(orderId, discountPrice, idempotencyKey);
 
     await Promise.all([
       this.couponRepository.save(coupon),

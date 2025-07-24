@@ -31,3 +31,13 @@ export class UserCouponNotFoundError extends CouponDomainError {
     super(`존재하지 않는 쿠폰입니다. ID: ${userCouponId}`);
   }
 }
+
+export class UserCouponRecoverIdempotencyKeyMismatchError extends CouponDomainError {
+  readonly code = "USER_COUPON_RECOVER_IDEMPOTENCY_KEY_MISMATCH";
+
+  constructor(userCouponId: string, idempotencyKey: string) {
+    super(
+      `쿠폰 복구를 위한 멱등성 키가 일치하지 않습니다. ID: ${userCouponId}, 키: ${idempotencyKey}`
+    );
+  }
+}
