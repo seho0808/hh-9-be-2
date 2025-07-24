@@ -3,6 +3,7 @@ import {
   UserCouponAlreadyUsedError,
   UserCouponCancelledError,
   UserCouponExpiredError,
+  UserCouponRecoverIdempotencyKeyMismatchError,
 } from "../exceptions/user-coupon.exception";
 
 export enum UserCouponStatus {
@@ -18,6 +19,8 @@ export interface UserCouponProps {
   orderId: string | null; // 사용 시에만 필요
   discountPrice: number | null; // 실제 할인된 금액 (사용 시에만 필요)
   status: UserCouponStatus;
+  issuedIdempotencyKey: string; // 발급 시 멱등성 키
+  usedIdempotencyKey: string; // 사용 시 멱등성 키
   expiresAt: Date; // 만료일시
   usedAt: Date | null; // 사용일시 (사용 시에만 설정)
   cancelledAt: Date | null;
@@ -39,6 +42,7 @@ export class UserCoupon {
       | "updatedAt"
       | "orderId"
       | "discountPrice"
+      | "usedIdempotencyKey"
     >
   ): UserCoupon {
     const now = new Date();
@@ -52,10 +56,11 @@ export class UserCoupon {
       discountPrice: null,
       usedAt: null,
       cancelledAt: null,
+      usedIdempotencyKey: null,
     });
   }
 
-  use(orderId: string, discountPrice: number): void {
+  use(orderId: string, discountPrice: number, idempotencyKey: string): void {
     if (this.isExpired()) {
       throw new UserCouponExpiredError(this.props.id);
     }
@@ -73,6 +78,7 @@ export class UserCoupon {
     this.props.status = UserCouponStatus.USED;
     this.props.usedAt = new Date();
     this.props.updatedAt = new Date();
+    this.props.usedIdempotencyKey = idempotencyKey;
   }
 
   canUse(): boolean {
@@ -83,6 +89,23 @@ export class UserCoupon {
     this.props.status = UserCouponStatus.CANCELLED;
     this.props.cancelledAt = new Date();
     this.props.updatedAt = new Date();
+  }
+
+  recover(idempotencyKey: string): void {
+    if (!this.isUsed()) return;
+
+    if (this.props.usedIdempotencyKey !== idempotencyKey) {
+      throw new UserCouponRecoverIdempotencyKeyMismatchError(
+        this.props.id,
+        idempotencyKey
+      );
+    }
+
+    this.props.status = UserCouponStatus.ISSUED;
+    this.props.usedIdempotencyKey = null;
+    this.props.usedAt = null;
+    this.props.discountPrice = null;
+    this.props.orderId = null;
   }
 
   private isExpired(): boolean {

@@ -1,9 +1,14 @@
 import { RecoverPointsUseCase } from "./recover-points.use-case";
 import { UserBalance } from "../entities/user-balance.entity";
 import { PointTransaction } from "../entities/point-transaction.entity";
-import { UserBalanceNotFoundError } from "../exceptions/point.exceptions";
+import {
+  PointTransactionAlreadyRecoveredError,
+  PointTransactionNotFoundError,
+  UserBalanceNotFoundError,
+} from "../exceptions/point.exceptions";
 import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
 import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository";
+import { v4 as uuidv4 } from "uuid";
 
 describe("RecoverPointsUseCase", () => {
   let useCase: RecoverPointsUseCase;
@@ -20,6 +25,7 @@ describe("RecoverPointsUseCase", () => {
 
     pointTransactionRepository = {
       findByUserId: jest.fn(),
+      findByOrderIdempotencyKey: jest.fn(),
       save: jest.fn(),
     };
 
@@ -50,11 +56,20 @@ describe("RecoverPointsUseCase", () => {
         });
 
         userBalanceRepository.findByUserId.mockResolvedValue(existingBalance);
+        pointTransactionRepository.findByOrderIdempotencyKey.mockResolvedValue([
+          PointTransaction.create({
+            userId: mockUserId,
+            amount: recoverAmount,
+            type: "USE",
+            idempotencyKey: "test-idempotency-key",
+          }),
+        ]);
 
         // when
         const result = await useCase.execute({
           userId: mockUserId,
           amount: recoverAmount,
+          idempotencyKey: "test-idempotency-key",
         });
 
         // then
@@ -77,7 +92,61 @@ describe("RecoverPointsUseCase", () => {
       useCase.execute({
         userId: mockUserId,
         amount: 10000,
+        idempotencyKey: uuidv4(),
       })
     ).rejects.toThrow(UserBalanceNotFoundError);
+  });
+
+  it("기존 트랜잭션 중 사용 트랜잭션을 찾을 수 없을 때 PointTransactionNotFoundError를 던져야한다", async () => {
+    // given
+    userBalanceRepository.findByUserId.mockResolvedValue(
+      UserBalance.create({
+        userId: mockUserId,
+        balance: 10000,
+      })
+    );
+    pointTransactionRepository.findByOrderIdempotencyKey.mockResolvedValue([]);
+
+    // when & then
+    await expect(
+      useCase.execute({
+        userId: mockUserId,
+        amount: 10000,
+        idempotencyKey: uuidv4(),
+      })
+    ).rejects.toThrow(PointTransactionNotFoundError);
+  });
+
+  it("기존 트랜잭션 중 복구 트랜잭션을 찾을 수 있을 때 PointTransactionAlreadyRecoveredError를 던져야한다", async () => {
+    // given
+    userBalanceRepository.findByUserId.mockResolvedValue(
+      UserBalance.create({
+        userId: mockUserId,
+        balance: 10000,
+      })
+    );
+    pointTransactionRepository.findByOrderIdempotencyKey.mockResolvedValue([
+      PointTransaction.create({
+        userId: mockUserId,
+        amount: 10000,
+        type: "USE",
+        idempotencyKey: "test-idempotency-key",
+      }),
+      PointTransaction.create({
+        userId: mockUserId,
+        amount: 10000,
+        type: "RECOVER",
+        idempotencyKey: "test-idempotency-key",
+      }),
+    ]);
+
+    // when & then
+    await expect(
+      useCase.execute({
+        userId: mockUserId,
+        amount: 10000,
+        idempotencyKey: "test-idempotency-key",
+      })
+    ).rejects.toThrow(PointTransactionAlreadyRecoveredError);
   });
 });

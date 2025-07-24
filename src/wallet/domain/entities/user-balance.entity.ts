@@ -73,4 +73,20 @@ export class UserBalance {
   get balance(): number {
     return this.props.balance;
   }
+
+  get id(): string {
+    return this.props.id;
+  }
+
+  get userId(): string {
+    return this.props.userId;
+  }
+
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
+
+  get updatedAt(): Date {
+    return this.props.updatedAt;
+  }
 }

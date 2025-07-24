@@ -54,6 +54,8 @@ export class UserCouponRepository implements UserCouponRepositoryInterface {
     entity.orderId = props.orderId;
     entity.discountPrice = props.discountPrice;
     entity.status = props.status;
+    entity.issuedIdempotencyKey = props.issuedIdempotencyKey;
+    entity.usedIdempotencyKey = props.usedIdempotencyKey;
     entity.expiresAt = props.expiresAt;
     entity.usedAt = props.usedAt;
     entity.cancelledAt = props.cancelledAt;
@@ -70,6 +72,8 @@ export class UserCouponRepository implements UserCouponRepositoryInterface {
       orderId: entity.orderId,
       discountPrice: entity.discountPrice,
       status: entity.status as UserCouponStatus,
+      issuedIdempotencyKey: entity.issuedIdempotencyKey,
+      usedIdempotencyKey: entity.usedIdempotencyKey,
       expiresAt: entity.expiresAt,
       usedAt: entity.usedAt,
       cancelledAt: entity.cancelledAt,

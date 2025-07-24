@@ -15,6 +15,7 @@ import { CouponRepository } from "./infrastructure/persistence/coupon.repository
 import { CouponTypeOrmEntity } from "./infrastructure/persistence/orm/coupon.typeorm.entity";
 import { UserCouponTypeOrmEntity } from "./infrastructure/persistence/orm/user-coupon.typeorm.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { RecoverUserCouponUseCase } from "./domain/use-cases/recover-user-coupon.use-case";
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
     UserCouponUseCase,
     ValidateCouponUseCase,
     CancelUserCouponUseCase,
+    RecoverUserCouponUseCase,
     {
       provide: "UserCouponRepositoryInterface",
       useClass: UserCouponRepository,

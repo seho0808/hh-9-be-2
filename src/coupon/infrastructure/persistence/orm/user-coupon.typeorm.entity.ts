@@ -39,6 +39,12 @@ export class UserCouponTypeOrmEntity {
   })
   status: UserCouponStatus;
 
+  @Column({ type: "varchar", name: "issued_idempotency_key", nullable: true })
+  issuedIdempotencyKey: string | null;
+
+  @Column({ type: "varchar", name: "used_idempotency_key", nullable: true })
+  usedIdempotencyKey: string | null;
+
   @Column({ type: "timestamp", name: "expires_at" })
   @Index("idx_user_coupons_expires_at")
   expiresAt: Date;

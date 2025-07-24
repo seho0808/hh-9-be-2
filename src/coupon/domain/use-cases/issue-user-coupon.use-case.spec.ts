@@ -71,6 +71,7 @@ describe("IssueUserCouponUseCase", () => {
         couponId: coupon.id,
         userId,
         couponCode: "TEST123",
+        idempotencyKey: uuidv4(),
       });
 
       expect(result.coupon).toBe(coupon);
@@ -102,6 +103,7 @@ describe("IssueUserCouponUseCase", () => {
         couponId: coupon.id,
         userId: uuidv4(),
         couponCode: "EXPIRE123",
+        idempotencyKey: uuidv4(),
       });
 
       expect(result.userCoupon.expiresAt).toEqual(endDate);
@@ -118,6 +120,7 @@ describe("IssueUserCouponUseCase", () => {
           couponId: nonExistentCouponId,
           userId: uuidv4(),
           couponCode: "TEST123",
+          idempotencyKey: uuidv4(),
         })
       ).rejects.toThrow(CouponNotFoundError);
     });
@@ -144,6 +147,7 @@ describe("IssueUserCouponUseCase", () => {
           couponId: coupon.id,
           userId: uuidv4(),
           couponCode: "WRONG123",
+          idempotencyKey: uuidv4(),
         })
       ).rejects.toThrow(InvalidCouponCodeError);
     });
@@ -173,6 +177,7 @@ describe("IssueUserCouponUseCase", () => {
           couponId: coupon.id,
           userId: uuidv4(),
           couponCode: "EXPIRED123",
+          idempotencyKey: uuidv4(),
         })
       ).rejects.toThrow(CouponExpiredError);
     });
@@ -202,6 +207,7 @@ describe("IssueUserCouponUseCase", () => {
           couponId: coupon.id,
           userId: uuidv4(),
           couponCode: "LIMITED123",
+          idempotencyKey: uuidv4(),
         })
       ).rejects.toThrow(CouponExhaustedError);
     });

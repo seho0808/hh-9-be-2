@@ -11,6 +11,7 @@ import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repos
 export interface UsePointsUseCaseCommand {
   userId: string;
   amount: number;
+  idempotencyKey: string;
 }
 
 export interface UsePointsUseCaseResult {
@@ -30,7 +31,7 @@ export class UsePointsUseCase {
   async execute(
     command: UsePointsUseCaseCommand
   ): Promise<UsePointsUseCaseResult> {
-    const { userId, amount } = command;
+    const { userId, amount, idempotencyKey } = command;
 
     const userBalance = await this.userBalanceRepository.findByUserId(userId);
 
@@ -51,6 +52,7 @@ export class UsePointsUseCase {
       userId,
       amount,
       type: "USE",
+      idempotencyKey,
     });
 
     await Promise.all([

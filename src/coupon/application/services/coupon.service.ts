@@ -8,6 +8,7 @@ import { CancelUserCouponUseCase } from "@/coupon/domain/use-cases/cancel-user-c
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 import { GetCouponByIdUseCase } from "@/coupon/domain/use-cases/get-coupon-by-id.use-case";
+import { RecoverUserCouponUseCase } from "@/coupon/domain/use-cases/recover-user-coupon.use-case";
 
 @Injectable()
 export class CouponApplicationService {
@@ -18,7 +19,8 @@ export class CouponApplicationService {
     private readonly issueUserCouponUseCase: IssueUserCouponUseCase,
     private readonly useUserCouponUseCase: UserCouponUseCase,
     private readonly validateCouponUseCase: ValidateCouponUseCase,
-    private readonly cancelUserCouponUseCase: CancelUserCouponUseCase
+    private readonly cancelUserCouponUseCase: CancelUserCouponUseCase,
+    private readonly recoverUserCouponUseCase: RecoverUserCouponUseCase
   ) {}
 
   async getAllCoupons(): Promise<Coupon[]> {
@@ -45,15 +47,18 @@ export class CouponApplicationService {
     couponId,
     userId,
     couponCode,
+    idempotencyKey,
   }: {
     couponId: string;
     userId: string;
     couponCode: string;
+    idempotencyKey: string;
   }): Promise<UserCoupon> {
     const result = await this.issueUserCouponUseCase.execute({
       couponId,
       userId,
       couponCode,
+      idempotencyKey,
     });
 
     return result.userCoupon;
@@ -63,13 +68,15 @@ export class CouponApplicationService {
     couponId: string,
     userId: string,
     orderId: string,
-    orderPrice: number
+    orderPrice: number,
+    idempotencyKey: string
   ): Promise<UserCoupon> {
     const result = await this.useUserCouponUseCase.execute({
       couponId,
       userId,
       orderId,
       orderPrice,
+      idempotencyKey,
     });
 
     return result.userCoupon;
@@ -100,6 +107,18 @@ export class CouponApplicationService {
   async cancelUserCoupon(userCouponId: string): Promise<UserCoupon> {
     const result = await this.cancelUserCouponUseCase.execute({
       userCouponId,
+    });
+
+    return result.userCoupon;
+  }
+
+  async recoverUserCoupon(
+    userCouponId: string,
+    idempotencyKey: string
+  ): Promise<UserCoupon> {
+    const result = await this.recoverUserCouponUseCase.execute({
+      userCouponId,
+      idempotencyKey,
     });
 
     return result.userCoupon;

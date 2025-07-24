@@ -44,3 +44,19 @@ export class InvalidUseAmountError extends PointDomainError {
     );
   }
 }
+
+export class PointTransactionNotFoundError extends PointDomainError {
+  readonly code = "POINT_TRANSACTION_NOT_FOUND";
+
+  constructor(idempotencyKey: string) {
+    super(`사용 금액 트랜잭션을 찾을 수 없습니다. 키: ${idempotencyKey}`);
+  }
+}
+
+export class PointTransactionAlreadyRecoveredError extends PointDomainError {
+  readonly code = "POINT_TRANSACTION_ALREADY_RECOVERED";
+
+  constructor(idempotencyKey: string) {
+    super(`이미 복구된 트랜잭션입니다. 키: ${idempotencyKey}`);
+  }
+}

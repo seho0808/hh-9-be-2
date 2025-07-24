@@ -66,7 +66,7 @@ export class CreateOrderDto {
   })
   @IsOptional()
   @IsString()
-  requestId?: string;
+  idempotencyKey?: string;
 }
 
 export class OrderItemResponseDto {
@@ -136,7 +136,7 @@ export class OrderResponseDto {
   usedCouponName?: string;
 
   @ApiProperty({ description: "중복 요청 방지 ID" })
-  requestId: string;
+  idempotencyKey: string;
 
   @ApiProperty({ description: "주문 생성일시" })
   createdAt: Date;
@@ -158,7 +158,7 @@ export class OrderResponseDto {
       status: props.status as OrderStatus,
       usedCouponId: props.appliedCouponId,
       usedCouponName: props.appliedCouponId, // For simplicity
-      requestId: props.idempotencyKey,
+      idempotencyKey: props.idempotencyKey,
       createdAt: props.createdAt,
       updatedAt: props.updatedAt,
     };

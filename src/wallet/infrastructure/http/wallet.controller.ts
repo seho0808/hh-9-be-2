@@ -26,6 +26,7 @@ import {
   CurrentUserData,
 } from "../../../common/decorators/current-user.decorator";
 import { WalletExceptionFilter } from "./filters/wallet-exception.filter";
+import { v4 as uuidv4 } from "uuid";
 
 @ApiTags("포인트/잔액")
 @Controller("users/me/points")
@@ -71,7 +72,8 @@ export class WalletController {
   ): Promise<ApiResponseDto<ChargeResponseDto>> {
     const result = await this.walletApplicationService.chargePoints(
       user.id,
-      chargeDto.amount
+      chargeDto.amount,
+      chargeDto.idempotencyKey ?? uuidv4()
     );
     return ApiResponseDto.success(
       ChargeResponseDto.fromPointTransaction(

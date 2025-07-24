@@ -1,13 +1,18 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { PointTransaction } from "../entities/point-transaction.entity";
 import { UserBalance } from "../entities/user-balance.entity";
-import { UserBalanceNotFoundError } from "../exceptions/point.exceptions";
+import {
+  PointTransactionAlreadyRecoveredError,
+  PointTransactionNotFoundError,
+  UserBalanceNotFoundError,
+} from "../exceptions/point.exceptions";
 import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository";
 import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
 
 export interface RecoverPointsUseCaseCommand {
   userId: string;
   amount: number;
+  idempotencyKey: string;
 }
 
 export interface RecoverPointsUseCaseResult {
@@ -27,7 +32,7 @@ export class RecoverPointsUseCase {
   async execute(
     command: RecoverPointsUseCaseCommand
   ): Promise<RecoverPointsUseCaseResult> {
-    const { userId, amount } = command;
+    const { userId, amount, idempotencyKey } = command;
 
     const userBalance = await this.userBalanceRepository.findByUserId(userId);
 
@@ -35,11 +40,33 @@ export class RecoverPointsUseCase {
       throw new UserBalanceNotFoundError(userId);
     }
 
+    const existingPointTransaction =
+      await this.pointTransactionRepository.findByOrderIdempotencyKey(
+        userId,
+        idempotencyKey
+      );
+
+    const correctTransactionExists = existingPointTransaction.some(
+      (pt) => pt.type === "USE" && pt.idempotencyKey === idempotencyKey
+    );
+    const isAlreadyRecovered = existingPointTransaction.some(
+      (pt) => pt.type === "RECOVER" && pt.idempotencyKey === idempotencyKey
+    );
+
+    if (!correctTransactionExists) {
+      throw new PointTransactionNotFoundError(idempotencyKey);
+    }
+
+    if (isAlreadyRecovered) {
+      throw new PointTransactionAlreadyRecoveredError(idempotencyKey);
+    }
+
     userBalance.addBalance(amount);
     const pointTransaction = PointTransaction.create({
       userId,
       amount,
       type: "RECOVER",
+      idempotencyKey,
     });
 
     await Promise.all([

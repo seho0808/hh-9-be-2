@@ -82,7 +82,7 @@ describe("Order API E2E (with TestContainers)", () => {
               quantity: 2,
             },
           ],
-          requestId: "test-order-001",
+          idempotencyKey: "test-order-001",
         })
         .expect(201);
 
@@ -93,7 +93,7 @@ describe("Order API E2E (with TestContainers)", () => {
         totalAmount: 20000, // 10000 * 2
         finalAmount: 20000,
         status: "SUCCESS",
-        requestId: "test-order-001",
+        idempotencyKey: "test-order-001",
       });
       expect(response.body.data.items).toHaveLength(1);
       expect(response.body.data.items[0]).toMatchObject({
@@ -169,7 +169,7 @@ describe("Order API E2E (with TestContainers)", () => {
         totalAmount: testOrder.totalPrice,
         finalAmount: testOrder.finalPrice,
         status: testOrder.status,
-        requestId: testOrder.idempotencyKey,
+        idempotencyKey: testOrder.idempotencyKey,
       });
       expect(response.body.message).toBe("주문 정보를 조회했습니다");
     });
