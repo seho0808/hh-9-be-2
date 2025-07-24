@@ -6,6 +6,7 @@ import {
   Body,
   Query,
   UseGuards,
+  UseFilters,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -14,27 +15,31 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from "@nestjs/swagger";
-import {
-  CreateOrderDto,
-  OrderResponseDto,
-  OrderQueryDto,
-  OrderSummaryDto,
-} from "./dto/order.dto";
+import { CreateOrderDto, OrderResponseDto } from "./dto/order.dto";
 import {
   ApiResponseDto,
   PaginatedResponseDto,
-} from "../common/dto/response.dto";
+} from "../../../common/dto/response.dto";
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
 import {
   CurrentUser,
   CurrentUserData,
-} from "../common/decorators/current-user.decorator";
+} from "../../../common/decorators/current-user.decorator";
+import { OrderApplicationService } from "@/order/application/order.service";
+import { OrderExceptionFilter } from "./filters/order-exception.filter";
+import { v4 as uuidv4 } from "uuid";
+import { OrderNotFoundHttpError } from "./exceptions";
 
 @ApiTags("주문/결제")
 @Controller("orders")
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth("access-token")
+@UseFilters(OrderExceptionFilter)
 export class OrderController {
+  constructor(
+    private readonly orderApplicationService: OrderApplicationService
+  ) {}
+
   @Post()
   @ApiOperation({ summary: "주문 생성 및 결제" })
   @ApiResponse({
@@ -54,7 +59,20 @@ export class OrderController {
     @CurrentUser() user: CurrentUserData,
     @Body() createOrderDto: CreateOrderDto
   ): Promise<ApiResponseDto<OrderResponseDto>> {
-    return ApiResponseDto.success(null, "주문이 성공적으로 완료되었습니다");
+    const idempotencyKey = createOrderDto.requestId || uuidv4();
+
+    const { order } = await this.orderApplicationService.placeOrder({
+      userId: user.id,
+      couponId: createOrderDto.couponId || null,
+      idempotencyKey,
+      itemsWithoutPrices: createOrderDto.items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+      })),
+    });
+
+    const response = OrderResponseDto.fromOrder(order);
+    return ApiResponseDto.success(response, "주문이 성공적으로 완료되었습니다");
   }
 
   @Get(":orderId")
@@ -77,7 +95,14 @@ export class OrderController {
     @CurrentUser() user: CurrentUserData,
     @Param("orderId") orderId: string
   ): Promise<ApiResponseDto<OrderResponseDto>> {
-    return ApiResponseDto.success(null, "주문 정보를 조회했습니다");
+    const order = await this.orderApplicationService.getOrderById(orderId);
+    if (!order) {
+      throw new OrderNotFoundHttpError(orderId);
+    }
+    return ApiResponseDto.success(
+      OrderResponseDto.fromOrder(order),
+      "주문 정보를 조회했습니다"
+    );
   }
 }
 
@@ -85,7 +110,12 @@ export class OrderController {
 @Controller("users/me/orders")
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth("access-token")
+@UseFilters(OrderExceptionFilter)
 export class UserOrderController {
+  constructor(
+    private readonly orderApplicationService: OrderApplicationService
+  ) {}
+
   @Get()
   @ApiOperation({ summary: "내 주문 목록" })
   @ApiResponse({
@@ -94,9 +124,12 @@ export class UserOrderController {
     type: PaginatedResponseDto<OrderResponseDto>,
   })
   async getMyOrders(
-    @CurrentUser() user: CurrentUserData,
-    @Query() query: OrderQueryDto
-  ): Promise<ApiResponseDto<PaginatedResponseDto<OrderResponseDto>>> {
-    return ApiResponseDto.success(null, "주문 목록을 조회했습니다");
+    @CurrentUser() user: CurrentUserData
+  ): Promise<ApiResponseDto<OrderResponseDto[]>> {
+    const orders = await this.orderApplicationService.getOrdersByUserId(
+      user.id
+    );
+    const response = orders.map((order) => OrderResponseDto.fromOrder(order));
+    return ApiResponseDto.success(response, "주문 목록을 조회했습니다");
   }
 }

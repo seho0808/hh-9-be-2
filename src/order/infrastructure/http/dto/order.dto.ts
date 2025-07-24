@@ -9,12 +9,14 @@ import {
   Max,
 } from "class-validator";
 import { Type } from "class-transformer";
+import { Order } from "@/order/domain/entities/order.entitiy";
+import { OrderItem } from "@/order/domain/entities/order-item.entity";
 
 export enum OrderStatus {
   PENDING = "PENDING",
   SUCCESS = "SUCCESS",
   FAILED = "FAILED",
-  CANCELED = "CANCELED",
+  CANCELLED = "CANCELLED",
 }
 
 export class OrderItemDto {
@@ -85,6 +87,21 @@ export class OrderItemResponseDto {
 
   @ApiProperty({ description: "항목 총 가격" })
   totalPrice: number;
+
+  static fromOrderItem(
+    orderItem: OrderItem,
+    productName?: string
+  ): OrderItemResponseDto {
+    const props = orderItem.toPersistence();
+    return {
+      id: props.id,
+      productId: props.productId,
+      productName: productName || props.productId, // For simplicity, use productId if name not provided
+      quantity: props.quantity,
+      unitPrice: props.unitPrice,
+      totalPrice: props.totalPrice,
+    };
+  }
 }
 
 export class OrderResponseDto {
@@ -126,62 +143,24 @@ export class OrderResponseDto {
 
   @ApiProperty({ description: "주문 수정일시" })
   updatedAt: Date;
-}
 
-export class OrderQueryDto {
-  @ApiProperty({
-    description: "주문 상태 필터",
-    enum: OrderStatus,
-    required: false,
-  })
-  @IsOptional()
-  status?: OrderStatus;
-
-  @ApiProperty({
-    description: "페이지 번호",
-    required: false,
-    default: 1,
-    minimum: 1,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @Min(1)
-  page?: number = 1;
-
-  @ApiProperty({
-    description: "페이지당 항목 수",
-    required: false,
-    default: 10,
-    minimum: 1,
-    maximum: 100,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @Min(1)
-  @Max(100)
-  limit?: number = 10;
-}
-
-export class OrderSummaryDto {
-  @ApiProperty({ description: "총 주문 금액" })
-  totalAmount: number;
-
-  @ApiProperty({ description: "할인 금액" })
-  discountAmount: number;
-
-  @ApiProperty({ description: "최종 결제 금액" })
-  finalAmount: number;
-
-  @ApiProperty({ description: "사용 가능한 잔액" })
-  availableBalance: number;
-
-  @ApiProperty({ description: "잔액 부족 여부" })
-  isInsufficientBalance: boolean;
-
-  @ApiProperty({ description: "적용된 쿠폰 정보", nullable: true })
-  appliedCoupon?: {
-    id: string;
-    name: string;
-    discountAmount: number;
-  };
+  static fromOrder(order: Order): OrderResponseDto {
+    const props = order.toPersistence();
+    return {
+      id: props.id,
+      userId: props.userId,
+      items: props.OrderItems.map((item) =>
+        OrderItemResponseDto.fromOrderItem(item)
+      ),
+      totalAmount: props.totalPrice,
+      discountAmount: props.discountPrice,
+      finalAmount: props.finalPrice,
+      status: props.status as OrderStatus,
+      usedCouponId: props.appliedCouponId,
+      usedCouponName: props.appliedCouponId, // For simplicity
+      requestId: props.idempotencyKey,
+      createdAt: props.createdAt,
+      updatedAt: props.updatedAt,
+    };
+  }
 }
