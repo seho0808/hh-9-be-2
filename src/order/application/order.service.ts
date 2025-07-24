@@ -182,7 +182,11 @@ export class OrderApplicationService {
 
     // 잔고 사용
     const finalAmountToPay = order.finalPrice;
-    await this.walletApplicationService.usePoints(userId, finalAmountToPay);
+    await this.walletApplicationService.usePoints(
+      userId,
+      finalAmountToPay,
+      idempotencyKey
+    );
 
     // 재고 확정
     await Promise.all(
@@ -236,11 +240,11 @@ export class OrderApplicationService {
     }
 
     // 잔고 복구
-    // TODO: order recover 할 때 idempotencyKey 기준으로 처리해야함. wallet 쪽 모두 필드 추가해주어야함. + Payment 테이블 추가 해야할듯?
-    // await this.walletApplicationService.recoverPoints(
-    //   order.userId,
-    //   order.discountPrice
-    // );
+    await this.walletApplicationService.recoverPoints(
+      order.userId,
+      order.discountPrice,
+      idempotencyKey
+    );
 
     // 주문 상태 변경
     await this.changeOrderStatusUseCase.execute({
