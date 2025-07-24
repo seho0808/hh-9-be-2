@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
+import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository.interface";
 import { UserBalance } from "../entities/user-balance.entity";
 
 export interface CreateUserBalanceUseCaseCommand {

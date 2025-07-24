@@ -1,6 +1,6 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { UserBalanceNotFoundError } from "../exceptions/point.exceptions";
-import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
+import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository.interface";
 
 export interface ValidateUsePointsUseCaseCommand {
   userId: string;

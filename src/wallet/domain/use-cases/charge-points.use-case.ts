@@ -2,8 +2,8 @@ import { Injectable, Inject } from "@nestjs/common";
 import { PointTransaction } from "../entities/point-transaction.entity";
 import { UserBalance } from "../entities/user-balance.entity";
 import { UserBalanceNotFoundError } from "../exceptions/point.exceptions";
-import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository";
-import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository";
+import { PointTransactionRepositoryInterface } from "../interfaces/point-transaction.repository.interface";
+import { UserBalanceRepositoryInterface } from "../interfaces/user-balance.repository.interface";
 
 export interface ChargePointsUseCaseCommand {
   userId: string;

@@ -1,4 +1,4 @@
-import { UserBalanceRepositoryInterface } from "@/wallet/domain/interfaces/user-balance.repository";
+import { UserBalanceRepositoryInterface } from "@/wallet/domain/interfaces/user-balance.repository.interface";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, EntityManager } from "typeorm";
