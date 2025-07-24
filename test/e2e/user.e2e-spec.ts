@@ -91,7 +91,7 @@ describe("User API E2E (with TestContainers)", () => {
         .expect(404);
 
       // Then: 사용자를 찾을 수 없다는 에러 메시지가 반환되어야 함
-      expect(response.body.message).toBe("사용자를 찾을 수 없습니다.");
+      expect(response.body.message).toBe("사용자를 찾을 수 없습니다");
     });
 
     it("🔄 여러 사용자 데이터로 테스트", async () => {
