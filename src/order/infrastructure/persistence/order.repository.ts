@@ -58,6 +58,36 @@ export class OrderRepository implements OrderRepositoryInterface {
     return entities.map((entity) => this.toDomain(entity));
   }
 
+  async findFailedOrders(limit: number = 100): Promise<Order[]> {
+    const repository = this.getRepository();
+    const entities = await repository.find({
+      where: { status: OrderStatus.FAILED },
+      relations: ["orderItems"],
+      order: { updatedAt: "ASC" },
+      take: limit,
+    });
+    return entities.map((entity) => this.toDomain(entity));
+  }
+
+  async findStalePendingOrders(
+    timeoutMinutes: number,
+    limit: number = 100
+  ): Promise<Order[]> {
+    const repository = this.getRepository();
+    const cutoffTime = new Date(Date.now() - timeoutMinutes * 60 * 1000);
+
+    const entities = await repository.find({
+      where: {
+        status: OrderStatus.PENDING,
+        createdAt: LessThan(cutoffTime),
+      },
+      relations: ["orderItems"],
+      order: { createdAt: "ASC" },
+      take: limit,
+    });
+    return entities.map((entity) => this.toDomain(entity));
+  }
+
   private toDomain(entity: OrderTypeOrmEntity): Order {
     const orderItems =
       entity.orderItems?.map((item) =>

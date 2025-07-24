@@ -48,6 +48,16 @@ export class StockReservationRepository
     return entity ? this.toDomain(entity) : null;
   }
 
+  async findByIdempotencyKey(
+    idempotencyKey: string
+  ): Promise<StockReservation[]> {
+    const repository = this.getRepository();
+    const entities = await repository.find({
+      where: { idempotencyKey },
+    });
+    return entities.map((entity) => this.toDomain(entity));
+  }
+
   private fromDomain(
     stockReservation: StockReservation
   ): StockReservationTypeOrmEntity {
