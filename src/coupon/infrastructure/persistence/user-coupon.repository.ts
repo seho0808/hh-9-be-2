@@ -7,6 +7,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, EntityManager } from "typeorm";
 import { UserCouponTypeOrmEntity } from "./orm/user-coupon.typeorm.entity";
+import { TransactionContext } from "@/common/services/transaction.service";
 
 @Injectable()
 export class UserCouponRepository implements UserCouponRepositoryInterface {
@@ -15,7 +16,9 @@ export class UserCouponRepository implements UserCouponRepositoryInterface {
   constructor(
     @InjectRepository(UserCouponTypeOrmEntity)
     private readonly userCouponRepository: Repository<UserCouponTypeOrmEntity>
-  ) {}
+  ) {
+    TransactionContext.registerRepository(this);
+  }
 
   setEntityManager(manager: EntityManager): void {
     this.entityManager = manager;

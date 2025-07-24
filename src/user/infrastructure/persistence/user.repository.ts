@@ -4,6 +4,7 @@ import { Repository, EntityManager } from "typeorm";
 import { UserRepositoryInterface } from "@/user/domain/interfaces/user.repository.interface";
 import { User } from "@/user/domain/entities/user.entity";
 import { UserTypeOrmEntity } from "./orm/user.typeorm.entity";
+import { TransactionContext } from "@/common/services/transaction.service";
 
 @Injectable()
 export class UserRepository implements UserRepositoryInterface {
@@ -12,7 +13,9 @@ export class UserRepository implements UserRepositoryInterface {
   constructor(
     @InjectRepository(UserTypeOrmEntity)
     private readonly userRepository: Repository<UserTypeOrmEntity>
-  ) {}
+  ) {
+    TransactionContext.registerRepository(this);
+  }
 
   setEntityManager(manager: EntityManager): void {
     this.entityManager = manager;

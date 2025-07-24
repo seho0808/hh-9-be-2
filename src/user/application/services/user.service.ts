@@ -1,5 +1,4 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { DataSource, EntityManager } from "typeorm";
+import { Injectable } from "@nestjs/common";
 import { GetUserByIdUseCase } from "@/user/domain/use-cases/get-user-by-id.use-case";
 import { GetUserByEmailUseCase } from "@/user/domain/use-cases/get-user-by-email.use-case";
 import {
@@ -8,27 +7,24 @@ import {
 } from "@/user/domain/use-cases/create-user.use-case";
 import { User } from "@/user/domain/entities/user.entity";
 import { WalletApplicationService } from "@/wallet/application/wallet.service";
-import { UserRepository } from "@/user/infrastructure/persistence/user.repository";
 import { TransactionService } from "@/common/services/transaction.service";
 
 @Injectable()
 export class UserApplicationService {
   constructor(
     private readonly transactionService: TransactionService,
-    @Inject("UserRepositoryInterface")
-    private readonly userRepository: UserRepository,
     private readonly walletApplicationService: WalletApplicationService,
     private readonly getUserByIdUseCase: GetUserByIdUseCase,
     private readonly getUserByEmailUseCase: GetUserByEmailUseCase,
     private readonly createUserUseCase: CreateUserUseCase
   ) {}
 
-  async getUserById(userId: string): Promise<User> {
-    return await this.getUserByIdUseCase.execute(userId);
+  async getUserById(id: string): Promise<User | null> {
+    return await this.getUserByIdUseCase.execute(id);
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
-    return this.getUserByEmailUseCase.execute(email);
+    return await this.getUserByEmailUseCase.execute(email);
   }
 
   async checkEmailExists(email: string): Promise<boolean> {
@@ -36,35 +32,15 @@ export class UserApplicationService {
     return user !== null;
   }
 
-  async createUser(
-    email: string,
-    hashedPassword: string,
-    name: string
-  ): Promise<User> {
-    return await this.executeInTransaction(async () => {
-      const command: CreateUserCommand = {
-        email,
-        hashedPassword,
-        name,
-      };
-
+  async createUser(command: CreateUserCommand): Promise<User> {
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      // 사용자 생성
       const user = await this.createUserUseCase.execute(command);
+
+      // 지갑 초기화
       await this.walletApplicationService.createUserBalance(user.id);
 
       return user;
     });
-  }
-
-  private async executeInTransaction<T>(
-    operation: (manager?: EntityManager) => Promise<T>,
-    parentManager?: EntityManager
-  ): Promise<T> {
-    const repositories = [this.userRepository];
-
-    return await this.transactionService.executeInTransaction(
-      repositories,
-      operation,
-      parentManager
-    );
   }
 }

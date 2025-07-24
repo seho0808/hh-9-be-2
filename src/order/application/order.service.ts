@@ -1,5 +1,5 @@
 import { Injectable, Inject } from "@nestjs/common";
-import { DataSource, EntityManager } from "typeorm";
+import { EntityManager } from "typeorm";
 import { WalletApplicationService } from "@/wallet/application/wallet.service";
 import { Order, OrderStatus } from "../domain/entities/order.entitiy";
 import { ApplyDiscountUseCase } from "../domain/use-cases/apply-discount.use-case";
@@ -13,15 +13,6 @@ import {
 } from "./order.exceptions";
 import { GetOrderByIdUseCase } from "../domain/use-cases/get-order-by-id.use-case";
 import { GetOrderByUserIdUseCase } from "../domain/use-cases/get-order-by-user-id.use-case";
-import { OrderRepository } from "../infrastructure/persistence/order.repository";
-import { OrderItemRepository } from "../infrastructure/persistence/order-item.repository";
-
-import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
-import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
-import { ProductRepository } from "@/product/infrastructure/persistence/product.repository";
-import { StockReservationRepository } from "@/product/infrastructure/persistence/stock-reservations.repository";
-import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
-import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
 import { TransactionService } from "@/common/services/transaction.service";
 
 export interface PlaceOrderCommand {
@@ -39,23 +30,7 @@ export interface PlaceOrderResult {
 export class OrderApplicationService {
   constructor(
     private readonly transactionService: TransactionService,
-    @Inject("OrderRepositoryInterface")
-    private readonly orderRepository: OrderRepository,
-    @Inject("OrderItemRepositoryInterface")
-    private readonly orderItemRepository: OrderItemRepository,
-    // Inject all repositories for transaction scope
-    @Inject("CouponRepositoryInterface")
-    private readonly couponRepository: CouponRepository,
-    @Inject("UserCouponRepositoryInterface")
-    private readonly userCouponRepository: UserCouponRepository,
-    @Inject("ProductRepositoryInterface")
-    private readonly productRepository: ProductRepository,
-    @Inject("StockReservationRepositoryInterface")
-    private readonly stockReservationRepository: StockReservationRepository,
-    @Inject("UserBalanceRepositoryInterface")
-    private readonly userBalanceRepository: UserBalanceRepository,
-    @Inject("PointTransactionRepositoryInterface")
-    private readonly pointTransactionRepository: PointTransactionRepository,
+    // Remove repository dependencies - they're now auto-managed by TransactionContext
     private readonly couponApplicationService: CouponApplicationService,
     private readonly productApplicationService: ProductApplicationService,
     private readonly walletApplicationService: WalletApplicationService,
@@ -126,13 +101,15 @@ export class OrderApplicationService {
     let stockReservationIds: string[] = [];
 
     // 주문 생성
-    const { order } = await this.executeInTransaction(async (manager) => {
-      return await this.createOrderUseCase.execute({
-        userId,
-        idempotencyKey,
-        items,
-      });
-    });
+    const { order } = await this.transactionService.runWithTransaction(
+      async (manager) => {
+        return await this.createOrderUseCase.execute({
+          userId,
+          idempotencyKey,
+          items,
+        });
+      }
+    );
 
     // 쿠폰 확인
     if (couponId) {
@@ -161,7 +138,7 @@ export class OrderApplicationService {
     }
 
     // 재고 예약
-    await this.executeInTransaction(async (manager) => {
+    await this.transactionService.runWithTransaction(async (manager) => {
       for (const item of items) {
         const { stockReservation } =
           await this.productApplicationService.reserveStock(
@@ -197,64 +174,66 @@ export class OrderApplicationService {
     stockReservationIds: string[];
     idempotencyKey: string;
   }): Promise<{ order: Order }> {
-    const successOrder = await this.executeInTransaction(async (manager) => {
-      // 쿠폰 적용
-      if (couponId) {
-        const { order: discountedOrder } =
-          await this.applyDiscountUseCase.execute({
-            orderId: order.id,
-            appliedCouponId: couponId,
-            discountPrice,
-            discountedPrice,
-          });
-        order = discountedOrder;
+    const successOrder = await this.transactionService.runWithTransaction(
+      async (manager) => {
+        // 쿠폰 적용
+        if (couponId) {
+          const { order: discountedOrder } =
+            await this.applyDiscountUseCase.execute({
+              orderId: order.id,
+              appliedCouponId: couponId,
+              discountPrice,
+              discountedPrice,
+            });
+          order = discountedOrder;
 
-        await this.couponApplicationService.useUserCoupon(
-          couponId,
+          await this.couponApplicationService.useUserCoupon(
+            couponId,
+            userId,
+            order.id,
+            order.totalPrice,
+            idempotencyKey,
+            manager
+          );
+        }
+
+        // 잔고 사용
+        const finalAmountToPay = order.finalPrice;
+        await this.walletApplicationService.usePoints(
           userId,
-          order.id,
-          order.totalPrice,
+          finalAmountToPay,
           idempotencyKey,
           manager
         );
-      }
 
-      // 잔고 사용
-      const finalAmountToPay = order.finalPrice;
-      await this.walletApplicationService.usePoints(
-        userId,
-        finalAmountToPay,
-        idempotencyKey,
-        manager
-      );
-
-      // 재고 확정
-      await Promise.all(
-        stockReservationIds.map((stockReservationId) =>
-          this.productApplicationService.confirmStock(
-            {
-              stockReservationId,
-              idempotencyKey,
-            },
-            manager
+        // 재고 확정
+        await Promise.all(
+          stockReservationIds.map((stockReservationId) =>
+            this.productApplicationService.confirmStock(
+              {
+                stockReservationId,
+                idempotencyKey,
+              },
+              manager
+            )
           )
-        )
-      );
+        );
 
-      // 주문 상태 변경
-      const { order: successOrder } =
-        await this.changeOrderStatusUseCase.execute({
-          orderId: order.id,
-          status: OrderStatus.SUCCESS,
-        });
-      return successOrder;
-    });
+        // 주문 상태 변경
+        const { order: successOrder } =
+          await this.changeOrderStatusUseCase.execute({
+            orderId: order.id,
+            status: OrderStatus.SUCCESS,
+          });
+        return successOrder;
+      }
+    );
 
     return { order: successOrder };
   }
 
   // TODO: cronjob으로도 지속적으로 최근 Order들에 대해 다시 호출 해야함.
-  private async recoverOrder({
+  async recoverOrder({
     order,
     couponId,
     stockReservationIds,
@@ -265,7 +244,7 @@ export class OrderApplicationService {
     stockReservationIds: string[];
     idempotencyKey: string; // order idempotencyKey 기준으로 모두 처리
   }) {
-    await this.executeInTransaction(async (manager) => {
+    await this.transactionService.runWithTransaction(async (manager) => {
       // 재고 예약 취소
       await Promise.all(
         stockReservationIds.map((stockReservationId) =>
@@ -305,36 +284,14 @@ export class OrderApplicationService {
   }
 
   async getOrderById(orderId: string): Promise<Order | null> {
-    return await this.executeInTransaction(async (manager) => {
+    return await this.transactionService.runWithTransaction(async (manager) => {
       return await this.getOrderByIdUseCase.execute(orderId);
     });
   }
 
   async getOrdersByUserId(userId: string): Promise<Order[]> {
-    return await this.executeInTransaction(async (manager) => {
+    return await this.transactionService.runWithTransaction(async (manager) => {
       return await this.getOrderByUserIdUseCase.execute(userId);
     });
-  }
-
-  private async executeInTransaction<T>(
-    operation: (manager?: EntityManager) => Promise<T>,
-    parentManager?: EntityManager
-  ): Promise<T> {
-    const repositories = [
-      this.orderRepository,
-      this.orderItemRepository,
-      this.couponRepository,
-      this.userCouponRepository,
-      this.productRepository,
-      this.stockReservationRepository,
-      this.userBalanceRepository,
-      this.pointTransactionRepository,
-    ];
-
-    return await this.transactionService.executeInTransaction(
-      repositories,
-      operation,
-      parentManager
-    );
   }
 }

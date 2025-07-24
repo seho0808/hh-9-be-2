@@ -4,6 +4,7 @@ import { Repository, EntityManager } from "typeorm";
 import { StockReservationRepositoryInterface } from "@/product/domain/interfaces/stock-reservation.repository.interface";
 import { StockReservationTypeOrmEntity } from "./orm/stock-reservations.typeorm.entity";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
+import { TransactionContext } from "@/common/services/transaction.service";
 
 @Injectable()
 export class StockReservationRepository
@@ -14,7 +15,9 @@ export class StockReservationRepository
   constructor(
     @InjectRepository(StockReservationTypeOrmEntity)
     private readonly stockReservationRepository: Repository<StockReservationTypeOrmEntity>
-  ) {}
+  ) {
+    TransactionContext.registerRepository(this);
+  }
 
   setEntityManager(manager: EntityManager): void {
     this.entityManager = manager;

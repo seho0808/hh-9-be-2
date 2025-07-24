@@ -5,6 +5,7 @@ import { OrderRepositoryInterface } from "@/order/domain/interfaces/order.reposi
 import { Order, OrderStatus } from "@/order/domain/entities/order.entitiy";
 import { OrderTypeOrmEntity } from "./orm/order.typeorm.entity";
 import { OrderItem } from "@/order/domain/entities/order-item.entity";
+import { TransactionContext } from "@/common/services/transaction.service";
 
 @Injectable()
 export class OrderRepository implements OrderRepositoryInterface {
@@ -13,7 +14,9 @@ export class OrderRepository implements OrderRepositoryInterface {
   constructor(
     @InjectRepository(OrderTypeOrmEntity)
     private readonly orderRepository: Repository<OrderTypeOrmEntity>
-  ) {}
+  ) {
+    TransactionContext.registerRepository(this);
+  }
 
   setEntityManager(manager: EntityManager): void {
     this.entityManager = manager;

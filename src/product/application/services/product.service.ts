@@ -32,10 +32,6 @@ import { TransactionService } from "@/common/services/transaction.service";
 export class ProductApplicationService {
   constructor(
     private readonly transactionService: TransactionService,
-    @Inject("ProductRepositoryInterface")
-    private readonly productRepository: ProductRepository,
-    @Inject("StockReservationRepositoryInterface")
-    private readonly stockReservationRepository: StockReservationRepository,
     private readonly getProductByIdUseCase: GetProductByIdUseCase,
     private readonly getProductByIdsUseCase: GetProductByIdsUseCase,
     private readonly getAllProductsUseCase: GetAllProductsUseCase,
@@ -44,12 +40,12 @@ export class ProductApplicationService {
     private readonly confirmStockUseCase: ConfirmStockUseCase
   ) {}
 
-  async getProductById(productId: string): Promise<Product> {
-    return await this.getProductByIdUseCase.execute(productId);
+  async getProductById(id: string): Promise<Product | null> {
+    return await this.getProductByIdUseCase.execute(id);
   }
 
-  async getProductByIds(productIds: string[]): Promise<Product[]> {
-    return await this.getProductByIdsUseCase.execute(productIds);
+  async getProductByIds(ids: string[]): Promise<Product[]> {
+    return await this.getProductByIdsUseCase.execute(ids);
   }
 
   async getAllProducts(
@@ -60,14 +56,16 @@ export class ProductApplicationService {
       throw new ProductValidationException(errors);
     });
 
-    return this.getAllProductsUseCase.execute(dto);
+    return await this.transactionService.runWithTransaction(async (manager) => {
+      return await this.getAllProductsUseCase.execute(dto);
+    });
   }
 
   async reserveStock(
     command: ReserveStockCommand,
     parentManager?: EntityManager
   ): Promise<{ product: Product; stockReservation: StockReservation }> {
-    return await this.executeInTransaction(async () => {
+    return await this.transactionService.runWithTransaction(async (manager) => {
       return await this.reserveStockUseCase.execute(command);
     }, parentManager);
   }
@@ -76,7 +74,7 @@ export class ProductApplicationService {
     command: ReleaseStockCommand,
     parentManager?: EntityManager
   ): Promise<Product> {
-    return await this.executeInTransaction(async () => {
+    return await this.transactionService.runWithTransaction(async (manager) => {
       const { product } = await this.releaseStockUseCase.execute(command);
       return product;
     }, parentManager);
@@ -86,7 +84,7 @@ export class ProductApplicationService {
     command: ConfirmStockCommand,
     parentManager?: EntityManager
   ): Promise<Product> {
-    return await this.executeInTransaction(async () => {
+    return await this.transactionService.runWithTransaction(async (manager) => {
       const { product } = await this.confirmStockUseCase.execute(command);
       return product;
     }, parentManager);
@@ -95,21 +93,5 @@ export class ProductApplicationService {
   async getPopularProducts(limit?: number): Promise<any[]> {
     // TODO: Order 도메인 구현 진행 된 후에 구현 가능함.
     return [];
-  }
-
-  private async executeInTransaction<T>(
-    operation: (manager?: EntityManager) => Promise<T>,
-    parentManager?: EntityManager
-  ): Promise<T> {
-    const repositories = [
-      this.productRepository,
-      this.stockReservationRepository,
-    ];
-
-    return await this.transactionService.executeInTransaction(
-      repositories,
-      operation,
-      parentManager
-    );
   }
 }

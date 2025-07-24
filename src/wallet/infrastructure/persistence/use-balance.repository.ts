@@ -4,6 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, EntityManager } from "typeorm";
 import { UserBalanceTypeOrmEntity } from "./orm/user-balance.typeorm.entity";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
+import { TransactionContext } from "@/common/services/transaction.service";
 
 @Injectable()
 export class UserBalanceRepository implements UserBalanceRepositoryInterface {
@@ -12,7 +13,9 @@ export class UserBalanceRepository implements UserBalanceRepositoryInterface {
   constructor(
     @InjectRepository(UserBalanceTypeOrmEntity)
     private readonly userBalanceRepository: Repository<UserBalanceTypeOrmEntity>
-  ) {}
+  ) {
+    TransactionContext.registerRepository(this);
+  }
 
   setEntityManager(manager: EntityManager): void {
     this.entityManager = manager;

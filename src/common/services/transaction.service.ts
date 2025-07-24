@@ -6,32 +6,67 @@ export interface RepositoryWithTransaction {
   clearEntityManager(): void;
 }
 
+export class TransactionContext {
+  private static instance: TransactionContext;
+  private static entityManager: EntityManager | null = null;
+  private static repositories: Set<RepositoryWithTransaction> = new Set();
+
+  static getInstance(): TransactionContext {
+    if (!this.instance) {
+      this.instance = new TransactionContext();
+    }
+    return this.instance;
+  }
+
+  static setEntityManager(manager: EntityManager): void {
+    this.entityManager = manager;
+    this.repositories.forEach((repo) => repo.setEntityManager(manager));
+  }
+
+  static clearEntityManager(): void {
+    this.repositories.forEach((repo) => repo.clearEntityManager());
+    this.entityManager = null;
+  }
+
+  static getEntityManager(): EntityManager | null {
+    return this.entityManager;
+  }
+
+  static registerRepository(repository: RepositoryWithTransaction): void {
+    this.repositories.add(repository);
+    if (this.entityManager) {
+      repository.setEntityManager(this.entityManager);
+    }
+  }
+
+  static unregisterRepository(repository: RepositoryWithTransaction): void {
+    this.repositories.delete(repository);
+  }
+}
+
 @Injectable()
 export class TransactionService {
   constructor(private readonly dataSource: DataSource) {}
 
-  async executeInTransaction<T>(
-    repositories: RepositoryWithTransaction[],
-    operation: (manager?: EntityManager) => Promise<T>,
+  async runWithTransaction<T>(
+    operation: (manager: EntityManager) => Promise<T>,
     parentManager?: EntityManager
   ): Promise<T> {
     if (parentManager) {
-      repositories.forEach((repo) => repo.setEntityManager(parentManager));
-
+      TransactionContext.setEntityManager(parentManager);
       try {
         return await operation(parentManager);
       } finally {
-        repositories.forEach((repo) => repo.clearEntityManager());
+        TransactionContext.clearEntityManager();
       }
     }
 
     return await this.dataSource.transaction(async (manager) => {
-      repositories.forEach((repo) => repo.setEntityManager(manager));
-
+      TransactionContext.setEntityManager(manager);
       try {
         return await operation(manager);
       } finally {
-        repositories.forEach((repo) => repo.clearEntityManager());
+        TransactionContext.clearEntityManager();
       }
     });
   }

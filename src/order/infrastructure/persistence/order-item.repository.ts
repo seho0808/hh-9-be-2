@@ -4,6 +4,7 @@ import { Repository, EntityManager } from "typeorm";
 import { OrderItemRepositoryInterface } from "@/order/domain/interfaces/order-item.repository.interface";
 import { OrderItem } from "@/order/domain/entities/order-item.entity";
 import { OrderItemTypeOrmEntity } from "./orm/order-item.typeorm.entity";
+import { TransactionContext } from "@/common/services/transaction.service";
 
 @Injectable()
 export class OrderItemRepository implements OrderItemRepositoryInterface {
@@ -12,7 +13,9 @@ export class OrderItemRepository implements OrderItemRepositoryInterface {
   constructor(
     @InjectRepository(OrderItemTypeOrmEntity)
     private readonly orderItemRepository: Repository<OrderItemTypeOrmEntity>
-  ) {}
+  ) {
+    TransactionContext.registerRepository(this);
+  }
 
   setEntityManager(manager: EntityManager): void {
     this.entityManager = manager;

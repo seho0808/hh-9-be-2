@@ -18,10 +18,6 @@ import { TransactionService } from "@/common/services/transaction.service";
 export class CouponApplicationService {
   constructor(
     private readonly transactionService: TransactionService,
-    @Inject("CouponRepositoryInterface")
-    private readonly couponRepository: CouponRepository,
-    @Inject("UserCouponRepositoryInterface")
-    private readonly userCouponRepository: UserCouponRepository,
     private readonly getAllCouponsUseCase: GetAllCouponsUseCase,
     private readonly getAllUserCouponsUseCase: GetAllUserCouponsUseCase,
     private readonly getCouponByIdUseCase: GetCouponByIdUseCase,
@@ -37,17 +33,14 @@ export class CouponApplicationService {
     return result.coupons;
   }
 
-  async getAllUserCoupons(userId: string): Promise<UserCoupon[]> {
-    const result = await this.getAllUserCouponsUseCase.execute({
-      userId,
-    });
-
-    return result.userCoupons;
+  async getCouponById(id: string): Promise<Coupon | null> {
+    const result = await this.getCouponByIdUseCase.execute({ couponId: id });
+    return result.coupon;
   }
 
-  async getCouponById(couponId: string): Promise<Coupon> {
-    const result = await this.getCouponByIdUseCase.execute({ couponId });
-    return result.coupon;
+  async getAllUserCoupons(userId: string): Promise<UserCoupon[]> {
+    const result = await this.getAllUserCouponsUseCase.execute({ userId });
+    return result.userCoupons;
   }
 
   async issueUserCoupon({
@@ -63,7 +56,7 @@ export class CouponApplicationService {
     idempotencyKey: string;
     parentManager?: EntityManager;
   }): Promise<UserCoupon> {
-    return await this.executeInTransaction(async () => {
+    return await this.transactionService.runWithTransaction(async (manager) => {
       const result = await this.issueUserCouponUseCase.execute({
         couponId,
         userId,
@@ -82,7 +75,7 @@ export class CouponApplicationService {
     idempotencyKey: string,
     parentManager?: EntityManager
   ): Promise<UserCoupon> {
-    return await this.executeInTransaction(async () => {
+    return await this.transactionService.runWithTransaction(async (manager) => {
       const result = await this.useUserCouponUseCase.execute({
         couponId,
         userId,
@@ -103,26 +96,30 @@ export class CouponApplicationService {
     discountPrice: number;
     discountedPrice: number;
   }> {
-    const result = await this.validateCouponUseCase.execute({
-      couponId,
-      userId,
-      orderPrice,
-    });
+    const { isValid, discountPrice, discountedPrice } =
+      await this.validateCouponUseCase.execute({
+        couponId,
+        userId,
+        orderPrice,
+      });
 
     return {
-      isValid: result.isValid,
-      discountPrice: result.discountPrice,
-      discountedPrice: result.discountedPrice,
+      isValid,
+      discountPrice,
+      discountedPrice,
     };
   }
 
-  async cancelUserCoupon(userCouponId: string): Promise<UserCoupon> {
-    return await this.executeInTransaction(async () => {
+  async cancelUserCoupon(
+    userCouponId: string,
+    parentManager?: EntityManager
+  ): Promise<UserCoupon> {
+    return await this.transactionService.runWithTransaction(async (manager) => {
       const result = await this.cancelUserCouponUseCase.execute({
         userCouponId,
       });
       return result.userCoupon;
-    });
+    }, parentManager);
   }
 
   async recoverUserCoupon(
@@ -130,25 +127,12 @@ export class CouponApplicationService {
     idempotencyKey: string,
     parentManager?: EntityManager
   ): Promise<UserCoupon> {
-    return await this.executeInTransaction(async () => {
+    return await this.transactionService.runWithTransaction(async (manager) => {
       const result = await this.recoverUserCouponUseCase.execute({
         userCouponId,
         idempotencyKey,
       });
       return result.userCoupon;
     }, parentManager);
-  }
-
-  private async executeInTransaction<T>(
-    operation: (manager?: EntityManager) => Promise<T>,
-    parentManager?: EntityManager
-  ): Promise<T> {
-    const repositories = [this.couponRepository, this.userCouponRepository];
-
-    return await this.transactionService.executeInTransaction(
-      repositories,
-      operation,
-      parentManager
-    );
   }
 }

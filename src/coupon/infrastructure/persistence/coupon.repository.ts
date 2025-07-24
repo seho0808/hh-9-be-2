@@ -7,6 +7,7 @@ import {
   CouponDiscountType,
 } from "@/coupon/domain/entities/coupon.entity";
 import { CouponTypeOrmEntity } from "./orm/coupon.typeorm.entity";
+import { TransactionContext } from "@/common/services/transaction.service";
 
 @Injectable()
 export class CouponRepository implements CouponRepositoryInterface {
@@ -15,7 +16,9 @@ export class CouponRepository implements CouponRepositoryInterface {
   constructor(
     @InjectRepository(CouponTypeOrmEntity)
     private readonly couponRepository: Repository<CouponTypeOrmEntity>
-  ) {}
+  ) {
+    TransactionContext.registerRepository(this);
+  }
 
   setEntityManager(manager: EntityManager): void {
     this.entityManager = manager;

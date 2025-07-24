@@ -24,18 +24,12 @@ import {
   ValidateUsePointsUseCase,
   ValidateUsePointsUseCaseResult,
 } from "../domain/use-cases/validate-use-points.use-case";
-import { UserBalanceRepository } from "../infrastructure/persistence/use-balance.repository";
-import { PointTransactionRepository } from "../infrastructure/persistence/point-transaction.repository";
 import { TransactionService } from "@/common/services/transaction.service";
 
 @Injectable()
 export class WalletApplicationService {
   constructor(
     private readonly transactionService: TransactionService,
-    @Inject("UserBalanceRepositoryInterface")
-    private readonly userBalanceRepository: UserBalanceRepository,
-    @Inject("PointTransactionRepositoryInterface")
-    private readonly pointTransactionRepository: PointTransactionRepository,
     private readonly chargePointsUseCase: ChargePointsUseCase,
     private readonly usePointsUseCase: UsePointsUseCase,
     private readonly recoverPointsUseCase: RecoverPointsUseCase,
@@ -49,7 +43,7 @@ export class WalletApplicationService {
     amount: number,
     idempotencyKey: string
   ): Promise<ChargePointsUseCaseResult> {
-    return await this.executeInTransaction(async () => {
+    return await this.transactionService.runWithTransaction(async (manager) => {
       return await this.chargePointsUseCase.execute({
         userId,
         amount,
@@ -64,7 +58,7 @@ export class WalletApplicationService {
     idempotencyKey: string,
     parentManager?: EntityManager
   ): Promise<UsePointsUseCaseResult> {
-    return await this.executeInTransaction(async () => {
+    return await this.transactionService.runWithTransaction(async (manager) => {
       return await this.usePointsUseCase.execute({
         userId,
         amount,
@@ -79,7 +73,7 @@ export class WalletApplicationService {
     idempotencyKey: string,
     parentManager?: EntityManager
   ): Promise<RecoverPointsUseCaseResult> {
-    return await this.executeInTransaction(async () => {
+    return await this.transactionService.runWithTransaction(async (manager) => {
       return await this.recoverPointsUseCase.execute({
         userId,
         amount,
@@ -95,7 +89,7 @@ export class WalletApplicationService {
   async createUserBalance(
     userId: string
   ): Promise<CreateUserBalanceUseCaseResult> {
-    return await this.executeInTransaction(async () => {
+    return await this.transactionService.runWithTransaction(async (manager) => {
       return await this.createUserBalanceUseCase.execute({ userId });
     });
   }
@@ -105,21 +99,5 @@ export class WalletApplicationService {
     amount: number
   ): Promise<ValidateUsePointsUseCaseResult> {
     return await this.validateUsePointsUseCase.execute({ userId, amount });
-  }
-
-  private async executeInTransaction<T>(
-    operation: (manager?: EntityManager) => Promise<T>,
-    parentManager?: EntityManager
-  ): Promise<T> {
-    const repositories = [
-      this.userBalanceRepository,
-      this.pointTransactionRepository,
-    ];
-
-    return await this.transactionService.executeInTransaction(
-      repositories,
-      operation,
-      parentManager
-    );
   }
 }

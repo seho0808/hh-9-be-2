@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, EntityManager } from "typeorm";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
+import { TransactionContext } from "@/common/services/transaction.service";
 
 @Injectable()
 export class PointTransactionRepository
@@ -17,7 +18,9 @@ export class PointTransactionRepository
   constructor(
     @InjectRepository(PointTransactionTypeOrmEntity)
     private readonly pointTransactionRepository: Repository<PointTransactionTypeOrmEntity>
-  ) {}
+  ) {
+    TransactionContext.registerRepository(this);
+  }
 
   setEntityManager(manager: EntityManager): void {
     this.entityManager = manager;
