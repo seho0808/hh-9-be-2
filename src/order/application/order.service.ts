@@ -277,7 +277,7 @@ export class OrderApplicationService {
       // 잔고 복구
       await this.walletApplicationService.recoverPoints(
         order.userId,
-        order.discountPrice,
+        order.finalPrice,
         idempotencyKey,
         manager
       );

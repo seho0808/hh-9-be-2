@@ -1,7 +1,7 @@
 import { INestApplication } from "@nestjs/common";
 import * as request from "supertest";
 import { DataSource } from "typeorm";
-import { TestContainersHelper } from "./testcontainers-helper";
+import { TestContainersHelper } from "../testcontainers-helper";
 
 describe("User API E2E (with TestContainers)", () => {
   let app: INestApplication;
