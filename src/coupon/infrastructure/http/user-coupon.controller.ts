@@ -35,7 +35,7 @@ export class UserCouponController {
   ): Promise<ApiResponseDto<UserCouponResponseDto[]>> {
     const result = await this.couponService.getAllUserCoupons(user.id);
     return ApiResponseDto.success(
-      result.map(UserCouponResponseDto.fromUserCoupon),
+      result.map(UserCouponResponseDto.fromEntity),
       "보유 쿠폰 목록을 조회했습니다"
     );
   }

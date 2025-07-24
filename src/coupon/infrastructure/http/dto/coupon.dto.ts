@@ -17,43 +17,75 @@ export enum CouponStatus {
 }
 
 export class CouponResponseDto {
-  @ApiProperty({ description: "쿠폰 ID" })
+  @ApiProperty({
+    description: "쿠폰 ID",
+    example: "coupon-123",
+  })
   id: string;
 
-  @ApiProperty({ description: "쿠폰명" })
+  @ApiProperty({
+    description: "쿠폰명",
+    example: "신규가입 10% 할인",
+  })
   name: string;
 
   @ApiProperty({
     description: "할인 타입",
     enum: CouponDiscountType,
+    example: CouponDiscountType.PERCENTAGE,
   })
   type: CouponDiscountType;
 
-  @ApiProperty({ description: "할인값 (% 또는 고정금액)" })
+  @ApiProperty({
+    description: "할인값 (% 또는 고정금액)",
+    example: 10,
+  })
   discountValue: number;
 
-  @ApiProperty({ description: "최대 할인 금액", nullable: true })
+  @ApiProperty({
+    description: "최대 할인 금액 (원)",
+    nullable: true,
+    example: 50000,
+  })
   maxDiscount?: number;
 
-  @ApiProperty({ description: "최소 주문 금액" })
+  @ApiProperty({
+    description: "최소 주문 금액 (원)",
+    example: 100000,
+  })
   minOrderAmount: number;
 
-  @ApiProperty({ description: "총 발급 수량" })
+  @ApiProperty({
+    description: "총 발급 수량",
+    example: 1000,
+  })
   totalQuantity: number;
 
-  @ApiProperty({ description: "사용된 수량" })
+  @ApiProperty({
+    description: "사용된 수량",
+    example: 150,
+  })
   usedQuantity: number;
 
-  @ApiProperty({ description: "남은 수량" })
+  @ApiProperty({
+    description: "남은 수량",
+    example: 850,
+  })
   remainingQuantity: number;
 
-  @ApiProperty({ description: "유효 시작일" })
+  @ApiProperty({
+    description: "유효 시작일",
+    example: "2024-01-01T00:00:00.000Z",
+  })
   validFrom: Date;
 
-  @ApiProperty({ description: "유효 종료일" })
+  @ApiProperty({
+    description: "유효 종료일",
+    example: "2024-12-31T23:59:59.000Z",
+  })
   validTo: Date;
 
-  static fromCoupon(coupon: Coupon): CouponResponseDto {
+  static fromEntity(coupon: Coupon): CouponResponseDto {
     return {
       id: coupon.id,
       name: coupon.name,
@@ -74,31 +106,50 @@ export class CouponResponseDto {
 }
 
 export class UserCouponResponseDto {
-  @ApiProperty({ description: "사용자 쿠폰 ID" })
+  @ApiProperty({
+    description: "사용자 쿠폰 ID",
+    example: "user-coupon-123",
+  })
   id: string;
 
-  @ApiProperty({ description: "사용자 ID" })
+  @ApiProperty({
+    description: "사용자 ID",
+    example: "user-123",
+  })
   userId: string;
 
-  @ApiProperty({ description: "쿠폰 정보" })
+  @ApiProperty({
+    description: "쿠폰 정보",
+  })
   coupon: CouponResponseDto;
 
   @ApiProperty({
     description: "쿠폰 상태",
     enum: CouponStatus,
+    example: CouponStatus.ACTIVE,
   })
   status: CouponStatus;
 
-  @ApiProperty({ description: "발급일시" })
-  issuedAt: Date;
-
-  @ApiProperty({ description: "사용일시", nullable: true })
-  usedAt?: Date;
-
-  @ApiProperty({ description: "사용 가능 여부" })
+  @ApiProperty({
+    description: "사용 가능 여부",
+    example: true,
+  })
   canUse: boolean;
 
-  static fromUserCoupon(userCoupon: UserCoupon): UserCouponResponseDto {
+  @ApiProperty({
+    description: "발급일시",
+    example: "2024-01-15T10:30:00.000Z",
+  })
+  issuedAt: Date;
+
+  @ApiProperty({
+    description: "사용일시",
+    nullable: true,
+    example: "2024-01-20T14:30:00.000Z",
+  })
+  usedAt?: Date;
+
+  static fromEntity(userCoupon: UserCoupon): UserCouponResponseDto {
     return {
       id: userCoupon.id,
       userId: userCoupon.userId,
@@ -111,9 +162,9 @@ export class UserCouponResponseDto {
             : userCoupon.status === "USED"
               ? CouponStatus.USED
               : CouponStatus.CANCELED,
+      canUse: userCoupon.canUse(),
       issuedAt: userCoupon.createdAt,
       usedAt: userCoupon.usedAt,
-      canUse: userCoupon.canUse(),
     };
   }
 }
@@ -128,7 +179,7 @@ export class ClaimCouponDto {
 
   @ApiProperty({
     description: "중복 요청 방지 ID",
-    example: "1234567890",
+    example: "claim_user123_20240115_001",
     required: false,
   })
   @IsString()
@@ -137,15 +188,26 @@ export class ClaimCouponDto {
 }
 
 export class DiscountCalculationDto {
-  @ApiProperty({ description: "할인 전 금액" })
+  @ApiProperty({
+    description: "할인 전 금액 (원)",
+    example: 300000,
+  })
   originalAmount: number;
 
-  @ApiProperty({ description: "할인 금액" })
+  @ApiProperty({
+    description: "할인 금액 (원)",
+    example: 30000,
+  })
   discountAmount: number;
 
-  @ApiProperty({ description: "할인 후 최종 금액" })
+  @ApiProperty({
+    description: "할인 후 최종 금액 (원)",
+    example: 270000,
+  })
   finalAmount: number;
 
-  @ApiProperty({ description: "적용된 쿠폰 정보" })
+  @ApiProperty({
+    description: "적용된 쿠폰 정보",
+  })
   appliedCoupon: CouponResponseDto;
 }

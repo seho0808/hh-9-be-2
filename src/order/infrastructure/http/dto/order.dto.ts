@@ -22,7 +22,7 @@ export enum OrderStatus {
 export class OrderItemDto {
   @ApiProperty({
     description: "상품 ID",
-    example: "product-1",
+    example: "product-123",
   })
   @IsString()
   productId: string;
@@ -44,6 +44,10 @@ export class CreateOrderDto {
   @ApiProperty({
     description: "주문 상품 목록",
     type: [OrderItemDto],
+    example: [
+      { productId: "product-123", quantity: 2 },
+      { productId: "product-456", quantity: 1 },
+    ],
   })
   @IsArray()
   @ValidateNested({ each: true })
@@ -53,7 +57,7 @@ export class CreateOrderDto {
   @ApiProperty({
     description: "사용할 쿠폰 ID",
     required: false,
-    example: "coupon-1",
+    example: "coupon-123",
   })
   @IsOptional()
   @IsString()
@@ -70,25 +74,43 @@ export class CreateOrderDto {
 }
 
 export class OrderItemResponseDto {
-  @ApiProperty({ description: "주문 항목 ID" })
+  @ApiProperty({
+    description: "주문 항목 ID",
+    example: "order-item-123",
+  })
   id: string;
 
-  @ApiProperty({ description: "상품 ID" })
+  @ApiProperty({
+    description: "상품 ID",
+    example: "product-123",
+  })
   productId: string;
 
-  @ApiProperty({ description: "상품명" })
+  @ApiProperty({
+    description: "상품명",
+    example: "iPhone 15 Pro",
+  })
   productName: string;
 
-  @ApiProperty({ description: "주문 수량" })
+  @ApiProperty({
+    description: "주문 수량",
+    example: 2,
+  })
   quantity: number;
 
-  @ApiProperty({ description: "단가" })
+  @ApiProperty({
+    description: "단가 (원)",
+    example: 1500000,
+  })
   unitPrice: number;
 
-  @ApiProperty({ description: "항목 총 가격" })
+  @ApiProperty({
+    description: "항목 총 가격 (원)",
+    example: 3000000,
+  })
   totalPrice: number;
 
-  static fromOrderItem(
+  static fromEntity(
     orderItem: OrderItem,
     productName?: string
   ): OrderItemResponseDto {
@@ -105,52 +127,87 @@ export class OrderItemResponseDto {
 }
 
 export class OrderResponseDto {
-  @ApiProperty({ description: "주문 ID" })
+  @ApiProperty({
+    description: "주문 ID",
+    example: "order-123",
+  })
   id: string;
 
-  @ApiProperty({ description: "사용자 ID" })
+  @ApiProperty({
+    description: "사용자 ID",
+    example: "user-123",
+  })
   userId: string;
 
-  @ApiProperty({ description: "주문 상품 목록" })
+  @ApiProperty({
+    description: "주문 상품 목록",
+  })
   items: OrderItemResponseDto[];
 
-  @ApiProperty({ description: "총 주문 금액" })
+  @ApiProperty({
+    description: "총 주문 금액 (원)",
+    example: 3000000,
+  })
   totalAmount: number;
 
-  @ApiProperty({ description: "할인 금액" })
+  @ApiProperty({
+    description: "할인 금액 (원)",
+    example: 300000,
+  })
   discountAmount: number;
 
-  @ApiProperty({ description: "최종 결제 금액" })
+  @ApiProperty({
+    description: "최종 결제 금액 (원)",
+    example: 2700000,
+  })
   finalAmount: number;
 
   @ApiProperty({
     description: "주문 상태",
     enum: OrderStatus,
+    example: OrderStatus.SUCCESS,
   })
   status: OrderStatus;
 
-  @ApiProperty({ description: "사용된 쿠폰 ID", nullable: true })
+  @ApiProperty({
+    description: "사용된 쿠폰 ID",
+    nullable: true,
+    example: "coupon-123",
+  })
   usedCouponId?: string;
 
-  @ApiProperty({ description: "사용된 쿠폰명", nullable: true })
+  @ApiProperty({
+    description: "사용된 쿠폰명",
+    nullable: true,
+    example: "신규가입 10% 할인",
+  })
   usedCouponName?: string;
 
-  @ApiProperty({ description: "중복 요청 방지 ID" })
+  @ApiProperty({
+    description: "중복 요청 방지 ID",
+    example: "order_user123_20240115_001",
+  })
   idempotencyKey: string;
 
-  @ApiProperty({ description: "주문 생성일시" })
+  @ApiProperty({
+    description: "주문 생성일시",
+    example: "2024-01-15T10:30:00.000Z",
+  })
   createdAt: Date;
 
-  @ApiProperty({ description: "주문 수정일시" })
+  @ApiProperty({
+    description: "주문 수정일시",
+    example: "2024-01-15T10:30:00.000Z",
+  })
   updatedAt: Date;
 
-  static fromOrder(order: Order): OrderResponseDto {
+  static fromEntity(order: Order): OrderResponseDto {
     const props = order.toPersistence();
     return {
       id: props.id,
       userId: props.userId,
       items: props.OrderItems.map((item) =>
-        OrderItemResponseDto.fromOrderItem(item)
+        OrderItemResponseDto.fromEntity(item)
       ),
       totalAmount: props.totalPrice,
       discountAmount: props.discountPrice,

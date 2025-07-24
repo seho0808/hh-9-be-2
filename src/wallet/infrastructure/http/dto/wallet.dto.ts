@@ -26,7 +26,7 @@ export class ChargeBalanceDto {
 
   @ApiProperty({
     description: "거래 고유 키",
-    example: "123e4567-e89b-12d3-a456-426614174000",
+    example: "charge_user123_20240115_001",
     required: false,
   })
   @IsOptional()
@@ -35,16 +35,25 @@ export class ChargeBalanceDto {
 }
 
 export class BalanceResponseDto {
-  @ApiProperty({ description: "사용자 ID" })
+  @ApiProperty({
+    description: "사용자 ID",
+    example: "user-123",
+  })
   userId: string;
 
-  @ApiProperty({ description: "현재 잔액 (원)" })
+  @ApiProperty({
+    description: "현재 잔액 (원)",
+    example: 50000,
+  })
   balance: number;
 
-  @ApiProperty({ description: "마지막 업데이트 시간" })
+  @ApiProperty({
+    description: "마지막 업데이트 시간",
+    example: "2024-01-15T10:30:00.000Z",
+  })
   updatedAt: Date;
 
-  static fromUserBalance(userBalance: UserBalance): BalanceResponseDto {
+  static fromEntity(userBalance: UserBalance): BalanceResponseDto {
     const props = userBalance.toPersistence();
     return {
       userId: props.userId,
@@ -55,28 +64,40 @@ export class BalanceResponseDto {
 }
 
 export class ChargeResponseDto {
-  @ApiProperty({ description: "충전 금액 (원)" })
-  amount: number;
-
-  @ApiProperty({ description: "충전 후 잔액 (원)" })
-  newBalance: number;
-
-  @ApiProperty({ description: "거래 ID" })
+  @ApiProperty({
+    description: "거래 ID",
+    example: "txn-123e4567-e89b-12d3",
+  })
   transactionId: string;
 
-  @ApiProperty({ description: "충전 완료 시간" })
+  @ApiProperty({
+    description: "충전 금액 (원)",
+    example: 10000,
+  })
+  amount: number;
+
+  @ApiProperty({
+    description: "충전 후 잔액 (원)",
+    example: 60000,
+  })
+  newBalance: number;
+
+  @ApiProperty({
+    description: "충전 완료 시간",
+    example: "2024-01-15T10:30:00.000Z",
+  })
   chargedAt: Date;
 
-  static fromPointTransaction(
+  static fromEntity(
     userBalance: UserBalance,
     pointTransaction: PointTransaction
   ): ChargeResponseDto {
     const props = pointTransaction.toPersistence();
     const userBalanceProps = userBalance.toPersistence();
     return {
+      transactionId: props.id,
       amount: props.amount,
       newBalance: userBalanceProps.balance,
-      transactionId: props.id,
       chargedAt: props.createdAt,
     };
   }

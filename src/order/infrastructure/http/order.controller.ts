@@ -71,7 +71,7 @@ export class OrderController {
       })),
     });
 
-    const response = OrderResponseDto.fromOrder(order);
+    const response = OrderResponseDto.fromEntity(order);
     return ApiResponseDto.success(response, "주문이 성공적으로 완료되었습니다");
   }
 
@@ -100,7 +100,7 @@ export class OrderController {
       throw new OrderNotFoundHttpError(orderId);
     }
     return ApiResponseDto.success(
-      OrderResponseDto.fromOrder(order),
+      OrderResponseDto.fromEntity(order),
       "주문 정보를 조회했습니다"
     );
   }
@@ -129,7 +129,7 @@ export class UserOrderController {
     const orders = await this.orderApplicationService.getOrdersByUserId(
       user.id
     );
-    const response = orders.map((order) => OrderResponseDto.fromOrder(order));
+    const response = orders.map((order) => OrderResponseDto.fromEntity(order));
     return ApiResponseDto.success(response, "주문 목록을 조회했습니다");
   }
 }
