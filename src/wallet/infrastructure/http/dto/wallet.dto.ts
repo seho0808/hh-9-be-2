@@ -1,5 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber, Min, Max, IsOptional, IsEnum } from "class-validator";
+import {
+  IsNumber,
+  Min,
+  Max,
+  IsOptional,
+  IsEnum,
+  IsString,
+} from "class-validator";
 import { Type } from "class-transformer";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
@@ -16,6 +23,15 @@ export class ChargeBalanceDto {
   @Min(1000, { message: "최소 충전 금액은 1,000원입니다" })
   @Max(100000, { message: "1회 최대 충전 금액은 100,000원입니다" })
   amount: number;
+
+  @ApiProperty({
+    description: "거래 고유 키",
+    example: "123e4567-e89b-12d3-a456-426614174000",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  idempotencyKey?: string;
 }
 
 export class BalanceResponseDto {

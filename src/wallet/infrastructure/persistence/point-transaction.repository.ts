@@ -24,6 +24,16 @@ export class PointTransactionRepository
     return entities.map((entity) => this.toDomain(entity));
   }
 
+  async findByOrderIdempotencyKey(
+    userId: string,
+    idempotencyKey: string
+  ): Promise<PointTransaction[]> {
+    const entities = await this.pointTransactionRepository.find({
+      where: { userId, idempotencyKey },
+    });
+    return entities.map((entity) => this.toDomain(entity));
+  }
+
   async save(pointTransaction: PointTransaction): Promise<PointTransaction> {
     const entity = this.fromDomain(pointTransaction);
     const savedEntity = await this.pointTransactionRepository.save(entity);
@@ -36,6 +46,7 @@ export class PointTransactionRepository
       userId: entity.userId,
       amount: entity.amount,
       type: entity.type as PointTransactionType,
+      idempotencyKey: entity.idempotencyKey,
       createdAt: entity.createdAt,
     });
   }
@@ -47,6 +58,7 @@ export class PointTransactionRepository
     entity.userId = props.userId;
     entity.amount = props.amount;
     entity.type = props.type as PointTransactionType;
+    entity.idempotencyKey = props.idempotencyKey;
     entity.createdAt = props.createdAt;
     return entity;
   }

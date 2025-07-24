@@ -37,23 +37,27 @@ export class WalletApplicationService {
 
   async chargePoints(
     userId: string,
-    amount: number
+    amount: number,
+    idempotencyKey: string
   ): Promise<ChargePointsUseCaseResult> {
     // TODO: 외부 결제 api 검증 호출
     const result = await this.chargePointsUseCase.execute({
       userId,
       amount,
+      idempotencyKey,
     }); // TODO: 트랜잭션으로 묶어서 동시에 outbox payment 테이블에 등록 => 외부/다른곳에서 알아서 비동기로 결제 호출
     return result;
   }
 
   async usePoints(
     userId: string,
-    amount: number
+    amount: number,
+    idempotencyKey: string
   ): Promise<UsePointsUseCaseResult> {
     const result = await this.usePointsUseCase.execute({
       userId,
       amount,
+      idempotencyKey,
     });
 
     return result;
@@ -61,11 +65,13 @@ export class WalletApplicationService {
 
   async recoverPoints(
     userId: string,
-    amount: number
+    amount: number,
+    idempotencyKey: string
   ): Promise<RecoverPointsUseCaseResult> {
     const result = await this.recoverPointsUseCase.execute({
       userId,
       amount,
+      idempotencyKey,
     });
 
     return result;

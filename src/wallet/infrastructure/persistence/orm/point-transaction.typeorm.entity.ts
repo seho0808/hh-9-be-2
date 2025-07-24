@@ -28,6 +28,9 @@ export class PointTransactionTypeOrmEntity {
   @Column({ type: "enum", name: "type", enum: PointTransactionType })
   type: PointTransactionType;
 
+  @Column({ type: "varchar", name: "idempotency_key" })
+  idempotencyKey: string;
+
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;
 
