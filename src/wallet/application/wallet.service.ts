@@ -1,29 +1,29 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { DataSource, EntityManager } from "typeorm";
+import { Injectable } from "@nestjs/common";
+import { EntityManager } from "typeorm";
 import {
   ChargePointsUseCase,
   ChargePointsUseCaseResult,
-} from "../domain/use-cases/charge-points.use-case";
+} from "@/wallet/application/use-cases/charge-points.use-case";
 import {
   GetUserPointsUseCase,
   GetUserPointsUseCaseResult,
-} from "../domain/use-cases/get-user-points.use-case";
+} from "@/wallet/application/use-cases/get-user-points.use-case";
 import {
   RecoverPointsUseCase,
   RecoverPointsUseCaseResult,
-} from "../domain/use-cases/recover-points.use-case";
+} from "@/wallet/application/use-cases/recover-points.use-case";
 import {
   UsePointsUseCase,
   UsePointsUseCaseResult,
-} from "../domain/use-cases/use-points.use-case";
+} from "@/wallet/application/use-cases/use-points.use-case";
 import {
   CreateUserBalanceUseCase,
   CreateUserBalanceUseCaseResult,
-} from "../domain/use-cases/create-user-balance.use-case";
+} from "@/wallet/application/use-cases/create-user-balance.use-case";
 import {
   ValidateUsePointsUseCase,
   ValidateUsePointsUseCaseResult,
-} from "../domain/use-cases/validate-use-points.use-case";
+} from "@/wallet/application/use-cases/validate-use-points.use-case";
 import { TransactionService } from "@/common/services/transaction.service";
 
 @Injectable()

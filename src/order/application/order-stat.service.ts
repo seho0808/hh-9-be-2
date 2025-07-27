@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { GetPopularProductsUseCase } from "../domain/use-cases/get-popular-products.use-case";
-import { PopularProductResult } from "../domain/interfaces/order-item.repository.interface";
+import { GetPopularProductsUseCase } from "@/order/application/use-cases/get-popular-products.use-case";
+import { PopularProductResult } from "@/order/domain/interfaces/order-item.repository.interface";
 
 @Injectable()
 export class OrderStatApplicationService {

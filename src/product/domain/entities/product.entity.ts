@@ -49,6 +49,7 @@ export class Product {
       );
     }
     this.props.reservedStock -= amount;
+    this.props.totalStock -= amount;
     this.props.updatedAt = new Date();
   }
 

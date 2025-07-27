@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { DataSource, EntityManager } from "typeorm";
-import { GetProductByIdUseCase } from "@/product/domain/use-cases/get-product-by-id.use-case";
-import { GetAllProductsUseCase } from "@/product/domain/use-cases/get-all-products.use-case";
+import { GetProductByIdUseCase } from "@/product/application/use-cases/get-product-by-id.use-case";
+import { GetAllProductsUseCase } from "@/product/application/use-cases/get-all-products.use-case";
 import {
   GetAllProductsInputDto,
   GetAllProductsOutputDto,
@@ -9,11 +9,11 @@ import {
 import {
   ReserveStockUseCase,
   ReserveStockCommand,
-} from "@/product/domain/use-cases/reserve-stock.use-case";
+} from "@/product/application/use-cases/reserve-stock.use-case";
 import {
   ReleaseStockUseCase,
   ReleaseStockCommand,
-} from "@/product/domain/use-cases/release-stock.use-case";
+} from "@/product/application/use-cases/release-stock.use-case";
 import { Product } from "@/product/domain/entities/product.entity";
 import { validateOrReject } from "class-validator";
 import { plainToInstance } from "class-transformer";
@@ -21,10 +21,10 @@ import { ProductValidationException } from "@/product/application/exceptions/val
 import {
   ConfirmStockCommand,
   ConfirmStockUseCase,
-} from "@/product/domain/use-cases/confirm-stock.use-case";
+} from "@/product/application/use-cases/confirm-stock.use-case";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
-import { GetProductByIdsUseCase } from "@/product/domain/use-cases/get-product-by-ids.use-case";
-import { GetStockReservationsByKeyUseCase } from "@/product/domain/use-cases/get-stock-reservations-by-key.use-case";
+import { GetProductByIdsUseCase } from "@/product/application/use-cases/get-product-by-ids.use-case";
+import { GetStockReservationsByKeyUseCase } from "@/product/application/use-cases/get-stock-reservations-by-key.use-case";
 import { TransactionService } from "@/common/services/transaction.service";
 import { OrderStatApplicationService } from "@/order/application/order-stat.service";
 import { PopularProductResult } from "@/order/domain/interfaces/order-item.repository.interface";
