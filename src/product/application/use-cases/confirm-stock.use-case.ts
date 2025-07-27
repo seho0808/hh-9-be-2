@@ -41,6 +41,10 @@ export class ConfirmStockUseCase {
       stockReservation.productId
     );
 
+    if (!product) {
+      throw new ProductNotFoundError(product.id);
+    }
+
     await this.confirmStockDomainService.confirmStock({
       stockReservation,
       product,

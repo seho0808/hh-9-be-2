@@ -91,9 +91,18 @@ describe("ConfirmStockUseCase", () => {
       quantity: 2,
       idempotencyKey: uuidv4(),
     });
-
     mockStockReservation.releaseStock(mockStockReservation.idempotencyKey);
 
+    const mockProduct = Product.create({
+      name: "테스트 상품",
+      description: "테스트 상품 설명",
+      price: 1000,
+      totalStock: 10,
+      reservedStock: 0,
+      isActive: false,
+    });
+
+    productRepository.findById.mockResolvedValue(mockProduct);
     stockReservationRepository.findById.mockResolvedValue(mockStockReservation);
 
     await expect(
@@ -121,7 +130,17 @@ describe("ConfirmStockUseCase", () => {
       expiresAt: pastDate,
     });
 
+    const mockProduct = Product.create({
+      name: "테스트 상품",
+      description: "테스트 상품 설명",
+      price: 1000,
+      totalStock: 10,
+      reservedStock: 0,
+      isActive: true,
+    });
+
     stockReservationRepository.findById.mockResolvedValue(expiredReservation);
+    productRepository.findById.mockResolvedValue(mockProduct);
 
     await expect(
       useCase.execute({
