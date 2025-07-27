@@ -1,15 +1,7 @@
 import { Test } from "@nestjs/testing";
 import { CancelUserCouponUseCase } from "./cancel-user-coupon.use-case";
-import {
-  CannotCancelExhaustedCouponError,
-  CouponNotFoundError,
-} from "@/coupon/domain/exceptions/coupon.exceptions";
-import {
-  UserCouponNotFoundError,
-  UserCouponAlreadyUsedError,
-  UserCouponCancelledError,
-  UserCouponExpiredError,
-} from "@/coupon/domain/exceptions/user-coupon.exception";
+import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
+import { UserCouponNotFoundError } from "@/coupon/domain/exceptions/user-coupon.exception";
 import {
   Coupon,
   CouponDiscountType,
@@ -19,6 +11,7 @@ import {
   UserCouponStatus,
 } from "@/coupon/domain/entities/user-coupon.entity";
 import { v4 as uuidv4 } from "uuid";
+import { CancelUserCouponDomainService } from "@/coupon/domain/services/cancel-user-coupon.service";
 
 describe("CancelUserCouponUseCase", () => {
   let useCase: CancelUserCouponUseCase;
@@ -39,6 +32,7 @@ describe("CancelUserCouponUseCase", () => {
     const module = await Test.createTestingModule({
       providers: [
         CancelUserCouponUseCase,
+        CancelUserCouponDomainService,
         {
           provide: "UserCouponRepositoryInterface",
           useValue: userCouponRepository,

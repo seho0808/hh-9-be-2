@@ -4,6 +4,7 @@ import { UserCouponRepositoryInterface } from "@/coupon/domain/interfaces/user-c
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
 import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
+import { UseUserCouponDomainService } from "@/coupon/domain/services/use-user-coupon.service";
 
 export interface UseUserCouponCommand {
   couponId: string;
@@ -26,7 +27,8 @@ export class UserCouponUseCase {
     @Inject("CouponRepositoryInterface")
     private readonly couponRepository: CouponRepositoryInterface,
     @Inject("UserCouponRepositoryInterface")
-    private readonly userCouponRepository: UserCouponRepositoryInterface
+    private readonly userCouponRepository: UserCouponRepositoryInterface,
+    private readonly useUserCouponDomainService: UseUserCouponDomainService
   ) {}
 
   async execute(command: UseUserCouponCommand): Promise<UseUserCouponResult> {
@@ -42,8 +44,14 @@ export class UserCouponUseCase {
       userId
     );
 
-    const { discountPrice, discountedPrice } = coupon.use(orderPrice);
-    userCoupon.use(orderId, discountPrice, idempotencyKey);
+    const { discountPrice, discountedPrice } =
+      await this.useUserCouponDomainService.useUserCoupon({
+        coupon,
+        userCoupon,
+        orderPrice,
+        orderId,
+        idempotencyKey,
+      });
 
     await Promise.all([
       this.couponRepository.save(coupon),

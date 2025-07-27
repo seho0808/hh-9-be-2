@@ -15,6 +15,7 @@ import {
   UserCouponStatus,
 } from "@/coupon/domain/entities/user-coupon.entity";
 import { v4 as uuidv4 } from "uuid";
+import { UseUserCouponDomainService } from "@/coupon/domain/services/use-user-coupon.service";
 
 describe("UserCouponUseCase", () => {
   let useCase: UserCouponUseCase;
@@ -35,6 +36,7 @@ describe("UserCouponUseCase", () => {
     const module = await Test.createTestingModule({
       providers: [
         UserCouponUseCase,
+        UseUserCouponDomainService,
         {
           provide: "CouponRepositoryInterface",
           useValue: couponRepository,
