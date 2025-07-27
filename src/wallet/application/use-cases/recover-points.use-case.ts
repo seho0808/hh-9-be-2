@@ -1,13 +1,10 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
-import {
-  PointTransactionAlreadyRecoveredError,
-  PointTransactionNotFoundError,
-  UserBalanceNotFoundError,
-} from "@/wallet/domain/exceptions/point.exceptions";
+import { UserBalanceNotFoundError } from "@/wallet/domain/exceptions/point.exceptions";
 import { PointTransactionRepositoryInterface } from "@/wallet/domain/interfaces/point-transaction.repository.interface";
 import { UserBalanceRepositoryInterface } from "@/wallet/domain/interfaces/user-balance.repository.interface";
+import { RecoverPointsDomainService } from "@/wallet/domain/services/recover-points.service";
 
 export interface RecoverPointsUseCaseCommand {
   userId: string;
@@ -26,7 +23,8 @@ export class RecoverPointsUseCase {
     @Inject("UserBalanceRepositoryInterface")
     private readonly userBalanceRepository: UserBalanceRepositoryInterface,
     @Inject("PointTransactionRepositoryInterface")
-    private readonly pointTransactionRepository: PointTransactionRepositoryInterface
+    private readonly pointTransactionRepository: PointTransactionRepositoryInterface,
+    private readonly recoverPointsDomainService: RecoverPointsDomainService
   ) {}
 
   async execute(
@@ -46,28 +44,14 @@ export class RecoverPointsUseCase {
         idempotencyKey
       );
 
-    const correctTransactionExists = existingPointTransaction.some(
-      (pt) => pt.type === "USE" && pt.idempotencyKey === idempotencyKey
-    );
-    const isAlreadyRecovered = existingPointTransaction.some(
-      (pt) => pt.type === "RECOVER" && pt.idempotencyKey === idempotencyKey
-    );
-
-    if (!correctTransactionExists) {
-      throw new PointTransactionNotFoundError(idempotencyKey);
-    }
-
-    if (isAlreadyRecovered) {
-      throw new PointTransactionAlreadyRecoveredError(idempotencyKey);
-    }
-
-    userBalance.addBalance(amount);
-    const pointTransaction = PointTransaction.create({
-      userId,
-      amount,
-      type: "RECOVER",
-      idempotencyKey,
-    });
+    const pointTransaction =
+      await this.recoverPointsDomainService.recoverPoints({
+        userId,
+        amount,
+        idempotencyKey,
+        existingPointTransaction,
+        userBalance,
+      });
 
     await Promise.all([
       this.userBalanceRepository.save(userBalance),
