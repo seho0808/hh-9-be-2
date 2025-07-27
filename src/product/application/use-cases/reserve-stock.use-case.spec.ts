@@ -9,6 +9,7 @@ import {
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
+import { ReserveStockDomainService } from "@/product/domain/services/reserve-stock.service";
 
 describe("ReserveStockUseCase", () => {
   let useCase: ReserveStockUseCase;
@@ -28,6 +29,7 @@ describe("ReserveStockUseCase", () => {
     const module = await Test.createTestingModule({
       providers: [
         ReserveStockUseCase,
+        ReserveStockDomainService,
         {
           provide: "ProductRepositoryInterface",
           useValue: productRepository,
@@ -102,6 +104,17 @@ describe("ReserveStockUseCase", () => {
     { quantity: -1, desc: "음수일 때" },
   ])("수량이 유효하지 않을 때 에러가 발생해야 한다", ({ quantity, desc }) => {
     it(`${desc}`, async () => {
+      const mockProduct = Product.create({
+        name: "테스트 상품",
+        description: "테스트 상품 설명",
+        price: 1000,
+        totalStock: 10,
+        reservedStock: 0,
+        isActive: true,
+      });
+
+      productRepository.findById.mockResolvedValue(mockProduct);
+
       await expect(
         useCase.execute({
           idempotencyKey: uuidv4(),

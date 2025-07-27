@@ -7,6 +7,7 @@ import {
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
+import { ReleaseStockDomainService } from "@/product/domain/services/release-stock.service";
 
 describe("ReleaseStockUseCase", () => {
   let useCase: ReleaseStockUseCase;
@@ -27,6 +28,7 @@ describe("ReleaseStockUseCase", () => {
     const module = await Test.createTestingModule({
       providers: [
         ReleaseStockUseCase,
+        ReleaseStockDomainService,
         {
           provide: "ProductRepositoryInterface",
           useValue: productRepository,
@@ -121,7 +123,17 @@ describe("ReleaseStockUseCase", () => {
       isActive: false,
     };
 
+    const mockProduct = Product.create({
+      name: "테스트 상품",
+      description: "테스트 상품 설명",
+      price: 1000,
+      totalStock: 10,
+      reservedStock: 0,
+      isActive: true,
+    });
+
     stockReservationRepository.findById.mockResolvedValue(inactiveReservation);
+    productRepository.findById.mockResolvedValue(mockProduct);
 
     await expect(
       useCase.execute({

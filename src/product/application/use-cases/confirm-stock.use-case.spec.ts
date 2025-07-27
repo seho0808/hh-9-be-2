@@ -8,6 +8,7 @@ import {
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
+import { ConfirmStockDomainService } from "@/product/domain/services/confirm-stock.service";
 
 describe("ConfirmStockUseCase", () => {
   let useCase: ConfirmStockUseCase;
@@ -28,6 +29,7 @@ describe("ConfirmStockUseCase", () => {
     const module = await Test.createTestingModule({
       providers: [
         ConfirmStockUseCase,
+        ConfirmStockDomainService,
         {
           provide: "ProductRepositoryInterface",
           useValue: productRepository,

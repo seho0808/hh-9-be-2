@@ -9,6 +9,7 @@ import {
 } from "@/product/domain/exceptions/product.exceptions";
 import { StockReservationRepositoryInterface } from "@/product/domain/interfaces/stock-reservation.repository.interface";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
+import { ReserveStockDomainService } from "@/product/domain/services/reserve-stock.service";
 
 export interface ReserveStockCommand {
   productId: string;
@@ -23,7 +24,8 @@ export class ReserveStockUseCase {
     @Inject("ProductRepositoryInterface")
     private readonly productRepository: ProductRepositoryInterface,
     @Inject("StockReservationRepositoryInterface")
-    private readonly stockReservationRepository: StockReservationRepositoryInterface
+    private readonly stockReservationRepository: StockReservationRepositoryInterface,
+    private readonly reserveStockDomainService: ReserveStockDomainService
   ) {}
 
   async execute(command: ReserveStockCommand): Promise<{
@@ -32,31 +34,16 @@ export class ReserveStockUseCase {
   }> {
     const { productId, userId, quantity, idempotencyKey } = command;
 
-    if (quantity <= 0) {
-      throw new InvalidQuantityError(quantity);
-    }
-
     const product = await this.productRepository.findById(productId);
     if (!product) {
       throw new ProductNotFoundError(productId);
     }
 
-    if (!product.isActive) {
-      throw new InactiveProductError(productId);
-    }
-
-    const availableStock = product.getAvailableStock();
-    if (availableStock < quantity) {
-      throw new InsufficientStockError(productId, availableStock, quantity);
-    }
-
-    product.reserveStock(quantity);
-
-    const stockReservation = StockReservation.create({
-      productId,
-      userId,
+    const stockReservation = await this.reserveStockDomainService.reserveStock({
+      product,
       quantity,
       idempotencyKey,
+      userId,
     });
 
     await this.stockReservationRepository.save(stockReservation);

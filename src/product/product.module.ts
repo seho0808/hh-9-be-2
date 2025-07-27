@@ -17,6 +17,9 @@ import { StockReservationTypeOrmEntity } from "./infrastructure/persistence/orm/
 import { StockReservationRepository } from "./infrastructure/persistence/stock-reservations.repository";
 import { forwardRef } from "@nestjs/common";
 import { OrderModule } from "../order/order.module";
+import { ReserveStockDomainService } from "./domain/services/reserve-stock.service";
+import { ReleaseStockDomainService } from "./domain/services/release-stock.service";
+import { ConfirmStockDomainService } from "./domain/services/confirm-stock.service";
 
 @Module({
   imports: [
@@ -38,6 +41,9 @@ import { OrderModule } from "../order/order.module";
     ReleaseStockUseCase,
     ConfirmStockUseCase,
     GetStockReservationsByKeyUseCase,
+    ReserveStockDomainService,
+    ReleaseStockDomainService,
+    ConfirmStockDomainService,
     {
       provide: "ProductRepositoryInterface",
       useClass: ProductRepository,
