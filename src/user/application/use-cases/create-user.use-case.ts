@@ -1,11 +1,8 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { UserRepositoryInterface } from "@/user/domain/interfaces/user.repository.interface";
 import { User } from "@/user/domain/entities/user.entity";
-import {
-  EmailDuplicateError,
-  InvalidEmailFormatError,
-  InvalidUserNameError,
-} from "@/user/domain/exceptions/user.exceptions";
+import { InvalidEmailFormatError } from "@/user/domain/exceptions/user.exceptions";
+import { CreateUserDomainService } from "@/user/domain/services/create-user.service";
 
 export interface CreateUserCommand {
   email: string;
@@ -17,7 +14,8 @@ export interface CreateUserCommand {
 export class CreateUserUseCase {
   constructor(
     @Inject("UserRepositoryInterface")
-    private readonly userRepository: UserRepositoryInterface
+    private readonly userRepository: UserRepositoryInterface,
+    private readonly createUserDomainService: CreateUserDomainService
   ) {}
 
   async execute(command: CreateUserCommand): Promise<User> {
@@ -27,19 +25,12 @@ export class CreateUserUseCase {
       throw new InvalidEmailFormatError(email);
     }
 
-    const isDuplicate = await this.isEmailDuplicate(email);
-    if (isDuplicate) {
-      throw new EmailDuplicateError(email);
-    }
-
-    if (!User.isValidUserName(name)) {
-      throw new InvalidUserNameError(name);
-    }
-
-    const user = User.create({
+    const isEmailDuplicate = await this.isEmailDuplicate(email);
+    const user = await this.createUserDomainService.createUser({
       email,
-      password: hashedPassword,
+      hashedPassword,
       name,
+      isEmailDuplicate,
     });
 
     await this.userRepository.save(user);

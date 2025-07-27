@@ -10,6 +10,7 @@ import { CreateUserUseCase } from "./application/use-cases/create-user.use-case"
 import { AuthModule } from "@/auth/auth.module";
 import { WalletModule } from "@/wallet/wallet.module";
 import { TransactionService } from "@/common/services/transaction.service";
+import { CreateUserDomainService } from "./domain/services/create-user.service";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { TransactionService } from "@/common/services/transaction.service";
     GetUserByIdUseCase,
     GetUserByEmailUseCase,
     CreateUserUseCase,
+    CreateUserDomainService,
     {
       provide: "UserRepositoryInterface",
       useClass: UserRepository,

@@ -7,6 +7,7 @@ import {
   InvalidEmailFormatError,
   InvalidUserNameError,
 } from "@/user/domain/exceptions/user.exceptions";
+import { CreateUserDomainService } from "@/user/domain/services/create-user.service";
 
 describe("CreateUserUseCase", () => {
   let createUserUseCase: CreateUserUseCase;
@@ -23,6 +24,7 @@ describe("CreateUserUseCase", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CreateUserUseCase,
+        CreateUserDomainService,
         {
           provide: "UserRepositoryInterface",
           useValue: mockUserRepository,
