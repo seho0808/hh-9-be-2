@@ -23,6 +23,7 @@ export class ConfirmStockDomainService {
       throw new StockReservationExpiredError(stockReservation.id);
     }
 
+    product.confirmStock(stockReservation.quantity);
     stockReservation.confirmStock(idempotencyKey);
   }
 }
