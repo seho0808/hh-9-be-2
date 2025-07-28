@@ -15,9 +15,13 @@ export class CreateUserDomainService {
     email: string;
     hashedPassword: string;
     name: string;
-    isEmailDuplicate: boolean;
+    isEmailDuplicate: () => Promise<boolean>;
   }): Promise<User> {
-    if (isEmailDuplicate) {
+    if (!User.isValidEmail(email)) {
+      throw new InvalidEmailFormatError(email);
+    }
+
+    if (await isEmailDuplicate()) {
       throw new EmailDuplicateError(email);
     }
 
