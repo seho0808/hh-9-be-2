@@ -1,15 +1,15 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { DataSource, EntityManager } from "typeorm";
-import { GetAllCouponsUseCase } from "@/coupon/application/use-cases/get-all-coupons.use-case";
-import { GetAllUserCouponsUseCase } from "@/coupon/application/use-cases/get-all-user-couponse.use-case";
-import { IssueUserCouponUseCase } from "@/coupon/application/use-cases/issue-user-coupon.use-case";
-import { UserCouponUseCase } from "@/coupon/application/use-cases/use-user-coupon.use-case";
-import { ValidateCouponUseCase } from "@/coupon/application/use-cases/validate-user-coupon.use-case";
-import { CancelUserCouponUseCase } from "@/coupon/application/use-cases/cancel-user-coupon.use-case";
+import { GetAllCouponsUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-all-coupons.use-case";
+import { GetAllUserCouponsUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-all-user-couponse.use-case";
+import { IssueUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/issue-user-coupon.use-case";
+import { UserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/use-user-coupon.use-case";
+import { ValidateCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/validate-user-coupon.use-case";
+import { CancelUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/cancel-user-coupon.use-case";
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
-import { GetCouponByIdUseCase } from "@/coupon/application/use-cases/get-coupon-by-id.use-case";
-import { RecoverUserCouponUseCase } from "@/coupon/application/use-cases/recover-user-coupon.use-case";
+import { GetCouponByIdUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-coupon-by-id.use-case";
+import { RecoverUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/recover-user-coupon.use-case";
 import { TransactionService } from "@/common/services/transaction.service";
 
 @Injectable()

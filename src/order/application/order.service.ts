@@ -2,20 +2,20 @@ import { Injectable, Inject } from "@nestjs/common";
 import { EntityManager } from "typeorm";
 import { WalletApplicationService } from "@/wallet/application/wallet.service";
 import { Order, OrderStatus } from "../domain/entities/order.entitiy";
-import { ApplyDiscountUseCase } from "@/order/application/use-cases/apply-discount.use-case";
-import { ChangeOrderStatusUseCase } from "@/order/application/use-cases/change-order-status.use-case";
-import { CreateOrderUseCase } from "@/order/application/use-cases/create-order.use-case";
+import { ApplyDiscountUseCase } from "@/order/application/use-cases/tier-1-in-domain/apply-discount.use-case";
+import { ChangeOrderStatusUseCase } from "@/order/application/use-cases/tier-1-in-domain/change-order-status.use-case";
+import { CreateOrderUseCase } from "@/order/application/use-cases/tier-1-in-domain/create-order.use-case";
 import { ProductApplicationService } from "@/product/application/services/product.service";
 import { CouponApplicationService } from "@/coupon/application/services/coupon.service";
 import {
   InsufficientPointBalanceError,
   InvalidCouponError,
 } from "./order.exceptions";
-import { GetOrderByIdUseCase } from "@/order/application/use-cases/get-order-by-id.use-case";
-import { GetOrderByUserIdUseCase } from "@/order/application/use-cases/get-order-by-user-id.use-case";
-import { FindStalePendingOrdersUseCase } from "@/order/application/use-cases/find-stale-pending-orders.use-case";
-import { FindFailedOrdersUseCase } from "@/order/application/use-cases/find-failed-orders.use-case";
-import { GetPopularProductsUseCase } from "@/order/application/use-cases/get-popular-products.use-case";
+import { GetOrderByIdUseCase } from "@/order/application/use-cases/tier-1-in-domain/get-order-by-id.use-case";
+import { GetOrderByUserIdUseCase } from "@/order/application/use-cases/tier-1-in-domain/get-order-by-user-id.use-case";
+import { FindStalePendingOrdersUseCase } from "@/order/application/use-cases/tier-1-in-domain/find-stale-pending-orders.use-case";
+import { FindFailedOrdersUseCase } from "@/order/application/use-cases/tier-1-in-domain/find-failed-orders.use-case";
+import { GetPopularProductsUseCase } from "@/order/application/use-cases/tier-1-in-domain/get-popular-products.use-case";
 import { TransactionService } from "@/common/services/transaction.service";
 
 export interface PlaceOrderCommand {

@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
-import { GetUserByIdUseCase } from "@/user/application/use-cases/get-user-by-id.use-case";
-import { GetUserByEmailUseCase } from "@/user/application/use-cases/get-user-by-email.use-case";
+import { GetUserByIdUseCase } from "@/user/application/use-cases/tier-1-in-domain/get-user-by-id.use-case";
+import { GetUserByEmailUseCase } from "@/user/application/use-cases/tier-1-in-domain/get-user-by-email.use-case";
 import {
   CreateUserUseCase,
   CreateUserCommand,
-} from "@/user/application/use-cases/create-user.use-case";
+} from "@/user/application/use-cases/tier-1-in-domain/create-user.use-case";
 import { User } from "@/user/domain/entities/user.entity";
 import { WalletApplicationService } from "@/wallet/application/wallet.service";
 import { TransactionService } from "@/common/services/transaction.service";

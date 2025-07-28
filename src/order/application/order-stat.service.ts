@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { GetPopularProductsUseCase } from "@/order/application/use-cases/get-popular-products.use-case";
+import { GetPopularProductsUseCase } from "@/order/application/use-cases/tier-1-in-domain/get-popular-products.use-case";
 import { PopularProductResult } from "@/order/domain/interfaces/order-item.repository.interface";
 
 @Injectable()
