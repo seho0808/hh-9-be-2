@@ -23,32 +23,28 @@ import {
   ConfirmStockUseCase,
 } from "@/product/application/use-cases/tier-1-in-domain/confirm-stock.use-case";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
-import { GetProductByIdsUseCase } from "@/product/application/use-cases/tier-1-in-domain/get-product-by-ids.use-case";
 import { GetStockReservationsByKeyUseCase } from "@/product/application/use-cases/tier-1-in-domain/get-stock-reservations-by-key.use-case";
 import { TransactionService } from "@/common/services/transaction.service";
-import { OrderStatApplicationService } from "@/order/application/order-stat.service";
-import { PopularProductResult } from "@/order/domain/interfaces/order-item.repository.interface";
+import {
+  GetPopularProductsWithDetailUseCase,
+  PopularProductsWithDetailResult,
+} from "../use-cases/tier-2/get-popular-products.use-case";
 
 @Injectable()
 export class ProductApplicationService {
   constructor(
     private readonly transactionService: TransactionService,
     private readonly getProductByIdUseCase: GetProductByIdUseCase,
-    private readonly getProductByIdsUseCase: GetProductByIdsUseCase,
     private readonly getAllProductsUseCase: GetAllProductsUseCase,
     private readonly reserveStockUseCase: ReserveStockUseCase,
     private readonly releaseStockUseCase: ReleaseStockUseCase,
     private readonly confirmStockUseCase: ConfirmStockUseCase,
     private readonly getStockReservationsByKeyUseCase: GetStockReservationsByKeyUseCase,
-    private readonly orderStatApplicationService: OrderStatApplicationService
+    private readonly getPopularProductsWithDetailUseCase: GetPopularProductsWithDetailUseCase
   ) {}
 
   async getProductById(id: string): Promise<Product | null> {
     return await this.getProductByIdUseCase.execute(id);
-  }
-
-  async getProductByIds(ids: string[]): Promise<Product[]> {
-    return await this.getProductByIdsUseCase.execute(ids);
   }
 
   async getAllProducts(
@@ -93,38 +89,10 @@ export class ProductApplicationService {
     }, parentManager);
   }
 
-  async getPopularProducts(limit?: number): Promise<
-    {
-      product: Product;
-      statistics: PopularProductResult;
-    }[]
-  > {
-    const popularProductsStats =
-      await this.orderStatApplicationService.getPopularProducts(limit);
-
-    if (popularProductsStats.length === 0) {
-      return [];
-    }
-
-    const productIds = popularProductsStats.map((stat) => stat.productId);
-    const products = await this.getProductByIds(productIds);
-
-    const productMap = new Map<string, Product>();
-    products.forEach((product) => {
-      productMap.set(product.id, product);
-    });
-
-    return popularProductsStats
-      .map((stat) => {
-        const product = productMap.get(stat.productId);
-        return product ? { product, statistics: stat } : null;
-      })
-      .filter(
-        (
-          item
-        ): item is { product: Product; statistics: PopularProductResult } =>
-          item !== null
-      );
+  async getPopularProducts(
+    limit?: number
+  ): Promise<PopularProductsWithDetailResult> {
+    return this.getPopularProductsWithDetailUseCase.execute({ limit });
   }
 
   async getStockReservationIdsByIdempotencyKey(
