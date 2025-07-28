@@ -11,6 +11,7 @@ import { AuthModule } from "@/auth/auth.module";
 import { WalletModule } from "@/wallet/wallet.module";
 import { TransactionService } from "@/common/services/transaction.service";
 import { CreateUserDomainService } from "./domain/services/create-user.service";
+import { CreateUserUseCaseWithBalanceUseCase } from "./application/use-cases/tier-2/create-user-with-balance.use-case";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { CreateUserDomainService } from "./domain/services/create-user.service";
     UserApplicationService,
     GetUserByIdUseCase,
     GetUserByEmailUseCase,
+    CreateUserUseCaseWithBalanceUseCase,
     CreateUserUseCase,
     CreateUserDomainService,
     {
