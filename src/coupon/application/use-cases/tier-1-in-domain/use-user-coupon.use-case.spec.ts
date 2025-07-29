@@ -1,5 +1,5 @@
 import { Test } from "@nestjs/testing";
-import { UserCouponUseCase } from "./use-user-coupon.use-case";
+import { UseUserCouponUseCase } from "./use-user-coupon.use-case";
 import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
 import {
   UserCouponAlreadyUsedError,
@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from "uuid";
 import { UseUserCouponDomainService } from "@/coupon/domain/services/use-user-coupon.service";
 
 describe("UserCouponUseCase", () => {
-  let useCase: UserCouponUseCase;
+  let useCase: UseUserCouponUseCase;
   let couponRepository: any;
   let userCouponRepository: any;
 
@@ -35,7 +35,7 @@ describe("UserCouponUseCase", () => {
 
     const module = await Test.createTestingModule({
       providers: [
-        UserCouponUseCase,
+        UseUserCouponUseCase,
         UseUserCouponDomainService,
         {
           provide: "CouponRepositoryInterface",
@@ -48,7 +48,7 @@ describe("UserCouponUseCase", () => {
       ],
     }).compile();
 
-    useCase = module.get<UserCouponUseCase>(UserCouponUseCase);
+    useCase = module.get<UseUserCouponUseCase>(UseUserCouponUseCase);
   });
 
   describe("쿠폰 사용 성공 케이스", () => {

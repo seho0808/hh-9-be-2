@@ -3,7 +3,7 @@ import { DataSource, EntityManager } from "typeorm";
 import { GetAllCouponsUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-all-coupons.use-case";
 import { GetAllUserCouponsUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-all-user-couponse.use-case";
 import { IssueUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/issue-user-coupon.use-case";
-import { UserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/use-user-coupon.use-case";
+import { UseUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/use-user-coupon.use-case";
 import { ValidateCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/validate-user-coupon.use-case";
 import { CancelUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/cancel-user-coupon.use-case";
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
@@ -20,7 +20,7 @@ export class CouponApplicationService {
     private readonly getAllUserCouponsUseCase: GetAllUserCouponsUseCase,
     private readonly getCouponByIdUseCase: GetCouponByIdUseCase,
     private readonly issueUserCouponUseCase: IssueUserCouponUseCase,
-    private readonly useUserCouponUseCase: UserCouponUseCase,
+    private readonly useUserCouponUseCase: UseUserCouponUseCase,
     private readonly validateCouponUseCase: ValidateCouponUseCase,
     private readonly cancelUserCouponUseCase: CancelUserCouponUseCase,
     private readonly recoverUserCouponUseCase: RecoverUserCouponUseCase

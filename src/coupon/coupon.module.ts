@@ -5,7 +5,7 @@ import { TransactionService } from "../common/services/transaction.service";
 import { UserCouponController } from "./infrastructure/http/user-coupon.controller";
 import { CouponApplicationService } from "./application/services/coupon.service";
 import { GetAllCouponsUseCase } from "./application/use-cases/tier-1-in-domain/get-all-coupons.use-case";
-import { UserCouponUseCase } from "./application/use-cases/tier-1-in-domain/use-user-coupon.use-case";
+import { UseUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/use-user-coupon.use-case";
 import { GetAllUserCouponsUseCase } from "./application/use-cases/tier-1-in-domain/get-all-user-couponse.use-case";
 import { GetCouponByIdUseCase } from "./application/use-cases/tier-1-in-domain/get-coupon-by-id.use-case";
 import { IssueUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/issue-user-coupon.use-case";
@@ -35,7 +35,7 @@ import { IssueUserCouponDomainService } from "./domain/services/issue-user-coupo
     GetAllUserCouponsUseCase,
     GetCouponByIdUseCase,
     IssueUserCouponUseCase,
-    UserCouponUseCase,
+    UseUserCouponUseCase,
     ValidateCouponUseCase,
     CancelUserCouponUseCase,
     RecoverUserCouponUseCase,
