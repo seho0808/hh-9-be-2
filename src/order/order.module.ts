@@ -43,7 +43,11 @@ import { GetOrderByUserIdUseCase } from "./application/use-cases/tier-1-in-domai
 import { FindStalePendingOrdersUseCase } from "./application/use-cases/tier-1-in-domain/find-stale-pending-orders.use-case";
 import { FindFailedOrdersUseCase } from "./application/use-cases/tier-1-in-domain/find-failed-orders.use-case";
 import { GetPopularProductsUseCase } from "./application/use-cases/tier-1-in-domain/get-popular-products.use-case";
-import { OrderStatApplicationService } from "./application/order-stat.service";
+import { PlaceOrderUseCase } from "./application/use-cases/tier-3/place-order.user-case";
+import { RecoverOrderUseCase } from "./application/use-cases/tier-2/recover-order.use-case";
+import { PrepareOrderUseCase } from "./application/use-cases/tier-2/prepare-order.use-case";
+import { ProcessOrderUseCase } from "./application/use-cases/tier-2/process-order.use-case";
+import { GetProductsPriceUseCase } from "@/product/application/use-cases/tier-1-in-domain/get-products-price.use-case";
 
 @Module({
   imports: [
@@ -66,7 +70,6 @@ import { OrderStatApplicationService } from "./application/order-stat.service";
   providers: [
     TransactionService,
     OrderApplicationService,
-    OrderStatApplicationService,
     OrderRecoveryService,
     CreateOrderUseCase,
     ApplyDiscountUseCase,
@@ -76,6 +79,11 @@ import { OrderStatApplicationService } from "./application/order-stat.service";
     FindStalePendingOrdersUseCase,
     FindFailedOrdersUseCase,
     GetPopularProductsUseCase,
+    PlaceOrderUseCase,
+    PrepareOrderUseCase,
+    ProcessOrderUseCase,
+    RecoverOrderUseCase,
+    GetProductsPriceUseCase,
     {
       provide: "OrderRepositoryInterface",
       useClass: OrderRepository,
@@ -109,6 +117,6 @@ import { OrderStatApplicationService } from "./application/order-stat.service";
       useClass: PointTransactionRepository,
     },
   ],
-  exports: [OrderApplicationService, OrderStatApplicationService],
+  exports: [OrderApplicationService],
 })
 export class OrderModule {}
