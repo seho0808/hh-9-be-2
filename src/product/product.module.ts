@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ProductController } from "./presentation/http/product.controller";
 import { ProductRepository } from "./infrastructure/persistence/product.repository";
@@ -13,7 +13,6 @@ import { GetStockReservationsByKeyUseCase } from "./application/use-cases/tier-1
 import { AuthModule } from "../auth/auth.module";
 import { StockReservationTypeOrmEntity } from "./infrastructure/persistence/orm/stock-reservations.typeorm.entity";
 import { StockReservationRepository } from "./infrastructure/persistence/stock-reservations.repository";
-import { forwardRef } from "@nestjs/common";
 import { OrderModule } from "../order/order.module";
 import { GetPopularProductsWithDetailUseCase } from "./application/use-cases/tier-2/get-popular-products-with-detail.use-case";
 import { ReserveStocksUseCase } from "./application/use-cases/tier-2/reserve-stocks.use-case";

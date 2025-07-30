@@ -19,7 +19,6 @@ import {
   CurrentUser,
   CurrentUserData,
 } from "@/common/decorators/current-user.decorator";
-import { User } from "@/user/domain/entities/user.entity";
 import { UserExceptionFilter } from "./filters/user-exception.filter";
 import { GetUserByIdUseCase } from "@/user/application/use-cases/tier-1-in-domain/get-user-by-id.use-case";
 
