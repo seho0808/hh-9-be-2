@@ -27,13 +27,6 @@ import { StockReservationTypeOrmEntity } from "../product/infrastructure/persist
 import { UserBalanceTypeOrmEntity } from "../wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
 import { PointTransactionTypeOrmEntity } from "../wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
 
-// Application
-import { OrderApplicationService } from "./application/order.service";
-import { OrderRecoveryService } from "./application/order-recovery.service";
-
-// Common services
-import { TransactionService } from "../common/services/transaction.service";
-
 // Domain Use Cases
 import { CreateOrderUseCase } from "./application/use-cases/tier-1-in-domain/create-order.use-case";
 import { ApplyDiscountUseCase } from "./application/use-cases/tier-1-in-domain/apply-discount.use-case";
@@ -68,9 +61,6 @@ import { GetProductsPriceUseCase } from "@/product/application/use-cases/tier-1-
   ],
   controllers: [OrderController, UserOrderController],
   providers: [
-    TransactionService,
-    OrderApplicationService,
-    OrderRecoveryService,
     CreateOrderUseCase,
     ApplyDiscountUseCase,
     ChangeOrderStatusUseCase,
@@ -117,6 +107,6 @@ import { GetProductsPriceUseCase } from "@/product/application/use-cases/tier-1-
       useClass: PointTransactionRepository,
     },
   ],
-  exports: [OrderApplicationService],
+  exports: [],
 })
 export class OrderModule {}

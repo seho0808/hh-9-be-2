@@ -1,8 +1,6 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ProductController } from "./infrastructure/http/product.controller";
-import { TransactionService } from "../common/services/transaction.service";
-import { ProductApplicationService } from "./application/services/product.service";
 import { ProductRepository } from "./infrastructure/persistence/product.repository";
 import { ProductTypeOrmEntity } from "./infrastructure/persistence/orm/product.typeorm.entity";
 import { GetProductByIdUseCase } from "./application/use-cases/tier-1-in-domain/get-product-by-id.use-case";
@@ -33,8 +31,6 @@ import { GetPopularProductsWithDetailUseCase } from "./application/use-cases/tie
   ],
   controllers: [ProductController],
   providers: [
-    TransactionService,
-    ProductApplicationService,
     GetProductByIdUseCase,
     GetProductsByIdsUseCase,
     GetAllProductsUseCase,
@@ -55,12 +51,6 @@ import { GetPopularProductsWithDetailUseCase } from "./application/use-cases/tie
       useClass: StockReservationRepository,
     },
   ],
-  exports: [
-    ProductApplicationService,
-    {
-      provide: "StockReservationRepositoryInterface",
-      useClass: StockReservationRepository,
-    },
-  ],
+  exports: [],
 })
 export class ProductModule {}
