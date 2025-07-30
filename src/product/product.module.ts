@@ -5,13 +5,13 @@ import { TransactionService } from "../common/services/transaction.service";
 import { ProductApplicationService } from "./application/services/product.service";
 import { ProductRepository } from "./infrastructure/persistence/product.repository";
 import { ProductTypeOrmEntity } from "./infrastructure/persistence/orm/product.typeorm.entity";
-import { GetProductByIdUseCase } from "./application/use-cases/get-product-by-id.use-case";
-import { GetProductByIdsUseCase } from "./application/use-cases/get-product-by-ids.use-case";
-import { GetAllProductsUseCase } from "./application/use-cases/get-all-products.use-case";
-import { ReserveStockUseCase } from "./application/use-cases/reserve-stock.use-case";
-import { ReleaseStockUseCase } from "./application/use-cases/release-stock.use-case";
-import { ConfirmStockUseCase } from "./application/use-cases/confirm-stock.use-case";
-import { GetStockReservationsByKeyUseCase } from "./application/use-cases/get-stock-reservations-by-key.use-case";
+import { GetProductByIdUseCase } from "./application/use-cases/tier-1-in-domain/get-product-by-id.use-case";
+import { GetProductsByIdsUseCase } from "./application/use-cases/tier-1-in-domain/get-products-by-ids.use-case";
+import { GetAllProductsUseCase } from "./application/use-cases/tier-1-in-domain/get-all-products.use-case";
+import { ReserveStockUseCase } from "./application/use-cases/tier-1-in-domain/reserve-stock.use-case";
+import { ReleaseStockUseCase } from "./application/use-cases/tier-1-in-domain/release-stock.use-case";
+import { ConfirmStockUseCase } from "./application/use-cases/tier-1-in-domain/confirm-stock.use-case";
+import { GetStockReservationsByKeyUseCase } from "./application/use-cases/tier-1-in-domain/get-stock-reservations-by-key.use-case";
 import { AuthModule } from "../auth/auth.module";
 import { StockReservationTypeOrmEntity } from "./infrastructure/persistence/orm/stock-reservations.typeorm.entity";
 import { StockReservationRepository } from "./infrastructure/persistence/stock-reservations.repository";
@@ -20,6 +20,7 @@ import { OrderModule } from "../order/order.module";
 import { ReserveStockDomainService } from "./domain/services/reserve-stock.service";
 import { ReleaseStockDomainService } from "./domain/services/release-stock.service";
 import { ConfirmStockDomainService } from "./domain/services/confirm-stock.service";
+import { GetPopularProductsWithDetailUseCase } from "./application/use-cases/tier-2/get-popular-products.use-case";
 
 @Module({
   imports: [
@@ -35,12 +36,13 @@ import { ConfirmStockDomainService } from "./domain/services/confirm-stock.servi
     TransactionService,
     ProductApplicationService,
     GetProductByIdUseCase,
-    GetProductByIdsUseCase,
+    GetProductsByIdsUseCase,
     GetAllProductsUseCase,
     ReserveStockUseCase,
     ReleaseStockUseCase,
     ConfirmStockUseCase,
     GetStockReservationsByKeyUseCase,
+    GetPopularProductsWithDetailUseCase,
     ReserveStockDomainService,
     ReleaseStockDomainService,
     ConfirmStockDomainService,

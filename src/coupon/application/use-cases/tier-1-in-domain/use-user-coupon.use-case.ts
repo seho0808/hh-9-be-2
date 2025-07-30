@@ -22,7 +22,7 @@ export interface UseUserCouponResult {
 }
 
 @Injectable()
-export class UserCouponUseCase {
+export class UseUserCouponUseCase {
   constructor(
     @Inject("CouponRepositoryInterface")
     private readonly couponRepository: CouponRepositoryInterface,

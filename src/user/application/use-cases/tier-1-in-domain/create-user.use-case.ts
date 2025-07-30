@@ -21,11 +21,7 @@ export class CreateUserUseCase {
   async execute(command: CreateUserCommand): Promise<User> {
     const { email, hashedPassword, name } = command;
 
-    if (!User.isValidEmail(email)) {
-      throw new InvalidEmailFormatError(email);
-    }
-
-    const isEmailDuplicate = await this.isEmailDuplicate(email);
+    const isEmailDuplicate = async () => await this.isEmailDuplicate(email);
     const user = await this.createUserDomainService.createUser({
       email,
       hashedPassword,

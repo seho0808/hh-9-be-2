@@ -3,7 +3,7 @@ import { ProductRepositoryInterface } from "@/product/domain/interfaces/product.
 import { Product } from "@/product/domain/entities/product.entity";
 
 @Injectable()
-export class GetProductByIdsUseCase {
+export class GetProductsByIdsUseCase {
   constructor(
     @Inject("ProductRepositoryInterface")
     private readonly productRepository: ProductRepositoryInterface

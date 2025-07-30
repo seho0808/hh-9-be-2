@@ -3,27 +3,27 @@ import { EntityManager } from "typeorm";
 import {
   ChargePointsUseCase,
   ChargePointsUseCaseResult,
-} from "@/wallet/application/use-cases/charge-points.use-case";
+} from "@/wallet/application/use-cases/tier-1-in-domain/charge-points.use-case";
 import {
   GetUserPointsUseCase,
   GetUserPointsUseCaseResult,
-} from "@/wallet/application/use-cases/get-user-points.use-case";
+} from "@/wallet/application/use-cases/tier-1-in-domain/get-user-points.use-case";
 import {
   RecoverPointsUseCase,
   RecoverPointsUseCaseResult,
-} from "@/wallet/application/use-cases/recover-points.use-case";
+} from "@/wallet/application/use-cases/tier-1-in-domain/recover-points.use-case";
 import {
   UsePointsUseCase,
   UsePointsUseCaseResult,
-} from "@/wallet/application/use-cases/use-points.use-case";
+} from "@/wallet/application/use-cases/tier-1-in-domain/use-points.use-case";
 import {
   CreateUserBalanceUseCase,
   CreateUserBalanceUseCaseResult,
-} from "@/wallet/application/use-cases/create-user-balance.use-case";
+} from "@/wallet/application/use-cases/tier-1-in-domain/create-user-balance.use-case";
 import {
   ValidateUsePointsUseCase,
   ValidateUsePointsUseCaseResult,
-} from "@/wallet/application/use-cases/validate-use-points.use-case";
+} from "@/wallet/application/use-cases/tier-1-in-domain/validate-use-points.use-case";
 import { TransactionService } from "@/common/services/transaction.service";
 
 @Injectable()
