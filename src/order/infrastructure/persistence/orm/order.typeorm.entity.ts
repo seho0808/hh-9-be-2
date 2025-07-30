@@ -74,6 +74,5 @@ export class OrderTypeOrmEntity {
   user: UserTypeOrmEntity;
 
   @OneToOne(() => UserCouponTypeOrmEntity, { onDelete: "SET NULL" })
-  @JoinColumn({ name: "applied_coupon_id" })
   appliedCoupon?: UserCouponTypeOrmEntity;
 }
