@@ -13,7 +13,6 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from "@nestjs/swagger";
-import { ProductApplicationService } from "@/product/application/services/product.service";
 import {
   ProductResponseDto,
   ProductQueryDto,
@@ -24,8 +23,10 @@ import {
   PaginatedResponseDto,
 } from "@/common/dto/response.dto";
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
-import { Product } from "@/product/domain/entities/product.entity";
 import { ProductExceptionFilter } from "./filters/product-exception.filter";
+import { GetAllProductsUseCase } from "@/product/application/use-cases/tier-1-in-domain/get-all-products.use-case";
+import { GetProductByIdUseCase } from "@/product/application/use-cases/tier-1-in-domain/get-product-by-id.use-case";
+import { GetPopularProductsWithDetailUseCase } from "@/product/application/use-cases/tier-2/get-popular-products-with-detail.use-case";
 
 @ApiTags("상품")
 @Controller("products")
@@ -34,7 +35,9 @@ import { ProductExceptionFilter } from "./filters/product-exception.filter";
 @UseFilters(ProductExceptionFilter)
 export class ProductController {
   constructor(
-    private readonly productApplicationService: ProductApplicationService
+    private readonly getAllProductsUseCase: GetAllProductsUseCase,
+    private readonly getPopularProductsWithDetailUseCase: GetPopularProductsWithDetailUseCase,
+    private readonly getProductByIdUseCase: GetProductByIdUseCase
   ) {}
 
   @Get()
@@ -47,7 +50,7 @@ export class ProductController {
   async getAllProducts(
     @Query() query: ProductQueryDto
   ): Promise<ApiResponseDto<PaginatedResponseDto<ProductResponseDto>>> {
-    const result = await this.productApplicationService.getAllProducts({
+    const result = await this.getAllProductsUseCase.execute({
       page: query.page,
       limit: query.limit,
       search: query.search,
@@ -79,10 +82,12 @@ export class ProductController {
     type: [PopularProductDto],
   })
   async getPopularProducts(): Promise<ApiResponseDto<PopularProductDto[]>> {
-    const popularProducts =
-      await this.productApplicationService.getPopularProducts();
+    const { popularProductsStats } =
+      await this.getPopularProductsWithDetailUseCase.execute({
+        limit: 10,
+      });
 
-    const result = popularProducts.map((item) =>
+    const result = popularProductsStats.map((item) =>
       PopularProductDto.fromEntity(
         item.product,
         item.statistics.totalQuantity,
@@ -115,8 +120,7 @@ export class ProductController {
   async getProductById(
     @Param("productId") productId: string
   ): Promise<ApiResponseDto<ProductResponseDto>> {
-    const product =
-      await this.productApplicationService.getProductById(productId);
+    const product = await this.getProductByIdUseCase.execute(productId);
     const result = ProductResponseDto.fromEntity(product);
 
     return ApiResponseDto.success(result, "상품을 성공적으로 조회했습니다");

@@ -25,9 +25,11 @@ import {
   CurrentUser,
   CurrentUserData,
 } from "@/common/decorators/current-user.decorator";
-import { CouponApplicationService } from "@/coupon/application/services/coupon.service";
 import { CouponExceptionFilter } from "./filters/coupon-exception.filter";
 import { v4 as uuidv4 } from "uuid";
+import { GetAllCouponsUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-all-coupons.use-case";
+import { IssueUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/issue-user-coupon.use-case";
+import { GetCouponByIdUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-coupon-by-id.use-case";
 
 @ApiTags("쿠폰")
 @Controller("coupons")
@@ -35,7 +37,11 @@ import { v4 as uuidv4 } from "uuid";
 @ApiBearerAuth("access-token")
 @UseFilters(CouponExceptionFilter)
 export class CouponController {
-  constructor(private readonly couponService: CouponApplicationService) {}
+  constructor(
+    private readonly getAllCouponsUseCase: GetAllCouponsUseCase,
+    private readonly getCouponByIdUseCase: GetCouponByIdUseCase,
+    private readonly issueUserCouponUseCase: IssueUserCouponUseCase
+  ) {}
 
   @Get()
   @ApiOperation({ summary: "전체 쿠폰 목록" })
@@ -45,9 +51,9 @@ export class CouponController {
     type: [CouponResponseDto],
   })
   async getAllCoupons(): Promise<ApiResponseDto<CouponResponseDto[]>> {
-    const result = await this.couponService.getAllCoupons();
+    const result = await this.getAllCouponsUseCase.execute();
     return ApiResponseDto.success(
-      result.map(CouponResponseDto.fromEntity),
+      result.coupons.map(CouponResponseDto.fromEntity),
       "쿠폰 목록을 조회했습니다"
     );
   }
@@ -71,9 +77,9 @@ export class CouponController {
   async getCouponById(
     @Param("couponId") couponId: string
   ): Promise<ApiResponseDto<CouponResponseDto>> {
-    const result = await this.couponService.getCouponById(couponId);
+    const result = await this.getCouponByIdUseCase.execute({ couponId });
     return ApiResponseDto.success(
-      CouponResponseDto.fromEntity(result),
+      CouponResponseDto.fromEntity(result.coupon),
       "쿠폰 정보를 조회했습니다"
     );
   }
@@ -104,14 +110,14 @@ export class CouponController {
     @Body() claimDto: ClaimCouponDto
   ): Promise<ApiResponseDto<UserCouponResponseDto>> {
     const idempotencyKey = claimDto.idempotencyKey || uuidv4();
-    const result = await this.couponService.issueUserCoupon({
+    const result = await this.issueUserCouponUseCase.execute({
       couponId,
       userId: user.id,
       couponCode: claimDto.couponCode,
       idempotencyKey,
     });
     return ApiResponseDto.success(
-      UserCouponResponseDto.fromEntity(result),
+      UserCouponResponseDto.fromEntity(result.userCoupon),
       "쿠폰이 성공적으로 발급되었습니다"
     );
   }
