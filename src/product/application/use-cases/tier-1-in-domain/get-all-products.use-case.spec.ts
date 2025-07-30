@@ -2,6 +2,10 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { GetAllProductsUseCase } from "./get-all-products.use-case";
 import { ProductRepositoryInterface } from "@/product/domain/interfaces/product.repository.interface";
 
+jest.mock("typeorm-transactional", () => ({
+  Transactional: () => () => ({}),
+}));
+
 describe("GetAllProductsUseCase", () => {
   let useCase: GetAllProductsUseCase;
   let productRepository: jest.Mocked<ProductRepositoryInterface>;

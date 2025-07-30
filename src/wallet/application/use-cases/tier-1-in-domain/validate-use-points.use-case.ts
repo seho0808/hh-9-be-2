@@ -1,7 +1,7 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { UserBalanceNotFoundError } from "@/wallet/domain/exceptions/point.exceptions";
 import { UserBalanceRepositoryInterface } from "@/wallet/domain/interfaces/user-balance.repository.interface";
-import { ValidateUsePointsDomainService } from "@/wallet/domain/services/validate-use-points.service";
+import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
 
 export interface ValidateUsePointsUseCaseCommand {
   userId: string;
@@ -17,7 +17,7 @@ export class ValidateUsePointsUseCase {
   constructor(
     @Inject("UserBalanceRepositoryInterface")
     private readonly userBalanceRepository: UserBalanceRepositoryInterface,
-    private readonly validateUsePointsDomainService: ValidateUsePointsDomainService
+    private readonly validatePointTransactionService: ValidatePointTransactionService
   ) {}
 
   async execute(
@@ -31,13 +31,11 @@ export class ValidateUsePointsUseCase {
       throw new UserBalanceNotFoundError(userId);
     }
 
-    const isValid = await this.validateUsePointsDomainService.validateUsePoints(
-      {
-        userId,
-        amount,
-        userBalance,
-      }
-    );
+    const isValid = this.validatePointTransactionService.validateUsePoints({
+      amount,
+      userBalance,
+      withThrow: false,
+    });
 
     return { isValid };
   }

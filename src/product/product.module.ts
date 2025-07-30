@@ -15,12 +15,10 @@ import { StockReservationTypeOrmEntity } from "./infrastructure/persistence/orm/
 import { StockReservationRepository } from "./infrastructure/persistence/stock-reservations.repository";
 import { forwardRef } from "@nestjs/common";
 import { OrderModule } from "../order/order.module";
-import { ReserveStockDomainService } from "./domain/services/reserve-stock.service";
-import { ReleaseStockDomainService } from "./domain/services/release-stock.service";
-import { ConfirmStockDomainService } from "./domain/services/confirm-stock.service";
 import { GetPopularProductsWithDetailUseCase } from "./application/use-cases/tier-2/get-popular-products-with-detail.use-case";
 import { ReserveStocksUseCase } from "./application/use-cases/tier-2/reserve-stocks.use-case";
 import { GetProductsPriceUseCase } from "./application/use-cases/tier-1-in-domain/get-products-price.use-case";
+import { ValidateStockService } from "./domain/services/validate-stock.service";
 
 @Module({
   imports: [
@@ -43,9 +41,7 @@ import { GetProductsPriceUseCase } from "./application/use-cases/tier-1-in-domai
     ConfirmStockUseCase,
     GetStockReservationsByKeyUseCase,
     GetPopularProductsWithDetailUseCase,
-    ReserveStockDomainService,
-    ReleaseStockDomainService,
-    ConfirmStockDomainService,
+    ValidateStockService,
     {
       provide: "ProductRepositoryInterface",
       useClass: ProductRepository,

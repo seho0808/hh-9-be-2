@@ -11,8 +11,10 @@ import {
   UserCouponStatus,
 } from "@/coupon/domain/entities/user-coupon.entity";
 import { v4 as uuidv4 } from "uuid";
-import { CancelUserCouponDomainService } from "@/coupon/domain/services/cancel-user-coupon.service";
 
+jest.mock("typeorm-transactional", () => ({
+  Transactional: () => () => ({}),
+}));
 describe("CancelUserCouponUseCase", () => {
   let useCase: CancelUserCouponUseCase;
   let userCouponRepository: any;
@@ -32,7 +34,6 @@ describe("CancelUserCouponUseCase", () => {
     const module = await Test.createTestingModule({
       providers: [
         CancelUserCouponUseCase,
-        CancelUserCouponDomainService,
         {
           provide: "UserCouponRepositoryInterface",
           useValue: userCouponRepository,

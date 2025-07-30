@@ -1,24 +1,19 @@
 import { PointTransaction } from "../entities/point-transaction.entity";
 import { UserBalance } from "../entities/user-balance.entity";
 import {
+  InsufficientPointBalanceError,
   PointTransactionAlreadyRecoveredError,
   PointTransactionNotFoundError,
 } from "../exceptions/point.exceptions";
 
-export class RecoverPointsDomainService {
-  async recoverPoints({
-    userId,
-    amount,
+export class ValidatePointTransactionService {
+  validatePointRecovery({
     idempotencyKey,
     existingPointTransaction,
-    userBalance,
   }: {
-    userId: string;
-    amount: number;
     idempotencyKey: string;
     existingPointTransaction: PointTransaction[];
-    userBalance: UserBalance;
-  }): Promise<PointTransaction> {
+  }): void {
     const correctTransactionExists = existingPointTransaction.some(
       (pt) => pt.type === "USE" && pt.idempotencyKey === idempotencyKey
     );
@@ -33,15 +28,29 @@ export class RecoverPointsDomainService {
     if (isAlreadyRecovered) {
       throw new PointTransactionAlreadyRecoveredError(idempotencyKey);
     }
+  }
 
-    userBalance.addBalance(amount);
-    const pointTransaction = PointTransaction.create({
-      userId,
-      amount,
-      type: "RECOVER",
-      idempotencyKey,
-    });
+  validateUsePoints({
+    amount,
+    userBalance,
+    withThrow = true,
+  }: {
+    amount: number;
+    userBalance: UserBalance;
+    withThrow?: boolean;
+  }): boolean {
+    if (userBalance.balance < amount) {
+      if (withThrow) {
+        throw new InsufficientPointBalanceError(
+          userBalance.userId,
+          userBalance.balance,
+          amount
+        );
+      }
 
-    return pointTransaction;
+      return false;
+    }
+
+    return true;
   }
 }

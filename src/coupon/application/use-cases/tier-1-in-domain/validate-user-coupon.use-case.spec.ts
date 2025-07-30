@@ -7,7 +7,7 @@ import {
 } from "@/coupon/domain/entities/coupon.entity";
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 import { v4 as uuidv4 } from "uuid";
-import { ValidateUserCouponDomainService } from "@/coupon/domain/services/validate-user-coupon.service";
+import { ValidateUserCouponService } from "@/coupon/domain/services/validate-user-coupon.service";
 
 describe("ValidateCouponUseCase", () => {
   let useCase: ValidateCouponUseCase;
@@ -26,7 +26,7 @@ describe("ValidateCouponUseCase", () => {
     const module = await Test.createTestingModule({
       providers: [
         ValidateCouponUseCase,
-        ValidateUserCouponDomainService,
+        ValidateUserCouponService,
         {
           provide: "CouponRepositoryInterface",
           useValue: couponRepository,

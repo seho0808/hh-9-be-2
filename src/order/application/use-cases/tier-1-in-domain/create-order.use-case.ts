@@ -1,9 +1,9 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { Order } from "@/order/domain/entities/order.entitiy";
+import { Order, OrderStatus } from "@/order/domain/entities/order.entitiy";
 import { OrderRepositoryInterface } from "@/order/domain/interfaces/order.repository.interface";
 import { OrderItemRepositoryInterface } from "@/order/domain/interfaces/order-item.repository.interface";
-import { CreateOrderDomainService } from "@/order/domain/services/create-order.service";
 import { Transactional } from "typeorm-transactional";
+import { OrderItem } from "@/order/domain/entities/order-item.entity";
 
 export interface CreateOrderUseCaseCommand {
   userId: string;
@@ -25,8 +25,7 @@ export class CreateOrderUseCase {
     @Inject("OrderRepositoryInterface")
     private readonly orderRepository: OrderRepositoryInterface,
     @Inject("OrderItemRepositoryInterface")
-    private readonly orderItemRepository: OrderItemRepositoryInterface,
-    private readonly createOrderDomainService: CreateOrderDomainService
+    private readonly orderItemRepository: OrderItemRepositoryInterface
   ) {}
 
   @Transactional()
@@ -35,11 +34,23 @@ export class CreateOrderUseCase {
   ): Promise<CreateOrderUseCaseResult> {
     const { userId, idempotencyKey, items } = command;
 
-    const order = await this.createOrderDomainService.createOrder({
+    const order = Order.create({
       userId,
+      totalPrice: 0,
+      discountPrice: 0,
+      finalPrice: 0,
+      status: OrderStatus.PENDING,
       idempotencyKey,
-      items,
     });
+
+    const orderItems = items.map((item) =>
+      OrderItem.create({
+        ...item,
+        orderId: order.id,
+      })
+    );
+
+    order.initOrderItems(orderItems);
 
     await this.orderRepository.save(order);
     await Promise.all(

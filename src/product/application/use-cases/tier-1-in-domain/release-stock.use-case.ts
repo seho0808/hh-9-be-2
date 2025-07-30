@@ -4,11 +4,10 @@ import { Product } from "@/product/domain/entities/product.entity";
 import { StockReservationRepositoryInterface } from "@/product/domain/interfaces/stock-reservation.repository.interface";
 import {
   ProductNotFoundError,
-  StockReservationNotActiveError,
   StockReservationNotFoundError,
 } from "@/product/domain/exceptions/product.exceptions";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
-import { ReleaseStockDomainService } from "@/product/domain/services/release-stock.service";
+import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
 import { Transactional } from "typeorm-transactional";
 
 export interface ReleaseStockCommand {
@@ -23,7 +22,7 @@ export class ReleaseStockUseCase {
     private readonly productRepository: ProductRepositoryInterface,
     @Inject("StockReservationRepositoryInterface")
     private readonly stockReservationRepository: StockReservationRepositoryInterface,
-    private readonly releaseStockDomainService: ReleaseStockDomainService
+    private readonly validateStockService: ValidateStockService
   ) {}
 
   @Transactional()
@@ -48,11 +47,12 @@ export class ReleaseStockUseCase {
       throw new ProductNotFoundError(stockReservation.productId);
     }
 
-    await this.releaseStockDomainService.releaseStock({
+    this.validateStockService.validateReleaseStock({
       stockReservation,
-      product,
-      idempotencyKey,
     });
+
+    product.releaseStock(stockReservation.quantity);
+    stockReservation.releaseStock(idempotencyKey);
 
     await this.stockReservationRepository.save(stockReservation);
     await this.productRepository.save(product);

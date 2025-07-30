@@ -1,7 +1,6 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
 import { UserBalanceRepositoryInterface } from "@/wallet/domain/interfaces/user-balance.repository.interface";
-import { GetUserBalanceDomainService } from "@/wallet/domain/services/get-user-balance.service";
 
 export interface GetUserPointsUseCaseCommand {
   userId: string;
@@ -15,8 +14,7 @@ export interface GetUserPointsUseCaseResult {
 export class GetUserPointsUseCase {
   constructor(
     @Inject("UserBalanceRepositoryInterface")
-    private readonly userBalanceRepository: UserBalanceRepositoryInterface,
-    private readonly getUserBalanceDomainService: GetUserBalanceDomainService
+    private readonly userBalanceRepository: UserBalanceRepositoryInterface
   ) {}
 
   async execute(
@@ -25,12 +23,15 @@ export class GetUserPointsUseCase {
     const { userId } = command;
 
     const userBalance = await this.userBalanceRepository.findByUserId(userId);
-    const ensuredUserBalance =
-      await this.getUserBalanceDomainService.getUserBalance({
-        userId,
-        userBalance,
-      });
 
-    return { userBalance: ensuredUserBalance };
+    if (!userBalance) {
+      const newUserBalance = UserBalance.create({
+        userId,
+        balance: 0,
+      });
+      return { userBalance: newUserBalance };
+    }
+
+    return { userBalance };
   }
 }

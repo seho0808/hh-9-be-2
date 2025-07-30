@@ -4,7 +4,7 @@ import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
 import { UserBalanceNotFoundError } from "@/wallet/domain/exceptions/point.exceptions";
 import { PointTransactionRepositoryInterface } from "@/wallet/domain/interfaces/point-transaction.repository.interface";
 import { UserBalanceRepositoryInterface } from "@/wallet/domain/interfaces/user-balance.repository.interface";
-import { RecoverPointsDomainService } from "@/wallet/domain/services/recover-points.service";
+import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
 
 export interface RecoverPointsUseCaseCommand {
   userId: string;
@@ -24,7 +24,7 @@ export class RecoverPointsUseCase {
     private readonly userBalanceRepository: UserBalanceRepositoryInterface,
     @Inject("PointTransactionRepositoryInterface")
     private readonly pointTransactionRepository: PointTransactionRepositoryInterface,
-    private readonly recoverPointsDomainService: RecoverPointsDomainService
+    private readonly validatePointTransactionService: ValidatePointTransactionService
   ) {}
 
   async execute(
@@ -44,14 +44,18 @@ export class RecoverPointsUseCase {
         idempotencyKey
       );
 
-    const pointTransaction =
-      await this.recoverPointsDomainService.recoverPoints({
-        userId,
-        amount,
-        idempotencyKey,
-        existingPointTransaction,
-        userBalance,
-      });
+    this.validatePointTransactionService.validatePointRecovery({
+      idempotencyKey,
+      existingPointTransaction,
+    });
+
+    userBalance.addBalance(amount);
+    const pointTransaction = PointTransaction.create({
+      userId,
+      amount,
+      type: "RECOVER",
+      idempotencyKey,
+    });
 
     await Promise.all([
       this.userBalanceRepository.save(userBalance),

@@ -8,7 +8,11 @@ import {
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
-import { ConfirmStockDomainService } from "@/product/domain/services/confirm-stock.service";
+import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
+
+jest.mock("typeorm-transactional", () => ({
+  Transactional: () => () => ({}),
+}));
 
 describe("ConfirmStockUseCase", () => {
   let useCase: ConfirmStockUseCase;
@@ -29,7 +33,7 @@ describe("ConfirmStockUseCase", () => {
     const module = await Test.createTestingModule({
       providers: [
         ConfirmStockUseCase,
-        ConfirmStockDomainService,
+        ValidateStockService,
         {
           provide: "ProductRepositoryInterface",
           useValue: productRepository,

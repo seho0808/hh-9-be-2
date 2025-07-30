@@ -7,7 +7,7 @@ import {
 } from "@/wallet/domain/exceptions/point.exceptions";
 import { PointTransactionRepositoryInterface } from "@/wallet/domain/interfaces/point-transaction.repository.interface";
 import { UserBalanceRepositoryInterface } from "@/wallet/domain/interfaces/user-balance.repository.interface";
-import { UsePointsDomainService } from "@/wallet/domain/services/use-points.service";
+import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
 
 export interface UsePointsUseCaseCommand {
   userId: string;
@@ -27,7 +27,7 @@ export class UsePointsUseCase {
     private readonly userBalanceRepository: UserBalanceRepositoryInterface,
     @Inject("PointTransactionRepositoryInterface")
     private readonly pointTransactionRepository: PointTransactionRepositoryInterface,
-    private readonly usePointsDomainService: UsePointsDomainService
+    private readonly validatePointTransactionService: ValidatePointTransactionService
   ) {}
 
   async execute(
@@ -41,11 +41,17 @@ export class UsePointsUseCase {
       throw new UserBalanceNotFoundError(userId);
     }
 
-    const pointTransaction = await this.usePointsDomainService.usePoints({
+    this.validatePointTransactionService.validateUsePoints({
+      amount,
+      userBalance,
+    });
+
+    userBalance.subtractBalance(amount);
+    const pointTransaction = PointTransaction.create({
       userId,
       amount,
+      type: "USE",
       idempotencyKey,
-      userBalance,
     });
 
     await Promise.all([

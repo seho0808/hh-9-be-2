@@ -1,16 +1,11 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { ProductRepositoryInterface } from "@/product/domain/interfaces/product.repository.interface";
 import { Product } from "@/product/domain/entities/product.entity";
-import {
-  ProductNotFoundError,
-  InactiveProductError,
-  InsufficientStockError,
-  InvalidQuantityError,
-} from "@/product/domain/exceptions/product.exceptions";
+import { ProductNotFoundError } from "@/product/domain/exceptions/product.exceptions";
 import { StockReservationRepositoryInterface } from "@/product/domain/interfaces/stock-reservation.repository.interface";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
-import { ReserveStockDomainService } from "@/product/domain/services/reserve-stock.service";
 import { Transactional } from "typeorm-transactional";
+import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
 
 export interface ReserveStockCommand {
   productId: string;
@@ -26,7 +21,7 @@ export class ReserveStockUseCase {
     private readonly productRepository: ProductRepositoryInterface,
     @Inject("StockReservationRepositoryInterface")
     private readonly stockReservationRepository: StockReservationRepositoryInterface,
-    private readonly reserveStockDomainService: ReserveStockDomainService
+    private readonly validateStockService: ValidateStockService
   ) {}
 
   @Transactional()
@@ -41,11 +36,17 @@ export class ReserveStockUseCase {
       throw new ProductNotFoundError(productId);
     }
 
-    const stockReservation = await this.reserveStockDomainService.reserveStock({
+    this.validateStockService.validateReserveStock({
       product,
       quantity,
-      idempotencyKey,
+    });
+
+    product.reserveStock(quantity);
+    const stockReservation = StockReservation.create({
+      productId: product.id,
       userId,
+      quantity,
+      idempotencyKey,
     });
 
     await this.stockReservationRepository.save(stockReservation);

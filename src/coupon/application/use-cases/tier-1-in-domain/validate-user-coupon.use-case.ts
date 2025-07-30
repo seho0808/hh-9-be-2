@@ -2,7 +2,7 @@ import { Injectable, Inject } from "@nestjs/common";
 import { CouponRepositoryInterface } from "@/coupon/domain/interfaces/coupon.repository.interface";
 import { UserCouponRepositoryInterface } from "@/coupon/domain/interfaces/user-coupon.repository.interface";
 import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
-import { ValidateUserCouponDomainService } from "@/coupon/domain/services/validate-user-coupon.service";
+import { ValidateUserCouponService } from "@/coupon/domain/services/validate-user-coupon.service";
 
 export interface ValidateCouponCommand {
   couponId: string;
@@ -23,7 +23,7 @@ export class ValidateCouponUseCase {
     private readonly couponRepository: CouponRepositoryInterface,
     @Inject("UserCouponRepositoryInterface")
     private readonly userCouponRepository: UserCouponRepositoryInterface,
-    private readonly validateUserCouponDomainService: ValidateUserCouponDomainService
+    private readonly validateUserCouponService: ValidateUserCouponService
   ) {}
 
   async execute(command: ValidateCouponCommand): Promise<ValidateCouponResult> {
@@ -39,15 +39,24 @@ export class ValidateCouponUseCase {
       userId
     );
 
-    const { isValid, discountPrice, discountedPrice } =
-      await this.validateUserCouponDomainService.validateUserCoupon({
-        coupon,
-        userCoupon,
-        orderPrice,
-      });
+    const isValid = this.validateUserCouponService.validateUserCoupon({
+      coupon,
+      userCoupon,
+      orderPrice,
+    });
+
+    if (!isValid) {
+      return {
+        isValid: false,
+        discountPrice: 0,
+        discountedPrice: orderPrice,
+      };
+    }
+
+    const { discountPrice, discountedPrice } = coupon.use(orderPrice);
 
     return {
-      isValid,
+      isValid: true,
       discountPrice,
       discountedPrice,
     };

@@ -15,9 +15,12 @@ import {
   UserCouponStatus,
 } from "@/coupon/domain/entities/user-coupon.entity";
 import { v4 as uuidv4 } from "uuid";
-import { UseUserCouponDomainService } from "@/coupon/domain/services/use-user-coupon.service";
 
-describe("UserCouponUseCase", () => {
+jest.mock("typeorm-transactional", () => ({
+  Transactional: () => () => ({}),
+}));
+
+describe("UseUserCouponUseCase", () => {
   let useCase: UseUserCouponUseCase;
   let couponRepository: any;
   let userCouponRepository: any;
@@ -36,7 +39,6 @@ describe("UserCouponUseCase", () => {
     const module = await Test.createTestingModule({
       providers: [
         UseUserCouponUseCase,
-        UseUserCouponDomainService,
         {
           provide: "CouponRepositoryInterface",
           useValue: couponRepository,
