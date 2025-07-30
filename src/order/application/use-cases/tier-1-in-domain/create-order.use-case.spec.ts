@@ -4,6 +4,10 @@ import { OrderStatus } from "@/order/domain/entities/order.entitiy";
 import { v4 as uuidv4 } from "uuid";
 import { CreateOrderDomainService } from "@/order/domain/services/create-order.service";
 
+jest.mock("typeorm-transactional", () => ({
+  Transactional: () => () => ({}),
+}));
+
 describe("CreateOrderUseCase", () => {
   let useCase: CreateOrderUseCase;
   let orderRepository: any;

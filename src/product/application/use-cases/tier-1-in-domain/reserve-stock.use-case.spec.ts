@@ -11,6 +11,10 @@ import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
 import { ReserveStockDomainService } from "@/product/domain/services/reserve-stock.service";
 
+jest.mock("typeorm-transactional", () => ({
+  Transactional: () => () => ({}),
+}));
+
 describe("ReserveStockUseCase", () => {
   let useCase: ReserveStockUseCase;
   let productRepository: any;

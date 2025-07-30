@@ -9,6 +9,10 @@ import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
 import { ReleaseStockDomainService } from "@/product/domain/services/release-stock.service";
 
+jest.mock("typeorm-transactional", () => ({
+  Transactional: () => () => ({}),
+}));
+
 describe("ReleaseStockUseCase", () => {
   let useCase: ReleaseStockUseCase;
   let productRepository: any;

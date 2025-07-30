@@ -10,6 +10,10 @@ import { StockReservation } from "@/product/domain/entities/stock-reservation.en
 import { ConfirmStockDomainService } from "@/product/domain/services/confirm-stock.service";
 import { Transactional } from "typeorm-transactional";
 
+jest.mock("typeorm-transactional", () => ({
+  Transactional: () => () => ({}),
+}));
+
 export interface ConfirmStockCommand {
   stockReservationId: string;
   idempotencyKey: string;
