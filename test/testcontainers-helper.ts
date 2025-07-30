@@ -18,6 +18,7 @@ import {
   initializeTransactionalContext,
   addTransactionalDataSource,
 } from "typeorm-transactional";
+import * as bcrypt from "bcrypt";
 
 export interface TestContainerConfig {
   mysqlVersion?: string;
@@ -194,7 +195,6 @@ export class TestContainersHelper {
       name?: string;
     } = {}
   ): Promise<any> {
-    const bcrypt = require("bcrypt");
     const hashedPassword = bcrypt.hashSync("testPassword123", 10);
 
     const defaultUser = {

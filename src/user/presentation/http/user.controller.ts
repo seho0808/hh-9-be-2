@@ -12,14 +12,13 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from "@nestjs/swagger";
-import { UserResponseDto } from "@/user/infrastructure/http/dto/user.dto";
+import { UserResponseDto } from "@/user/presentation/http/dto/user.dto";
 import { ApiResponseDto } from "@/common/dto/response.dto";
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
 import {
   CurrentUser,
   CurrentUserData,
 } from "@/common/decorators/current-user.decorator";
-import { User } from "@/user/domain/entities/user.entity";
 import { UserExceptionFilter } from "./filters/user-exception.filter";
 import { GetUserByIdUseCase } from "@/user/application/use-cases/tier-1-in-domain/get-user-by-id.use-case";
 
