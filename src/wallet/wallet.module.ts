@@ -12,11 +12,7 @@ import { ValidateUsePointsUseCase } from "./application/use-cases/tier-1-in-doma
 import { UserBalanceTypeOrmEntity } from "./infrastructure/persistence/orm/user-balance.typeorm.entity";
 import { PointTransactionTypeOrmEntity } from "./infrastructure/persistence/orm/point-transaction.typeorm.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { UsePointsDomainService } from "./domain/services/use-points.service";
-import { RecoverPointsDomainService } from "./domain/services/recover-points.service";
-import { CreateUserBalanceDomainService } from "./domain/services/create-user-balance.service";
-import { GetUserBalanceDomainService } from "./domain/services/get-user-balance.service";
-import { ValidateUsePointsDomainService } from "./domain/services/validate-use-points.service";
+import { ValidatePointTransactionService } from "./domain/services/validate-point-transaction.service";
 
 @Module({
   imports: [
@@ -34,11 +30,7 @@ import { ValidateUsePointsDomainService } from "./domain/services/validate-use-p
     GetUserPointsUseCase,
     CreateUserBalanceUseCase,
     ValidateUsePointsUseCase,
-    UsePointsDomainService,
-    RecoverPointsDomainService,
-    CreateUserBalanceDomainService,
-    GetUserBalanceDomainService,
-    ValidateUsePointsDomainService,
+    ValidatePointTransactionService,
     {
       provide: "UserBalanceRepositoryInterface",
       useClass: UserBalanceRepository,

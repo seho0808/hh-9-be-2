@@ -7,13 +7,13 @@ import {
 import { UserBalanceRepositoryInterface } from "@/wallet/domain/interfaces/user-balance.repository.interface";
 import { PointTransactionRepositoryInterface } from "@/wallet/domain/interfaces/point-transaction.repository.interface";
 import { v4 as uuidv4 } from "uuid";
-import { UsePointsDomainService } from "@/wallet/domain/services/use-points.service";
+import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
 
 describe("UsePointsUseCase", () => {
   let useCase: UsePointsUseCase;
   let userBalanceRepository: jest.Mocked<UserBalanceRepositoryInterface>;
   let pointTransactionRepository: jest.Mocked<PointTransactionRepositoryInterface>;
-  let usePointsDomainService: UsePointsDomainService;
+  let validatePointTransactionService: ValidatePointTransactionService;
   const mockUserId = "test-user-id";
 
   beforeEach(() => {
@@ -28,12 +28,12 @@ describe("UsePointsUseCase", () => {
       save: jest.fn(),
     };
 
-    usePointsDomainService = new UsePointsDomainService();
+    validatePointTransactionService = new ValidatePointTransactionService();
 
     useCase = new UsePointsUseCase(
       userBalanceRepository,
       pointTransactionRepository,
-      usePointsDomainService
+      validatePointTransactionService
     );
   });
 
