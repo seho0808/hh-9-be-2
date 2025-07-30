@@ -48,6 +48,12 @@ import { ValidateUsePointsDomainService } from "./domain/services/validate-use-p
       useClass: PointTransactionRepository,
     },
   ],
-  exports: [],
+  exports: [
+    ChargePointsUseCase,
+    RecoverPointsUseCase,
+    UsePointsUseCase,
+    CreateUserBalanceUseCase,
+    ValidateUsePointsUseCase,
+  ],
 })
 export class WalletModule {}

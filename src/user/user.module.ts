@@ -29,6 +29,6 @@ import { CreateUserUseCaseWithBalanceUseCase } from "./application/use-cases/tie
       useClass: UserRepository,
     },
   ],
-  exports: [],
+  exports: [CreateUserUseCase, GetUserByEmailUseCase],
 })
 export class UserModule {}

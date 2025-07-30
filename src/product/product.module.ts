@@ -18,7 +18,9 @@ import { OrderModule } from "../order/order.module";
 import { ReserveStockDomainService } from "./domain/services/reserve-stock.service";
 import { ReleaseStockDomainService } from "./domain/services/release-stock.service";
 import { ConfirmStockDomainService } from "./domain/services/confirm-stock.service";
-import { GetPopularProductsWithDetailUseCase } from "./application/use-cases/tier-2/get-popular-products.use-case";
+import { GetPopularProductsWithDetailUseCase } from "./application/use-cases/tier-2/get-popular-products-with-detail.use-case";
+import { ReserveStocksUseCase } from "./application/use-cases/tier-2/reserve-stocks.use-case";
+import { GetProductsPriceUseCase } from "./application/use-cases/tier-1-in-domain/get-products-price.use-case";
 
 @Module({
   imports: [
@@ -33,8 +35,10 @@ import { GetPopularProductsWithDetailUseCase } from "./application/use-cases/tie
   providers: [
     GetProductByIdUseCase,
     GetProductsByIdsUseCase,
+    GetProductsPriceUseCase,
     GetAllProductsUseCase,
     ReserveStockUseCase,
+    ReserveStocksUseCase,
     ReleaseStockUseCase,
     ConfirmStockUseCase,
     GetStockReservationsByKeyUseCase,
@@ -51,6 +55,12 @@ import { GetPopularProductsWithDetailUseCase } from "./application/use-cases/tie
       useClass: StockReservationRepository,
     },
   ],
-  exports: [],
+  exports: [
+    GetProductsPriceUseCase,
+    GetProductsByIdsUseCase,
+    ReserveStocksUseCase,
+    ReleaseStockUseCase,
+    ConfirmStockUseCase,
+  ],
 })
 export class ProductModule {}

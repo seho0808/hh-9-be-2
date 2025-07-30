@@ -48,6 +48,10 @@ import { IssueUserCouponDomainService } from "./domain/services/issue-user-coupo
       useClass: CouponRepository,
     },
   ],
-  exports: [],
+  exports: [
+    ValidateCouponUseCase,
+    UseUserCouponUseCase,
+    RecoverUserCouponUseCase,
+  ],
 })
 export class CouponModule {}

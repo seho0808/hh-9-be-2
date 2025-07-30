@@ -32,15 +32,15 @@ import { CreateOrderUseCase } from "./application/use-cases/tier-1-in-domain/cre
 import { ApplyDiscountUseCase } from "./application/use-cases/tier-1-in-domain/apply-discount.use-case";
 import { ChangeOrderStatusUseCase } from "./application/use-cases/tier-1-in-domain/change-order-status.use-case";
 import { GetOrderByIdUseCase } from "./application/use-cases/tier-1-in-domain/get-order-by-id.use-case";
-import { GetOrderByUserIdUseCase } from "./application/use-cases/tier-1-in-domain/get-order-by-user-id.use-case";
+import { GetOrdersByUserIdUseCase } from "./application/use-cases/tier-1-in-domain/get-orders-by-user-id.use-case";
 import { FindStalePendingOrdersUseCase } from "./application/use-cases/tier-1-in-domain/find-stale-pending-orders.use-case";
 import { FindFailedOrdersUseCase } from "./application/use-cases/tier-1-in-domain/find-failed-orders.use-case";
 import { GetPopularProductsUseCase } from "./application/use-cases/tier-1-in-domain/get-popular-products.use-case";
-import { PlaceOrderUseCase } from "./application/use-cases/tier-3/place-order.user-case";
+import { PlaceOrderUseCase } from "./application/use-cases/tier-4/place-order.user-case";
 import { RecoverOrderUseCase } from "./application/use-cases/tier-2/recover-order.use-case";
-import { PrepareOrderUseCase } from "./application/use-cases/tier-2/prepare-order.use-case";
+import { PrepareOrderUseCase } from "./application/use-cases/tier-3/prepare-order.use-case";
 import { ProcessOrderUseCase } from "./application/use-cases/tier-2/process-order.use-case";
-import { GetProductsPriceUseCase } from "@/product/application/use-cases/tier-1-in-domain/get-products-price.use-case";
+import { CreateOrderDomainService } from "./domain/services/create-order.service";
 
 @Module({
   imports: [
@@ -65,7 +65,7 @@ import { GetProductsPriceUseCase } from "@/product/application/use-cases/tier-1-
     ApplyDiscountUseCase,
     ChangeOrderStatusUseCase,
     GetOrderByIdUseCase,
-    GetOrderByUserIdUseCase,
+    GetOrdersByUserIdUseCase,
     FindStalePendingOrdersUseCase,
     FindFailedOrdersUseCase,
     GetPopularProductsUseCase,
@@ -73,7 +73,7 @@ import { GetProductsPriceUseCase } from "@/product/application/use-cases/tier-1-
     PrepareOrderUseCase,
     ProcessOrderUseCase,
     RecoverOrderUseCase,
-    GetProductsPriceUseCase,
+    CreateOrderDomainService,
     {
       provide: "OrderRepositoryInterface",
       useClass: OrderRepository,
@@ -107,6 +107,6 @@ import { GetProductsPriceUseCase } from "@/product/application/use-cases/tier-1-
       useClass: PointTransactionRepository,
     },
   ],
-  exports: [],
+  exports: [GetPopularProductsUseCase],
 })
 export class OrderModule {}
