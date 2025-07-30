@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 
 export class StandardErrorResponseDto {
   @ApiProperty({ description: "성공 여부", example: false })
-  success: false = false;
+  success = false as const;
 
   @ApiProperty({ description: "HTTP 상태 코드", example: 400 })
   statusCode: number;
