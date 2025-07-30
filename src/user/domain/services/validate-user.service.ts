@@ -5,18 +5,16 @@ import {
   InvalidUserNameError,
 } from "../exceptions/user.exceptions";
 
-export class CreateUserDomainService {
-  async createUser({
+export class ValidateUserService {
+  async validateUser({
     email,
-    hashedPassword,
     name,
     isEmailDuplicate,
   }: {
     email: string;
-    hashedPassword: string;
     name: string;
     isEmailDuplicate: () => Promise<boolean>;
-  }): Promise<User> {
+  }): Promise<void> {
     if (!User.isValidEmail(email)) {
       throw new InvalidEmailFormatError(email);
     }
@@ -28,13 +26,5 @@ export class CreateUserDomainService {
     if (!User.isValidUserName(name)) {
       throw new InvalidUserNameError(name);
     }
-
-    const user = User.create({
-      email,
-      password: hashedPassword,
-      name,
-    });
-
-    return user;
   }
 }

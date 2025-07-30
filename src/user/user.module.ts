@@ -8,7 +8,7 @@ import { GetUserByEmailUseCase } from "./application/use-cases/tier-1-in-domain/
 import { CreateUserUseCase } from "./application/use-cases/tier-1-in-domain/create-user.use-case";
 import { AuthModule } from "@/auth/auth.module";
 import { WalletModule } from "@/wallet/wallet.module";
-import { CreateUserDomainService } from "./domain/services/create-user.service";
+import { ValidateUserService } from "./domain/services/validate-user.service";
 import { CreateUserUseCaseWithBalanceUseCase } from "./application/use-cases/tier-2/create-user-with-balance.use-case";
 
 @Module({
@@ -23,7 +23,7 @@ import { CreateUserUseCaseWithBalanceUseCase } from "./application/use-cases/tie
     GetUserByEmailUseCase,
     CreateUserUseCaseWithBalanceUseCase,
     CreateUserUseCase,
-    CreateUserDomainService,
+    ValidateUserService,
     {
       provide: "UserRepositoryInterface",
       useClass: UserRepository,
