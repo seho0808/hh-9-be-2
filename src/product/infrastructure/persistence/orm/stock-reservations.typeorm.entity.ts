@@ -5,7 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  ManyToOne,
+  JoinColumn,
 } from "typeorm";
+import { ProductTypeOrmEntity } from "./product.typeorm.entity";
+import { UserTypeOrmEntity } from "@/user/infrastructure/persistence/orm/user.typeorm.entity";
 
 @Entity("stock_reservations")
 export class StockReservationTypeOrmEntity {
@@ -35,4 +39,12 @@ export class StockReservationTypeOrmEntity {
 
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
+
+  @ManyToOne(() => ProductTypeOrmEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "product_id" })
+  product: ProductTypeOrmEntity;
+
+  @ManyToOne(() => UserTypeOrmEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
+  user: UserTypeOrmEntity;
 }

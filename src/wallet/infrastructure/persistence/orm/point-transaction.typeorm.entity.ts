@@ -5,7 +5,10 @@ import {
   Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from "typeorm";
+import { UserTypeOrmEntity } from "@/user/infrastructure/persistence/orm/user.typeorm.entity";
 
 export enum PointTransactionType {
   CHARGE = "CHARGE",
@@ -36,4 +39,8 @@ export class PointTransactionTypeOrmEntity {
 
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
+
+  @ManyToOne(() => UserTypeOrmEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
+  user: UserTypeOrmEntity;
 }
