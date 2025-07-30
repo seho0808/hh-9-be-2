@@ -3,7 +3,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import {
   OrderController,
   UserOrderController,
-} from "./infrastructure/http/order.controller";
+} from "./presentation/http/order.controller";
 import { AuthModule } from "../auth/auth.module";
 import { ProductModule } from "../product/product.module";
 import { WalletModule } from "../wallet/wallet.module";

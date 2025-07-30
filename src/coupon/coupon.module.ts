@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
-import { CouponController } from "./infrastructure/http/coupon.controller";
 import { AuthModule } from "../auth/auth.module";
-import { UserCouponController } from "./infrastructure/http/user-coupon.controller";
+import { CouponController } from "./presentation/http/coupon.controller";
+import { UserCouponController } from "./presentation/http/user-coupon.controller";
 import { GetAllCouponsUseCase } from "./application/use-cases/tier-1-in-domain/get-all-coupons.use-case";
 import { UseUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/use-user-coupon.use-case";
 import { GetAllUserCouponsUseCase } from "./application/use-cases/tier-1-in-domain/get-all-user-couponse.use-case";

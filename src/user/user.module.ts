@@ -1,6 +1,6 @@
 import { Module, forwardRef } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { UserController } from "./infrastructure/http/user.controller";
+import { UserController } from "./presentation/http/user.controller";
 import { UserRepository } from "./infrastructure/persistence/user.repository";
 import { UserTypeOrmEntity } from "./infrastructure/persistence/orm/user.typeorm.entity";
 import { GetUserByIdUseCase } from "./application/use-cases/tier-1-in-domain/get-user-by-id.use-case";
