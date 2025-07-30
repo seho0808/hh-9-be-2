@@ -16,10 +16,10 @@ export class StockReservationTypeOrmEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: "varchar", length: 255 })
+  @Column({ type: "varchar", length: 255, name: "product_id" })
   productId: string;
 
-  @Column({ type: "varchar", length: 255 })
+  @Column({ type: "varchar", length: 255, name: "user_id" })
   userId: string;
 
   @Column({ type: "integer" })
@@ -28,7 +28,7 @@ export class StockReservationTypeOrmEntity {
   @Column({ type: "boolean", name: "is_active", default: true })
   isActive: boolean;
 
-  @Column({ type: "varchar", length: 255 })
+  @Column({ type: "varchar", length: 255, name: "idempotency_key" })
   idempotencyKey: string;
 
   @Column({ type: "timestamp", name: "expires_at" })
