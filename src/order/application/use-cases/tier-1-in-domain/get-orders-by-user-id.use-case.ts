@@ -3,7 +3,7 @@ import { OrderRepositoryInterface } from "@/order/domain/interfaces/order.reposi
 import { Order } from "@/order/domain/entities/order.entitiy";
 
 @Injectable()
-export class GetOrderByUserIdUseCase {
+export class GetOrdersByUserIdUseCase {
   constructor(
     @Inject("OrderRepositoryInterface")
     private readonly orderRepository: OrderRepositoryInterface
