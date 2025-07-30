@@ -4,7 +4,7 @@ import { UserCouponRepositoryInterface } from "@/coupon/domain/interfaces/user-c
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
-import { IssueUserCouponDomainService } from "@/coupon/domain/services/issue-user-coupon.service";
+import { Transactional } from "typeorm-transactional";
 
 export interface IssueUserCouponCommand {
   couponId: string;
@@ -24,10 +24,10 @@ export class IssueUserCouponUseCase {
     @Inject("CouponRepositoryInterface")
     private readonly couponRepository: CouponRepositoryInterface,
     @Inject("UserCouponRepositoryInterface")
-    private readonly userCouponRepository: UserCouponRepositoryInterface,
-    private readonly issueUserCouponDomainService: IssueUserCouponDomainService
+    private readonly userCouponRepository: UserCouponRepositoryInterface
   ) {}
 
+  @Transactional()
   async execute(
     command: IssueUserCouponCommand
   ): Promise<IssueUserCouponResult> {
@@ -38,11 +38,12 @@ export class IssueUserCouponUseCase {
       throw new CouponNotFoundError(couponId);
     }
 
-    const userCoupon = await this.issueUserCouponDomainService.issueUserCoupon({
-      coupon,
+    coupon.issue(couponCode);
+    const userCoupon = UserCoupon.create({
+      couponId: coupon.id,
       userId,
-      couponCode,
-      idempotencyKey,
+      expiresAt: coupon.endDate,
+      issuedIdempotencyKey: idempotencyKey,
     });
 
     await Promise.all([

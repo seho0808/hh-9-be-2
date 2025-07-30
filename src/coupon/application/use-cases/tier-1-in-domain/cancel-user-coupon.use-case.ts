@@ -5,7 +5,7 @@ import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
 import { UserCouponNotFoundError } from "@/coupon/domain/exceptions/user-coupon.exception";
 import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
-import { CancelUserCouponDomainService } from "@/coupon/domain/services/cancel-user-coupon.service";
+import { Transactional } from "typeorm-transactional";
 
 export interface CancelUserCouponCommand {
   userCouponId: string;
@@ -22,10 +22,10 @@ export class CancelUserCouponUseCase {
     @Inject("UserCouponRepositoryInterface")
     private readonly userCouponRepository: UserCouponRepositoryInterface,
     @Inject("CouponRepositoryInterface")
-    private readonly couponRepository: CouponRepositoryInterface,
-    private readonly cancelUserCouponDomainService: CancelUserCouponDomainService
+    private readonly couponRepository: CouponRepositoryInterface
   ) {}
 
+  @Transactional()
   async execute(
     command: CancelUserCouponCommand
   ): Promise<CancelUserCouponResult> {
@@ -41,10 +41,12 @@ export class CancelUserCouponUseCase {
       throw new CouponNotFoundError(userCoupon.couponId);
     }
 
-    await this.cancelUserCouponDomainService.cancelUserCoupon(
-      userCoupon,
-      coupon
-    );
+    if (userCoupon.isUsed()) {
+      userCoupon.cancel();
+      coupon.cancel();
+    } else {
+      userCoupon.cancel();
+    }
 
     await Promise.all([
       this.userCouponRepository.save(userCoupon),

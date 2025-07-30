@@ -112,7 +112,7 @@ export class UserCoupon {
     return this.props.expiresAt < new Date();
   }
 
-  private isUsed(): boolean {
+  isUsed(): boolean {
     return this.props.status === UserCouponStatus.USED;
   }
 
