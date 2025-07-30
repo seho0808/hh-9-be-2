@@ -2,7 +2,6 @@ import { Test } from "@nestjs/testing";
 import { CreateOrderUseCase } from "./create-order.use-case";
 import { OrderStatus } from "@/order/domain/entities/order.entitiy";
 import { v4 as uuidv4 } from "uuid";
-import { CreateOrderDomainService } from "@/order/domain/services/create-order.service";
 
 jest.mock("typeorm-transactional", () => ({
   Transactional: () => () => ({}),
@@ -25,7 +24,6 @@ describe("CreateOrderUseCase", () => {
     const module = await Test.createTestingModule({
       providers: [
         CreateOrderUseCase,
-        CreateOrderDomainService,
         {
           provide: "OrderRepositoryInterface",
           useValue: orderRepository,

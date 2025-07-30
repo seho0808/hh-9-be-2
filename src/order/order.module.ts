@@ -40,7 +40,6 @@ import { PlaceOrderUseCase } from "./application/use-cases/tier-4/place-order.us
 import { RecoverOrderUseCase } from "./application/use-cases/tier-2/recover-order.use-case";
 import { PrepareOrderUseCase } from "./application/use-cases/tier-3/prepare-order.use-case";
 import { ProcessOrderUseCase } from "./application/use-cases/tier-2/process-order.use-case";
-import { CreateOrderDomainService } from "./domain/services/create-order.service";
 
 @Module({
   imports: [
@@ -73,7 +72,6 @@ import { CreateOrderDomainService } from "./domain/services/create-order.service
     PrepareOrderUseCase,
     ProcessOrderUseCase,
     RecoverOrderUseCase,
-    CreateOrderDomainService,
     {
       provide: "OrderRepositoryInterface",
       useClass: OrderRepository,
