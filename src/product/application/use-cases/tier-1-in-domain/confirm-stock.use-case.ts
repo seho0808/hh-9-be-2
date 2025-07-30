@@ -7,12 +7,8 @@ import {
   StockReservationNotFoundError,
 } from "@/product/domain/exceptions/product.exceptions";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
-import { ConfirmStockDomainService } from "@/product/domain/services/confirm-stock.service";
+import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
 import { Transactional } from "typeorm-transactional";
-
-jest.mock("typeorm-transactional", () => ({
-  Transactional: () => () => ({}),
-}));
 
 export interface ConfirmStockCommand {
   stockReservationId: string;
@@ -26,7 +22,7 @@ export class ConfirmStockUseCase {
     private readonly productRepository: ProductRepositoryInterface,
     @Inject("StockReservationRepositoryInterface")
     private readonly stockReservationRepository: StockReservationRepositoryInterface,
-    private readonly confirmStockDomainService: ConfirmStockDomainService
+    private readonly validateStockService: ValidateStockService
   ) {}
 
   @Transactional()
@@ -51,11 +47,12 @@ export class ConfirmStockUseCase {
       throw new ProductNotFoundError(product.id);
     }
 
-    await this.confirmStockDomainService.confirmStock({
+    this.validateStockService.validateConfirmStock({
       stockReservation,
-      product,
-      idempotencyKey,
     });
+
+    product.confirmStock(stockReservation.quantity);
+    stockReservation.confirmStock(idempotencyKey);
 
     await this.stockReservationRepository.save(stockReservation);
     await this.productRepository.save(product);
