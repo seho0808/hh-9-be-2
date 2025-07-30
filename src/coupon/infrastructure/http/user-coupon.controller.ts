@@ -12,8 +12,8 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { UserCouponResponseDto } from "./dto/coupon.dto";
-import { CouponApplicationService } from "@/coupon/application/services/coupon.service";
 import { CouponExceptionFilter } from "./filters/coupon-exception.filter";
+import { GetAllUserCouponsUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-all-user-couponse.use-case";
 
 @ApiTags("사용자 쿠폰")
 @Controller("users/me/coupons")
@@ -21,7 +21,9 @@ import { CouponExceptionFilter } from "./filters/coupon-exception.filter";
 @ApiBearerAuth("access-token")
 @UseFilters(CouponExceptionFilter)
 export class UserCouponController {
-  constructor(private readonly couponService: CouponApplicationService) {}
+  constructor(
+    private readonly getAllUserCouponsUseCase: GetAllUserCouponsUseCase
+  ) {}
 
   @Get()
   @ApiOperation({ summary: "내가 가진 쿠폰 목록" })
@@ -33,9 +35,11 @@ export class UserCouponController {
   async getMyCoupons(
     @CurrentUser() user: CurrentUserData
   ): Promise<ApiResponseDto<UserCouponResponseDto[]>> {
-    const result = await this.couponService.getAllUserCoupons(user.id);
+    const result = await this.getAllUserCouponsUseCase.execute({
+      userId: user.id,
+    });
     return ApiResponseDto.success(
-      result.map(UserCouponResponseDto.fromEntity),
+      result.userCoupons.map(UserCouponResponseDto.fromEntity),
       "보유 쿠폰 목록을 조회했습니다"
     );
   }

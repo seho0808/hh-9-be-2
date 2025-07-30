@@ -1,6 +1,6 @@
+import { Injectable } from "@nestjs/common";
 import { Order } from "@/order/domain/entities/order.entitiy";
 import { CreateOrderUseCase } from "../tier-1-in-domain/create-order.use-case";
-import { TransactionService } from "@/common/services/transaction.service";
 import {
   InsufficientPointBalanceError,
   InvalidCouponError,
@@ -8,6 +8,7 @@ import {
 import { ValidateCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/validate-user-coupon.use-case";
 import { ValidateUsePointsUseCase } from "@/wallet/application/use-cases/tier-1-in-domain/validate-use-points.use-case";
 import { ReserveStockUseCase } from "@/product/application/use-cases/tier-1-in-domain/reserve-stock.use-case";
+import { ReserveStocksUseCase } from "@/product/application/use-cases/tier-2/reserve-stocks.use-case";
 
 export interface PrepareOrderCommand {
   userId: string;
@@ -20,14 +21,15 @@ export interface PrepareOrderResult {
   order: Order;
 }
 
+@Injectable()
 export class PrepareOrderUseCase {
   constructor(
     private readonly createOrderUseCase: CreateOrderUseCase,
-    private readonly transactionService: TransactionService,
     private readonly validateCouponUseCase: ValidateCouponUseCase,
     private readonly validateUsePointsUseCase: ValidateUsePointsUseCase,
-    private readonly reserveStockUseCase: ReserveStockUseCase
+    private readonly reserveStocksUseCase: ReserveStocksUseCase
   ) {}
+
   async execute(command: PrepareOrderCommand) {
     const { userId, couponId, items, idempotencyKey } = command;
     let discountPrice: number = 0;
@@ -35,16 +37,11 @@ export class PrepareOrderUseCase {
     let stockReservationIds: string[] = [];
 
     // 주문 생성
-    // TODO: transaction은 각 usecase에서 호출
-    const { order } = await this.transactionService.runWithTransaction(
-      async (manager) => {
-        return await this.createOrderUseCase.execute({
-          userId,
-          idempotencyKey,
-          items,
-        });
-      }
-    );
+    const { order } = await this.createOrderUseCase.execute({
+      userId,
+      idempotencyKey,
+      items,
+    });
 
     // 쿠폰 확인
     if (couponId) {
@@ -71,18 +68,16 @@ export class PrepareOrderUseCase {
     }
 
     // 재고 예약
-    // TODO: transaction은 각 usecase에서 호출
-    await this.transactionService.runWithTransaction(async (manager) => {
-      for (const item of items) {
-        const { stockReservation } = await this.reserveStockUseCase.execute({
-          productId: item.productId,
-          userId,
-          quantity: item.quantity,
-          idempotencyKey,
-        });
-        stockReservationIds.push(stockReservation.id);
-      }
+    const { result } = await this.reserveStocksUseCase.execute({
+      requests: items.map((item) => ({
+        productId: item.productId,
+        userId,
+        quantity: item.quantity,
+        idempotencyKey,
+      })),
     });
+
+    stockReservationIds = result.map((r) => r.stockReservation.id);
 
     return { order, discountPrice, discountedPrice, stockReservationIds };
   }

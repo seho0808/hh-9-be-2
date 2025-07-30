@@ -8,6 +8,7 @@ import {
 } from "@/product/domain/exceptions/product.exceptions";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { ConfirmStockDomainService } from "@/product/domain/services/confirm-stock.service";
+import { Transactional } from "typeorm-transactional";
 
 export interface ConfirmStockCommand {
   stockReservationId: string;
@@ -24,6 +25,7 @@ export class ConfirmStockUseCase {
     private readonly confirmStockDomainService: ConfirmStockDomainService
   ) {}
 
+  @Transactional()
   async execute(command: ConfirmStockCommand): Promise<{
     stockReservation: StockReservation;
     product: Product;

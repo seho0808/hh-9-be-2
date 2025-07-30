@@ -1,6 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { StockReservationRepositoryInterface } from "@/product/domain/interfaces/stock-reservation.repository.interface";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
+import { Transactional } from "typeorm-transactional";
 
 export interface GetStockReservationsByKeyUseCaseCommand {
   idempotencyKey: string;
@@ -17,6 +18,7 @@ export class GetStockReservationsByKeyUseCase {
     private readonly stockReservationRepository: StockReservationRepositoryInterface
   ) {}
 
+  @Transactional()
   async execute(
     command: GetStockReservationsByKeyUseCaseCommand
   ): Promise<GetStockReservationsByKeyUseCaseResult> {

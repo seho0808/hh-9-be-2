@@ -9,6 +9,7 @@ import {
 } from "@/product/domain/exceptions/product.exceptions";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { ReleaseStockDomainService } from "@/product/domain/services/release-stock.service";
+import { Transactional } from "typeorm-transactional";
 
 export interface ReleaseStockCommand {
   stockReservationId: string;
@@ -25,6 +26,7 @@ export class ReleaseStockUseCase {
     private readonly releaseStockDomainService: ReleaseStockDomainService
   ) {}
 
+  @Transactional()
   async execute(command: ReleaseStockCommand): Promise<{
     stockReservation: StockReservation;
     product: Product;

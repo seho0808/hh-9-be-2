@@ -25,10 +25,12 @@ import {
   CurrentUser,
   CurrentUserData,
 } from "../../../common/decorators/current-user.decorator";
-import { OrderApplicationService } from "@/order/application/order.service";
 import { OrderExceptionFilter } from "./filters/order-exception.filter";
 import { v4 as uuidv4 } from "uuid";
 import { OrderNotFoundHttpError } from "./exceptions";
+import { PlaceOrderUseCase } from "@/order/application/use-cases/tier-4/place-order.user-case";
+import { GetOrderByIdUseCase } from "@/order/application/use-cases/tier-1-in-domain/get-order-by-id.use-case";
+import { GetOrdersByUserIdUseCase } from "@/order/application/use-cases/tier-1-in-domain/get-orders-by-user-id.use-case";
 
 @ApiTags("주문/결제")
 @Controller("orders")
@@ -37,7 +39,8 @@ import { OrderNotFoundHttpError } from "./exceptions";
 @UseFilters(OrderExceptionFilter)
 export class OrderController {
   constructor(
-    private readonly orderApplicationService: OrderApplicationService
+    private readonly placeOrderUseCase: PlaceOrderUseCase,
+    private readonly getOrderByIdUseCase: GetOrderByIdUseCase
   ) {}
 
   @Post()
@@ -61,7 +64,7 @@ export class OrderController {
   ): Promise<ApiResponseDto<OrderResponseDto>> {
     const idempotencyKey = createOrderDto.idempotencyKey || uuidv4();
 
-    const { order } = await this.orderApplicationService.placeOrder({
+    const { order } = await this.placeOrderUseCase.execute({
       userId: user.id,
       couponId: createOrderDto.couponId || null,
       idempotencyKey,
@@ -95,7 +98,7 @@ export class OrderController {
     @CurrentUser() user: CurrentUserData,
     @Param("orderId") orderId: string
   ): Promise<ApiResponseDto<OrderResponseDto>> {
-    const order = await this.orderApplicationService.getOrderById(orderId);
+    const order = await this.getOrderByIdUseCase.execute(orderId);
     if (!order) {
       throw new OrderNotFoundHttpError(orderId);
     }
@@ -113,7 +116,7 @@ export class OrderController {
 @UseFilters(OrderExceptionFilter)
 export class UserOrderController {
   constructor(
-    private readonly orderApplicationService: OrderApplicationService
+    private readonly getOrdersByUserIdUseCase: GetOrdersByUserIdUseCase
   ) {}
 
   @Get()
@@ -126,9 +129,7 @@ export class UserOrderController {
   async getMyOrders(
     @CurrentUser() user: CurrentUserData
   ): Promise<ApiResponseDto<OrderResponseDto[]>> {
-    const orders = await this.orderApplicationService.getOrdersByUserId(
-      user.id
-    );
+    const orders = await this.getOrdersByUserIdUseCase.execute(user.id);
     const response = orders.map((order) => OrderResponseDto.fromEntity(order));
     return ApiResponseDto.success(response, "주문 목록을 조회했습니다");
   }

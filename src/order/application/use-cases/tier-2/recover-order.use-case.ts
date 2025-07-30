@@ -1,8 +1,10 @@
+import { Injectable } from "@nestjs/common";
 import { RecoverUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/recover-user-coupon.use-case";
 import { Order, OrderStatus } from "@/order/domain/entities/order.entitiy";
 import { ReleaseStockUseCase } from "@/product/application/use-cases/tier-1-in-domain/release-stock.use-case";
 import { RecoverPointsUseCase } from "@/wallet/application/use-cases/tier-1-in-domain/recover-points.use-case";
 import { ChangeOrderStatusUseCase } from "../tier-1-in-domain/change-order-status.use-case";
+import { Transactional } from "typeorm-transactional";
 
 export interface RecoverOrderCommand {
   order: Order;
@@ -15,6 +17,7 @@ export interface RecoverOrderResult {
   order: Order;
 }
 
+@Injectable()
 export class RecoverOrderUseCase {
   constructor(
     private readonly releaseStockUseCase: ReleaseStockUseCase,
@@ -23,6 +26,7 @@ export class RecoverOrderUseCase {
     private readonly changeOrderStatusUseCase: ChangeOrderStatusUseCase
   ) {}
 
+  @Transactional()
   async execute(command: RecoverOrderCommand) {
     const { order, couponId, stockReservationIds, idempotencyKey } = command;
 

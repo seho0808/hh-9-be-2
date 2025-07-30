@@ -12,7 +12,6 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from "@nestjs/swagger";
-import { UserApplicationService } from "@/user/application/services/user.service";
 import { UserResponseDto } from "@/user/infrastructure/http/dto/user.dto";
 import { ApiResponseDto } from "@/common/dto/response.dto";
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
@@ -22,14 +21,13 @@ import {
 } from "@/common/decorators/current-user.decorator";
 import { User } from "@/user/domain/entities/user.entity";
 import { UserExceptionFilter } from "./filters/user-exception.filter";
+import { GetUserByIdUseCase } from "@/user/application/use-cases/tier-1-in-domain/get-user-by-id.use-case";
 
 @ApiTags("사용자")
 @Controller("users")
 @UseFilters(UserExceptionFilter)
 export class UserController {
-  constructor(
-    private readonly userApplicationService: UserApplicationService
-  ) {}
+  constructor(private readonly getUserByIdUseCase: GetUserByIdUseCase) {}
 
   @Get("me")
   @UseGuards(JwtAuthGuard)
@@ -47,7 +45,7 @@ export class UserController {
   async getMyInfo(
     @CurrentUser() user: CurrentUserData
   ): Promise<ApiResponseDto<UserResponseDto>> {
-    const result = await this.userApplicationService.getUserById(user.id);
+    const result = await this.getUserByIdUseCase.execute(user.id);
     return ApiResponseDto.success(
       UserResponseDto.fromEntity(result),
       "사용자 정보 조회에 성공했습니다"

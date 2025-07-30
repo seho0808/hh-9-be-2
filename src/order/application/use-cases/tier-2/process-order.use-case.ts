@@ -1,3 +1,4 @@
+import { Injectable } from "@nestjs/common";
 import { Order } from "@/order/domain/entities/order.entitiy";
 import { ApplyDiscountUseCase } from "../tier-1-in-domain/apply-discount.use-case";
 import { UseUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/use-user-coupon.use-case";
@@ -5,6 +6,7 @@ import { UsePointsUseCase } from "@/wallet/application/use-cases/tier-1-in-domai
 import { OrderStatus } from "@/order/domain/entities/order.entitiy";
 import { ConfirmStockUseCase } from "@/product/application/use-cases/tier-1-in-domain/confirm-stock.use-case";
 import { ChangeOrderStatusUseCase } from "../tier-1-in-domain/change-order-status.use-case";
+import { Transactional } from "typeorm-transactional";
 
 export interface ProcessOrderCommand {
   userId: string;
@@ -20,6 +22,7 @@ export interface ProcessOrderResult {
   order: Order;
 }
 
+@Injectable()
 export class ProcessOrderUseCase {
   constructor(
     private readonly applyDiscountUseCase: ApplyDiscountUseCase,
@@ -28,6 +31,8 @@ export class ProcessOrderUseCase {
     private readonly confirmStockUseCase: ConfirmStockUseCase,
     private readonly changeOrderStatusUseCase: ChangeOrderStatusUseCase
   ) {}
+
+  @Transactional()
   async execute(command: ProcessOrderCommand) {
     const {
       userId,

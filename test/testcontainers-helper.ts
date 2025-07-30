@@ -14,6 +14,10 @@ import { DataSource } from "typeorm";
 import * as request from "supertest";
 import { PointTransactionTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
 import { UserBalanceTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
+import {
+  initializeTransactionalContext,
+  addTransactionalDataSource,
+} from "typeorm-transactional";
 
 export interface TestContainerConfig {
   mysqlVersion?: string;
@@ -32,6 +36,8 @@ export class TestContainersHelper {
     dataSource: DataSource;
     container: StartedMySqlContainer;
   }> {
+    initializeTransactionalContext();
+
     // 워커별 고유 설정
     const workerId = process.env.JEST_WORKER_ID || "1";
     const timestamp = Date.now(); // 추가적인 고유성을 위해
@@ -112,6 +118,8 @@ export class TestContainersHelper {
     await this.app.init();
 
     this.dataSource = this.app.get(DataSource);
+
+    addTransactionalDataSource(this.dataSource);
 
     console.log(`✅ [Worker ${workerId}] NestJS Application initialized`);
 

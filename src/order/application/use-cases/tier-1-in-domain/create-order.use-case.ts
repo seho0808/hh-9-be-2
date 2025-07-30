@@ -3,6 +3,7 @@ import { Order } from "@/order/domain/entities/order.entitiy";
 import { OrderRepositoryInterface } from "@/order/domain/interfaces/order.repository.interface";
 import { OrderItemRepositoryInterface } from "@/order/domain/interfaces/order-item.repository.interface";
 import { CreateOrderDomainService } from "@/order/domain/services/create-order.service";
+import { Transactional } from "typeorm-transactional";
 
 export interface CreateOrderUseCaseCommand {
   userId: string;
@@ -28,6 +29,7 @@ export class CreateOrderUseCase {
     private readonly createOrderDomainService: CreateOrderDomainService
   ) {}
 
+  @Transactional()
   async execute(
     command: CreateOrderUseCaseCommand
   ): Promise<CreateOrderUseCaseResult> {

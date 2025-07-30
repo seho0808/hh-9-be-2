@@ -1,6 +1,7 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { ProductRepositoryInterface } from "@/product/domain/interfaces/product.repository.interface";
 import { Product } from "@/product/domain/entities/product.entity";
+import { Transactional } from "typeorm-transactional";
 
 export interface GetAllProductsCommand {
   page?: number;
@@ -24,6 +25,7 @@ export class GetAllProductsUseCase {
     private readonly productRepository: ProductRepositoryInterface
   ) {}
 
+  @Transactional()
   async execute(command: GetAllProductsCommand): Promise<GetAllProductsResult> {
     const page = command.page || 1;
     const limit = command.limit || 10;

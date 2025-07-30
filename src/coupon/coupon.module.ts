@@ -1,9 +1,7 @@
 import { Module } from "@nestjs/common";
 import { CouponController } from "./infrastructure/http/coupon.controller";
 import { AuthModule } from "../auth/auth.module";
-import { TransactionService } from "../common/services/transaction.service";
 import { UserCouponController } from "./infrastructure/http/user-coupon.controller";
-import { CouponApplicationService } from "./application/services/coupon.service";
 import { GetAllCouponsUseCase } from "./application/use-cases/tier-1-in-domain/get-all-coupons.use-case";
 import { UseUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/use-user-coupon.use-case";
 import { GetAllUserCouponsUseCase } from "./application/use-cases/tier-1-in-domain/get-all-user-couponse.use-case";
@@ -29,8 +27,6 @@ import { IssueUserCouponDomainService } from "./domain/services/issue-user-coupo
   ],
   controllers: [CouponController, UserCouponController],
   providers: [
-    TransactionService,
-    CouponApplicationService,
     GetAllCouponsUseCase,
     GetAllUserCouponsUseCase,
     GetCouponByIdUseCase,
@@ -52,6 +48,10 @@ import { IssueUserCouponDomainService } from "./domain/services/issue-user-coupo
       useClass: CouponRepository,
     },
   ],
-  exports: [CouponApplicationService],
+  exports: [
+    ValidateCouponUseCase,
+    UseUserCouponUseCase,
+    RecoverUserCouponUseCase,
+  ],
 })
 export class CouponModule {}

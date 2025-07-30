@@ -3,9 +3,19 @@ import { AppModule } from "./app.module";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { ValidationPipe } from "@nestjs/common";
 import { GlobalExceptionFilter } from "./common/filters/global-exception.filter";
+import {
+  initializeTransactionalContext,
+  addTransactionalDataSource,
+} from "typeorm-transactional";
+import { DataSource } from "typeorm";
 
 async function bootstrap() {
+  initializeTransactionalContext();
+
   const app = await NestFactory.create(AppModule);
+
+  const dataSource = app.get(DataSource);
+  addTransactionalDataSource(dataSource);
 
   app.setGlobalPrefix("api");
 

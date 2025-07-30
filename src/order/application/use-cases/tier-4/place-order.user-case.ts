@@ -1,6 +1,7 @@
+import { Injectable } from "@nestjs/common";
 import { Order } from "@/order/domain/entities/order.entitiy";
 import { ProcessOrderUseCase } from "../tier-2/process-order.use-case";
-import { PrepareOrderUseCase } from "../tier-2/prepare-order.use-case";
+import { PrepareOrderUseCase } from "../tier-3/prepare-order.use-case";
 import { RecoverOrderUseCase } from "../tier-2/recover-order.use-case";
 import { GetProductsPriceUseCase } from "@/product/application/use-cases/tier-1-in-domain/get-products-price.use-case";
 
@@ -15,6 +16,7 @@ export interface PlaceOrderResult {
   order: Order;
 }
 
+@Injectable()
 export class PlaceOrderUseCase {
   constructor(
     private readonly prepareOrderUseCase: PrepareOrderUseCase,
@@ -61,7 +63,7 @@ export class PlaceOrderUseCase {
     }
   }
 
-  private async getItemsWithPrices(
+  async getItemsWithPrices(
     itemsWithoutPrices: { productId: string; quantity: number }[]
   ) {
     const { productPriceInfo } = await this.getProductsPriceUseCase.execute({
