@@ -112,21 +112,20 @@ describe("ConfirmStockUseCase", () => {
   });
 
   it("만료된 재고 예약으로 요청시 에러가 발생해야 한다", async () => {
-    const mockStockReservation = StockReservation.create({
+    const mockStockReservation = new StockReservation({
+      id: uuidv4(),
       productId: uuidv4(),
       userId: uuidv4(),
       quantity: 2,
       idempotencyKey: uuidv4(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      expiresAt: new Date(Date.now() - 1000),
+      isActive: true,
     });
 
-    // 만료 시간을 과거로 설정하기 위해 fromPersistence 사용
     const pastDate = new Date();
     pastDate.setHours(pastDate.getHours() - 1);
-
-    const expiredReservation = StockReservation.fromPersistence({
-      ...mockStockReservation.toPersistence(),
-      expiresAt: pastDate,
-    });
 
     const mockProduct = Product.create({
       name: "테스트 상품",
@@ -137,13 +136,13 @@ describe("ConfirmStockUseCase", () => {
       isActive: true,
     });
 
-    stockReservationRepository.findById.mockResolvedValue(expiredReservation);
+    stockReservationRepository.findById.mockResolvedValue(mockStockReservation);
     productRepository.findById.mockResolvedValue(mockProduct);
 
     await expect(
       useCase.execute({
-        stockReservationId: expiredReservation.id,
-        idempotencyKey: expiredReservation.idempotencyKey,
+        stockReservationId: mockStockReservation.id,
+        idempotencyKey: mockStockReservation.idempotencyKey,
       })
     ).rejects.toThrow(StockReservationExpiredError);
   });

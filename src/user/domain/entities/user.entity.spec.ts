@@ -20,50 +20,6 @@ describe("User Entity", () => {
     });
   });
 
-  describe("fromPersistence", () => {
-    it("영속성 데이터로부터 사용자를 생성해야 함", () => {
-      const persistenceData = {
-        id: "test-id",
-        email: "test@example.com",
-        password: "hashedPassword",
-        name: "Test User",
-        createdAt: new Date("2024-01-01"),
-        updatedAt: new Date("2024-01-01"),
-      };
-
-      const user = User.fromPersistence(persistenceData);
-
-      expect(user.id).toBe(persistenceData.id);
-      expect(user.email).toBe(persistenceData.email);
-      expect(user.password).toBe(persistenceData.password);
-      expect(user.name).toBe(persistenceData.name);
-      expect(user.createdAt).toBe(persistenceData.createdAt);
-      expect(user.updatedAt).toBe(persistenceData.updatedAt);
-    });
-  });
-
-  describe("toPersistence", () => {
-    it("사용자를 영속성 형태로 변환해야 함", () => {
-      const userData = {
-        email: "test@example.com",
-        password: "hashedPassword",
-        name: "Test User",
-      };
-
-      const user = User.create(userData);
-      const persistence = user.toPersistence();
-
-      expect(persistence).toEqual({
-        id: user.id,
-        email: user.email,
-        password: user.password,
-        name: user.name,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      });
-    });
-  });
-
   describe("updateName", () => {
     it("이름과 업데이트 타임스탬프를 업데이트해야 함", () => {
       const user = User.create({
