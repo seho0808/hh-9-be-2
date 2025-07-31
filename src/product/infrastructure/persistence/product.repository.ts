@@ -72,7 +72,7 @@ export class ProductRepository {
   }
 
   private toDomain(entity: ProductTypeOrmEntity): Product {
-    return Product.fromPersistence({
+    return new Product({
       id: entity.id,
       name: entity.name,
       description: entity.description,
@@ -86,17 +86,16 @@ export class ProductRepository {
   }
 
   private fromDomain(product: Product): ProductTypeOrmEntity {
-    const props = product.toPersistence();
     const entity = new ProductTypeOrmEntity();
-    entity.id = props.id;
-    entity.name = props.name;
-    entity.description = props.description;
-    entity.price = props.price;
-    entity.totalStock = props.totalStock;
-    entity.reservedStock = props.reservedStock;
-    entity.isActive = props.isActive;
-    entity.createdAt = props.createdAt;
-    entity.updatedAt = props.updatedAt;
+    entity.id = product.id;
+    entity.name = product.name;
+    entity.description = product.description;
+    entity.price = product.price;
+    entity.totalStock = product.totalStock;
+    entity.reservedStock = product.reservedStock;
+    entity.isActive = product.isActive;
+    entity.createdAt = product.createdAt;
+    entity.updatedAt = product.updatedAt;
     return entity;
   }
 }

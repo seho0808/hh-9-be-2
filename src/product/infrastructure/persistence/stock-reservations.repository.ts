@@ -36,10 +36,30 @@ export class StockReservationRepository {
   private fromDomain(
     stockReservation: StockReservation
   ): StockReservationTypeOrmEntity {
-    return stockReservation.toPersistence();
+    const entity = new StockReservationTypeOrmEntity();
+    entity.id = stockReservation.id;
+    entity.productId = stockReservation.productId;
+    entity.userId = stockReservation.userId;
+    entity.quantity = stockReservation.quantity;
+    entity.idempotencyKey = stockReservation.idempotencyKey;
+    entity.createdAt = stockReservation.createdAt;
+    entity.updatedAt = stockReservation.updatedAt;
+    entity.expiresAt = stockReservation.expiresAt;
+    entity.isActive = stockReservation.isActive;
+    return entity;
   }
 
   private toDomain(entity: StockReservationTypeOrmEntity): StockReservation {
-    return StockReservation.fromPersistence(entity);
+    return new StockReservation({
+      id: entity.id,
+      productId: entity.productId,
+      userId: entity.userId,
+      quantity: entity.quantity,
+      idempotencyKey: entity.idempotencyKey,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+      expiresAt: entity.expiresAt,
+      isActive: entity.isActive,
+    });
   }
 }

@@ -45,26 +45,25 @@ export class UserCouponRepository {
   }
 
   private fromDomain(userCoupon: UserCoupon): UserCouponTypeOrmEntity {
-    const props = userCoupon.toPersistence();
     const entity = new UserCouponTypeOrmEntity();
-    entity.id = props.id;
-    entity.couponId = props.couponId;
-    entity.userId = props.userId;
-    entity.orderId = props.orderId;
-    entity.discountPrice = props.discountPrice;
-    entity.status = props.status;
-    entity.issuedIdempotencyKey = props.issuedIdempotencyKey;
-    entity.usedIdempotencyKey = props.usedIdempotencyKey;
-    entity.expiresAt = props.expiresAt;
-    entity.usedAt = props.usedAt;
-    entity.cancelledAt = props.cancelledAt;
-    entity.createdAt = props.createdAt;
-    entity.updatedAt = props.updatedAt;
+    entity.id = userCoupon.id;
+    entity.couponId = userCoupon.couponId;
+    entity.userId = userCoupon.userId;
+    entity.orderId = userCoupon.orderId;
+    entity.discountPrice = userCoupon.discountPrice;
+    entity.status = userCoupon.status;
+    entity.issuedIdempotencyKey = userCoupon.issuedIdempotencyKey;
+    entity.usedIdempotencyKey = userCoupon.usedIdempotencyKey;
+    entity.expiresAt = userCoupon.expiresAt;
+    entity.usedAt = userCoupon.usedAt;
+    entity.cancelledAt = userCoupon.cancelledAt;
+    entity.createdAt = userCoupon.createdAt;
+    entity.updatedAt = userCoupon.updatedAt;
     return entity;
   }
 
   private toDomain(entity: UserCouponTypeOrmEntity): UserCoupon {
-    return UserCoupon.fromPersistence({
+    const userCouponProps = {
       id: entity.id,
       couponId: entity.couponId,
       userId: entity.userId,
@@ -78,6 +77,8 @@ export class UserCouponRepository {
       cancelledAt: entity.cancelledAt,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
-    });
+    };
+
+    return new UserCoupon(userCouponProps);
   }
 }

@@ -38,7 +38,7 @@ export class PointTransactionRepository {
   }
 
   private toDomain(entity: PointTransactionTypeOrmEntity): PointTransaction {
-    return PointTransaction.fromPersistence({
+    return new PointTransaction({
       id: entity.id,
       userId: entity.userId,
       amount: entity.amount,
@@ -51,14 +51,13 @@ export class PointTransactionRepository {
   private fromDomain(
     pointTransaction: PointTransaction
   ): PointTransactionTypeOrmEntity {
-    const props = pointTransaction.toPersistence();
     const entity = new PointTransactionTypeOrmEntity();
-    entity.id = props.id;
-    entity.userId = props.userId;
-    entity.amount = props.amount;
-    entity.type = props.type as PointTransactionType;
-    entity.idempotencyKey = props.idempotencyKey;
-    entity.createdAt = props.createdAt;
+    entity.id = pointTransaction.id;
+    entity.userId = pointTransaction.userId;
+    entity.amount = pointTransaction.amount;
+    entity.type = pointTransaction.type as PointTransactionType;
+    entity.idempotencyKey = pointTransaction.idempotencyKey;
+    entity.createdAt = pointTransaction.createdAt;
     return entity;
   }
 }

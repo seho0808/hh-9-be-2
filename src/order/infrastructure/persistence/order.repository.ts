@@ -65,20 +65,21 @@ export class OrderRepository {
 
   private toDomain(entity: OrderTypeOrmEntity): Order {
     const orderItems =
-      entity.orderItems?.map((item) =>
-        OrderItem.fromPersistence({
-          id: item.id,
-          orderId: item.orderId,
-          productId: item.productId,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          totalPrice: item.totalPrice,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt,
-        })
+      entity.orderItems?.map(
+        (item) =>
+          new OrderItem({
+            id: item.id,
+            orderId: item.orderId,
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            totalPrice: item.totalPrice,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+          })
       ) || [];
 
-    return Order.fromPersistence({
+    return new Order({
       id: entity.id,
       userId: entity.userId,
       totalPrice: entity.totalPrice,
@@ -95,19 +96,18 @@ export class OrderRepository {
   }
 
   private fromDomain(order: Order): OrderTypeOrmEntity {
-    const props = order.toPersistence();
     const entity = new OrderTypeOrmEntity();
-    entity.id = props.id;
-    entity.userId = props.userId;
-    entity.totalPrice = props.totalPrice;
-    entity.discountPrice = props.discountPrice;
-    entity.finalPrice = props.finalPrice;
-    entity.status = props.status;
-    entity.failedReason = props.failedReason;
-    entity.idempotencyKey = props.idempotencyKey;
-    entity.appliedCouponId = props.appliedCouponId;
-    entity.createdAt = props.createdAt;
-    entity.updatedAt = props.updatedAt;
+    entity.id = order.id;
+    entity.userId = order.userId;
+    entity.totalPrice = order.totalPrice;
+    entity.discountPrice = order.discountPrice;
+    entity.finalPrice = order.finalPrice;
+    entity.status = order.status;
+    entity.failedReason = order.failedReason;
+    entity.idempotencyKey = order.idempotencyKey;
+    entity.appliedCouponId = order.appliedCouponId;
+    entity.createdAt = order.createdAt;
+    entity.updatedAt = order.updatedAt;
     return entity;
   }
 }
