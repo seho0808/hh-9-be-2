@@ -156,7 +156,7 @@ describe("ChangeOrderStatusUseCase", () => {
 
     // 할인 적용
     mockOrder.applyDiscount({
-      appliedCouponId: "test-coupon",
+      appliedUserCouponId: "test-coupon",
       discountPrice: 1000,
       discountedPrice: 14000,
     });
@@ -166,7 +166,7 @@ describe("ChangeOrderStatusUseCase", () => {
     const originalTotalPrice = mockOrder.totalPrice;
     const originalDiscountPrice = mockOrder.discountPrice;
     const originalFinalPrice = mockOrder.finalPrice;
-    const originalAppliedCouponId = mockOrder.appliedCouponId;
+    const originalappliedUserCouponId = mockOrder.appliedUserCouponId;
     const originalIdempotencyKey = mockOrder.idempotencyKey;
 
     orderRepository.findById.mockResolvedValue(mockOrder);
@@ -183,7 +183,7 @@ describe("ChangeOrderStatusUseCase", () => {
     expect(result.order.totalPrice).toBe(originalTotalPrice);
     expect(result.order.discountPrice).toBe(originalDiscountPrice);
     expect(result.order.finalPrice).toBe(originalFinalPrice);
-    expect(result.order.appliedCouponId).toBe(originalAppliedCouponId);
+    expect(result.order.appliedUserCouponId).toBe(originalappliedUserCouponId);
     expect(result.order.idempotencyKey).toBe(originalIdempotencyKey);
   });
 });

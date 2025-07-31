@@ -116,7 +116,7 @@ describe("CreateOrderUseCase", () => {
     // then
     expect(result.order.status).toBe(OrderStatus.PENDING);
     expect(result.order.discountPrice).toBe(0);
-    expect(result.order.appliedCouponId).toBeNull();
+    expect(result.order.appliedUserCouponId).toBeNull();
     expect(result.order.id).toBeDefined();
     expect(result.order.createdAt).toBeInstanceOf(Date);
     expect(result.order.updatedAt).toBeInstanceOf(Date);

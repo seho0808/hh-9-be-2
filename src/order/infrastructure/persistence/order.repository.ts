@@ -88,7 +88,7 @@ export class OrderRepository {
       status: entity.status,
       failedReason: entity.failedReason,
       idempotencyKey: entity.idempotencyKey,
-      appliedCouponId: entity.appliedCouponId,
+      appliedUserCouponId: entity.appliedUserCouponId,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       OrderItems: orderItems,
@@ -105,7 +105,7 @@ export class OrderRepository {
     entity.status = order.status;
     entity.failedReason = order.failedReason;
     entity.idempotencyKey = order.idempotencyKey;
-    entity.appliedCouponId = order.appliedCouponId;
+    entity.appliedUserCouponId = order.appliedUserCouponId;
     entity.createdAt = order.createdAt;
     entity.updatedAt = order.updatedAt;
     return entity;

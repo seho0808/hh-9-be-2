@@ -54,7 +54,7 @@ describe("ApplyDiscountUseCase", () => {
           idempotencyKey: uuidv4(),
         });
 
-        const appliedCouponId = uuidv4();
+        const appliedUserCouponId = uuidv4();
         const orderId = mockOrder.id;
 
         orderRepository.findById.mockResolvedValue(mockOrder);
@@ -62,7 +62,7 @@ describe("ApplyDiscountUseCase", () => {
         // when
         const result = await useCase.execute({
           orderId,
-          appliedCouponId,
+          appliedUserCouponId,
           discountPrice,
           discountedPrice,
         });
@@ -70,7 +70,7 @@ describe("ApplyDiscountUseCase", () => {
         // then
         expect(result.order.discountPrice).toBe(discountPrice);
         expect(result.order.finalPrice).toBe(discountedPrice);
-        expect(result.order.appliedCouponId).toBe(appliedCouponId);
+        expect(result.order.appliedUserCouponId).toBe(appliedUserCouponId);
         expect(result.order.totalPrice).toBe(totalPrice); // 원가는 변경되지 않음
         expect(result.order.updatedAt).toBeInstanceOf(Date);
       });
@@ -86,7 +86,7 @@ describe("ApplyDiscountUseCase", () => {
     await expect(
       useCase.execute({
         orderId: nonExistentOrderId,
-        appliedCouponId: uuidv4(),
+        appliedUserCouponId: uuidv4(),
         discountPrice: 1000,
         discountedPrice: 9000,
       })
@@ -106,7 +106,7 @@ describe("ApplyDiscountUseCase", () => {
 
     // 첫 번째 할인 적용
     mockOrder.applyDiscount({
-      appliedCouponId: "old-coupon",
+      appliedUserCouponId: "old-coupon",
       discountPrice: 2000,
       discountedPrice: 18000,
     });
@@ -117,13 +117,13 @@ describe("ApplyDiscountUseCase", () => {
     // when
     const result = await useCase.execute({
       orderId: mockOrder.id,
-      appliedCouponId: newCouponId,
+      appliedUserCouponId: newCouponId,
       discountPrice: 5000,
       discountedPrice: 15000,
     });
 
     // then
-    expect(result.order.appliedCouponId).toBe(newCouponId);
+    expect(result.order.appliedUserCouponId).toBe(newCouponId);
     expect(result.order.discountPrice).toBe(5000);
     expect(result.order.finalPrice).toBe(15000);
   });
@@ -144,7 +144,7 @@ describe("ApplyDiscountUseCase", () => {
     // when
     const result = await useCase.execute({
       orderId: mockOrder.id,
-      appliedCouponId: uuidv4(),
+      appliedUserCouponId: uuidv4(),
       discountPrice: 1000,
       discountedPrice: 9000,
     });

@@ -48,7 +48,7 @@ export class ProcessOrderUseCase {
       const { order: discountedOrder } =
         await this.applyDiscountUseCase.execute({
           orderId: order.id,
-          appliedCouponId: couponId,
+          appliedUserCouponId: couponId,
           discountPrice,
           discountedPrice,
         });

@@ -5,7 +5,7 @@ import { OrderRepository } from "@/order/infrastructure/persistence/order.reposi
 
 export interface ApplyDiscountUseCaseCommand {
   orderId: string;
-  appliedCouponId: string;
+  appliedUserCouponId: string;
   discountPrice: number;
   discountedPrice: number;
 }
@@ -21,7 +21,7 @@ export class ApplyDiscountUseCase {
   async execute(
     command: ApplyDiscountUseCaseCommand
   ): Promise<ApplyDiscountUseCaseResult> {
-    const { orderId, appliedCouponId, discountPrice, discountedPrice } =
+    const { orderId, appliedUserCouponId, discountPrice, discountedPrice } =
       command;
 
     const order = await this.orderRepository.findById(orderId);
@@ -30,7 +30,7 @@ export class ApplyDiscountUseCase {
     }
 
     order.applyDiscount({
-      appliedCouponId,
+      appliedUserCouponId,
       discountPrice,
       discountedPrice,
     });
