@@ -49,14 +49,6 @@ export class Order {
     });
   }
 
-  static fromPersistence(props: OrderProps): Order {
-    return new Order(props);
-  }
-
-  toPersistence(): OrderProps {
-    return this.props;
-  }
-
   changeStatus(status: OrderStatus): void {
     this.props.status = status;
     this.props.updatedAt = new Date();
@@ -122,6 +114,10 @@ export class Order {
 
   get appliedCouponId(): string | null {
     return this.props.appliedCouponId;
+  }
+
+  get failedReason(): string | null {
+    return this.props.failedReason;
   }
 
   get createdAt(): Date {

@@ -18,7 +18,7 @@ export interface StockReservationProps {
 
 export class StockReservation {
   private static readonly EXPIRATION_TIME = 1000 * 30; // 30 seconds
-  private constructor(private readonly props: StockReservationProps) {}
+  constructor(private readonly props: StockReservationProps) {}
 
   static create(
     props: Omit<
@@ -57,24 +57,6 @@ export class StockReservation {
     }
     this.props.isActive = false;
     this.props.updatedAt = new Date();
-  }
-
-  static fromPersistence(props: StockReservationProps): StockReservation {
-    return new StockReservation(props);
-  }
-
-  toPersistence(): StockReservationProps {
-    return {
-      id: this.props.id,
-      productId: this.props.productId,
-      userId: this.props.userId,
-      quantity: this.props.quantity,
-      idempotencyKey: this.props.idempotencyKey,
-      createdAt: this.props.createdAt,
-      updatedAt: this.props.updatedAt,
-      expiresAt: this.props.expiresAt,
-      isActive: this.props.isActive,
-    };
   }
 
   get id(): string {

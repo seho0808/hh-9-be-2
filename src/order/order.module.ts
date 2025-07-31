@@ -73,6 +73,7 @@ import { ProcessOrderUseCase } from "./application/use-cases/tier-2/process-orde
     ProcessOrderUseCase,
     RecoverOrderUseCase,
     OrderRepository,
+    OrderItemRepository,
     CouponRepository,
     UserCouponRepository,
     ProductRepository,

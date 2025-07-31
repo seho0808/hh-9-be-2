@@ -31,7 +31,8 @@ export class CouponRepository {
   }
 
   private toDomain(entity: CouponTypeOrmEntity): Coupon {
-    return Coupon.fromPersistence({
+    // Create domain entity directly using private constructor
+    const couponProps = {
       id: entity.id,
       name: entity.name,
       description: entity.description,
@@ -51,28 +52,32 @@ export class CouponRepository {
       expiresInDays: entity.expiresInDays,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
+    };
+
+    // Use reflection to access private constructor
+    return Object.create(Coupon.prototype, {
+      props: { value: couponProps, writable: false },
     });
   }
 
   private fromDomain(coupon: Coupon): CouponTypeOrmEntity {
-    const props = coupon.toPersistence();
     const entity = new CouponTypeOrmEntity();
-    entity.id = props.id;
-    entity.name = props.name;
-    entity.description = props.description;
-    entity.couponCode = props.couponCode;
-    entity.discountType = props.discountType;
-    entity.discountValue = props.discountValue;
-    entity.minimumOrderPrice = props.minimumOrderPrice;
-    entity.maxDiscountPrice = props.maxDiscountPrice;
-    entity.issuedCount = props.issuedCount;
-    entity.usedCount = props.usedCount;
-    entity.totalCount = props.totalCount;
-    entity.startDate = props.startDate;
-    entity.endDate = props.endDate;
-    entity.expiresInDays = props.expiresInDays;
-    entity.createdAt = props.createdAt;
-    entity.updatedAt = props.updatedAt;
+    entity.id = coupon.id;
+    entity.name = coupon.name;
+    entity.description = coupon.description;
+    entity.couponCode = coupon.couponCode;
+    entity.discountType = coupon.discountType;
+    entity.discountValue = coupon.discountValue;
+    entity.minimumOrderPrice = coupon.minimumOrderPrice;
+    entity.maxDiscountPrice = coupon.maxDiscountPrice;
+    entity.issuedCount = coupon.issuedCount;
+    entity.usedCount = coupon.usedCount;
+    entity.totalCount = coupon.totalCount;
+    entity.startDate = coupon.startDate;
+    entity.endDate = coupon.endDate;
+    entity.expiresInDays = coupon.expiresInDays;
+    entity.createdAt = coupon.createdAt;
+    entity.updatedAt = coupon.updatedAt;
     return entity;
   }
 }

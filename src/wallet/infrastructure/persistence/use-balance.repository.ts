@@ -25,7 +25,7 @@ export class UserBalanceRepository {
   }
 
   private toDomain(entity: UserBalanceTypeOrmEntity): UserBalance {
-    return UserBalance.fromPersistence({
+    return new UserBalance({
       id: entity.id,
       userId: entity.userId,
       balance: entity.balance,
@@ -35,13 +35,12 @@ export class UserBalanceRepository {
   }
 
   private fromDomain(domain: UserBalance): UserBalanceTypeOrmEntity {
-    const props = domain.toPersistence();
     const entity = new UserBalanceTypeOrmEntity();
-    entity.id = props.id;
-    entity.userId = props.userId;
-    entity.balance = props.balance;
-    entity.createdAt = props.createdAt;
-    entity.updatedAt = props.updatedAt;
+    entity.id = domain.id;
+    entity.userId = domain.userId;
+    entity.balance = domain.balance;
+    entity.createdAt = domain.createdAt;
+    entity.updatedAt = domain.updatedAt;
     return entity;
   }
 }

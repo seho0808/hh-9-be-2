@@ -65,18 +65,17 @@ export class ProductResponseDto {
   updatedAt: Date;
 
   static fromEntity(product: Product): ProductResponseDto {
-    const props = product.toPersistence();
     return {
-      id: props.id,
-      name: props.name,
-      description: props.description,
-      price: props.price,
-      totalStock: props.totalStock,
-      reservedStock: props.reservedStock,
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      totalStock: product.totalStock,
+      reservedStock: product.reservedStock,
       availableStock: product.getAvailableStock(),
-      isActive: props.isActive,
-      createdAt: props.createdAt,
-      updatedAt: props.updatedAt,
+      isActive: product.isActive,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
     };
   }
 }
@@ -177,12 +176,11 @@ export class PopularProductDto {
     totalQuantity: number,
     totalOrders: number
   ): PopularProductDto {
-    const props = product.toPersistence();
     return {
-      id: props.id,
-      name: props.name,
-      description: props.description,
-      price: props.price,
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
       availableStock: product.getAvailableStock(),
       salesCount: totalQuantity,
       totalOrders: totalOrders,

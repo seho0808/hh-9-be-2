@@ -10,7 +10,7 @@ export interface PointTransactionProps {
 }
 
 export class PointTransaction {
-  private constructor(private readonly props: PointTransactionProps) {}
+  constructor(private readonly props: PointTransactionProps) {}
 
   static create(
     props: Omit<PointTransactionProps, "id" | "createdAt">
@@ -20,16 +20,6 @@ export class PointTransaction {
       id: uuidv4(),
       createdAt: new Date(),
     });
-  }
-
-  static fromPersistence(props: PointTransactionProps): PointTransaction {
-    return new PointTransaction(props);
-  }
-
-  toPersistence(): PointTransactionProps {
-    return {
-      ...this.props,
-    };
   }
 
   get id(): string {

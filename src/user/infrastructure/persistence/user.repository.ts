@@ -33,7 +33,7 @@ export class UserRepository {
   }
 
   private toDomain(entity: UserTypeOrmEntity): User {
-    return User.fromPersistence({
+    return new User({
       id: entity.id,
       email: entity.email,
       password: entity.password,
@@ -44,14 +44,13 @@ export class UserRepository {
   }
 
   private fromDomain(user: User): UserTypeOrmEntity {
-    const props = user.toPersistence();
     const entity = new UserTypeOrmEntity();
-    entity.id = props.id;
-    entity.email = props.email;
-    entity.password = props.password;
-    entity.name = props.name;
-    entity.createdAt = props.createdAt;
-    entity.updatedAt = props.updatedAt;
+    entity.id = user.id;
+    entity.email = user.email;
+    entity.password = user.password;
+    entity.name = user.name;
+    entity.createdAt = user.createdAt;
+    entity.updatedAt = user.updatedAt;
     return entity;
   }
 }

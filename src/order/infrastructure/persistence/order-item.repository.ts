@@ -38,16 +38,15 @@ export class OrderItemRepository {
   }
 
   private fromDomain(orderItem: OrderItem): OrderItemTypeOrmEntity {
-    const props = orderItem.toPersistence();
     const entity = new OrderItemTypeOrmEntity();
-    entity.id = props.id;
-    entity.orderId = props.orderId;
-    entity.productId = props.productId;
-    entity.quantity = props.quantity;
-    entity.unitPrice = props.unitPrice;
-    entity.totalPrice = props.totalPrice;
-    entity.createdAt = props.createdAt;
-    entity.updatedAt = props.updatedAt;
+    entity.id = orderItem.id;
+    entity.orderId = orderItem.orderId;
+    entity.productId = orderItem.productId;
+    entity.quantity = orderItem.quantity;
+    entity.unitPrice = orderItem.unitPrice;
+    entity.totalPrice = orderItem.totalPrice;
+    entity.createdAt = orderItem.createdAt;
+    entity.updatedAt = orderItem.updatedAt;
     return entity;
   }
 }

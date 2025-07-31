@@ -114,14 +114,13 @@ export class OrderItemResponseDto {
     orderItem: OrderItem,
     productName?: string
   ): OrderItemResponseDto {
-    const props = orderItem.toPersistence();
     return {
-      id: props.id,
-      productId: props.productId,
-      productName: productName || props.productId, // For simplicity, use productId if name not provided
-      quantity: props.quantity,
-      unitPrice: props.unitPrice,
-      totalPrice: props.totalPrice,
+      id: orderItem.id,
+      productId: orderItem.productId,
+      productName: productName || orderItem.productId, // For simplicity, use productId if name not provided
+      quantity: orderItem.quantity,
+      unitPrice: orderItem.unitPrice,
+      totalPrice: orderItem.totalPrice,
     };
   }
 }
@@ -202,22 +201,21 @@ export class OrderResponseDto {
   updatedAt: Date;
 
   static fromEntity(order: Order): OrderResponseDto {
-    const props = order.toPersistence();
     return {
-      id: props.id,
-      userId: props.userId,
-      items: props.OrderItems.map((item) =>
+      id: order.id,
+      userId: order.userId,
+      items: order.orderItems.map((item) =>
         OrderItemResponseDto.fromEntity(item)
       ),
-      totalAmount: props.totalPrice,
-      discountAmount: props.discountPrice,
-      finalAmount: props.finalPrice,
-      status: props.status as OrderStatus,
-      usedCouponId: props.appliedCouponId,
-      usedCouponName: props.appliedCouponId, // For simplicity
-      idempotencyKey: props.idempotencyKey,
-      createdAt: props.createdAt,
-      updatedAt: props.updatedAt,
+      totalAmount: order.totalPrice,
+      discountAmount: order.discountPrice,
+      finalAmount: order.finalPrice,
+      status: order.status as OrderStatus,
+      usedCouponId: order.appliedCouponId,
+      usedCouponName: order.appliedCouponId, // For simplicity
+      idempotencyKey: order.idempotencyKey,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
     };
   }
 }

@@ -54,11 +54,10 @@ export class BalanceResponseDto {
   updatedAt: Date;
 
   static fromEntity(userBalance: UserBalance): BalanceResponseDto {
-    const props = userBalance.toPersistence();
     return {
-      userId: props.userId,
-      balance: props.balance,
-      updatedAt: props.updatedAt,
+      userId: userBalance.userId,
+      balance: userBalance.balance,
+      updatedAt: userBalance.updatedAt,
     };
   }
 }
@@ -92,13 +91,11 @@ export class ChargeResponseDto {
     userBalance: UserBalance,
     pointTransaction: PointTransaction
   ): ChargeResponseDto {
-    const props = pointTransaction.toPersistence();
-    const userBalanceProps = userBalance.toPersistence();
     return {
-      transactionId: props.id,
-      amount: props.amount,
-      newBalance: userBalanceProps.balance,
-      chargedAt: props.createdAt,
+      transactionId: pointTransaction.id,
+      amount: pointTransaction.amount,
+      newBalance: userBalance.balance,
+      chargedAt: pointTransaction.createdAt,
     };
   }
 }
