@@ -6,7 +6,13 @@ import {
   UpdateDateColumn,
   Index,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
+  OneToOne,
 } from "typeorm";
+import { UserTypeOrmEntity } from "@/user/infrastructure/persistence/orm/user.typeorm.entity";
+import { UserCouponTypeOrmEntity } from "@/coupon/infrastructure/persistence/orm/user-coupon.typeorm.entity";
+import { OrderItemTypeOrmEntity } from "./order-item.typeorm.entity";
 
 export enum OrderStatus {
   PENDING = "PENDING",
@@ -58,8 +64,15 @@ export class OrderTypeOrmEntity {
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
 
-  @OneToMany("OrderItemTypeOrmEntity", "order", {
+  @OneToMany(() => OrderItemTypeOrmEntity, "order", {
     cascade: true,
   })
-  orderItems: any[];
+  orderItems: OrderItemTypeOrmEntity[];
+
+  @ManyToOne(() => UserTypeOrmEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
+  user: UserTypeOrmEntity;
+
+  @OneToOne(() => UserCouponTypeOrmEntity, { onDelete: "SET NULL" })
+  appliedCoupon?: UserCouponTypeOrmEntity;
 }

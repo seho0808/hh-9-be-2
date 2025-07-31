@@ -5,7 +5,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  OneToMany,
 } from "typeorm";
+import { UserCouponTypeOrmEntity } from "./user-coupon.typeorm.entity";
 
 @Entity("coupons")
 export class CouponTypeOrmEntity {
@@ -60,4 +62,7 @@ export class CouponTypeOrmEntity {
 
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
+
+  @OneToMany(() => UserCouponTypeOrmEntity, "coupon")
+  userCoupons: UserCouponTypeOrmEntity[];
 }

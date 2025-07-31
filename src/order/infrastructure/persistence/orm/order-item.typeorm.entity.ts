@@ -9,6 +9,7 @@ import {
   JoinColumn,
 } from "typeorm";
 import { OrderTypeOrmEntity } from "./order.typeorm.entity";
+import { ProductTypeOrmEntity } from "@/product/infrastructure/persistence/orm/product.typeorm.entity";
 
 @Entity("order_items")
 export class OrderItemTypeOrmEntity {
@@ -43,4 +44,8 @@ export class OrderItemTypeOrmEntity {
   })
   @JoinColumn({ name: "order_id" })
   order: OrderTypeOrmEntity;
+
+  @ManyToOne(() => ProductTypeOrmEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "product_id" })
+  product: ProductTypeOrmEntity;
 }

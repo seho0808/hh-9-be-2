@@ -5,7 +5,10 @@ import {
   Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from "typeorm";
+import { UserTypeOrmEntity } from "@/user/infrastructure/persistence/orm/user.typeorm.entity";
 
 @Entity("user_balances")
 export class UserBalanceTypeOrmEntity {
@@ -24,4 +27,8 @@ export class UserBalanceTypeOrmEntity {
 
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
+
+  @ManyToOne(() => UserTypeOrmEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
+  user: UserTypeOrmEntity;
 }
