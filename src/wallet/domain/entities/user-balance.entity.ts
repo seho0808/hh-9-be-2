@@ -19,7 +19,7 @@ export class UserBalance {
   public static readonly MAX_BALANCE = 1_000_000_000;
   public static readonly CHARGE_UNIT = 10;
 
-  private constructor(private readonly props: UserBalanceProps) {}
+  constructor(private readonly props: UserBalanceProps) {}
 
   static create(
     props: Omit<UserBalanceProps, "id" | "createdAt" | "updatedAt">
@@ -58,16 +58,6 @@ export class UserBalance {
 
     this.props.balance -= amount;
     this.props.updatedAt = new Date();
-  }
-
-  static fromPersistence(props: UserBalanceProps): UserBalance {
-    return new UserBalance(props);
-  }
-
-  toPersistence(): UserBalanceProps {
-    return {
-      ...this.props,
-    };
   }
 
   get balance(): number {

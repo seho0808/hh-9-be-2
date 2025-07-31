@@ -139,14 +139,6 @@ export class Coupon {
     return this.props.totalCount - this.props.issuedCount;
   }
 
-  static fromPersistence(props: CouponProps): Coupon {
-    return new Coupon(props);
-  }
-
-  toPersistence(): CouponProps {
-    return { ...this.props };
-  }
-
   static isValidDiscountValue(
     type: CouponDiscountType,
     value: number
@@ -172,6 +164,10 @@ export class Coupon {
 
   get description(): string {
     return this.props.description;
+  }
+
+  get couponCode(): string {
+    return this.props.couponCode;
   }
 
   get discountType(): CouponDiscountType {
@@ -208,6 +204,10 @@ export class Coupon {
 
   get endDate(): Date {
     return this.props.endDate;
+  }
+
+  get expiresInDays(): number {
+    return this.props.expiresInDays;
   }
 
   get createdAt(): Date {

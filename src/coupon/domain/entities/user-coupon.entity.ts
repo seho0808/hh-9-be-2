@@ -29,7 +29,7 @@ export interface UserCouponProps {
 }
 
 export class UserCoupon {
-  private constructor(private readonly props: UserCouponProps) {}
+  constructor(private readonly props: UserCouponProps) {}
 
   static create(
     props: Omit<
@@ -120,14 +120,6 @@ export class UserCoupon {
     return this.props.status === UserCouponStatus.CANCELLED;
   }
 
-  static fromPersistence(props: UserCouponProps): UserCoupon {
-    return new UserCoupon(props);
-  }
-
-  toPersistence(): UserCouponProps {
-    return { ...this.props };
-  }
-
   get id(): string {
     return this.props.id;
   }
@@ -150,6 +142,14 @@ export class UserCoupon {
 
   get status(): UserCouponStatus {
     return this.props.status;
+  }
+
+  get issuedIdempotencyKey(): string {
+    return this.props.issuedIdempotencyKey;
+  }
+
+  get usedIdempotencyKey(): string | null {
+    return this.props.usedIdempotencyKey;
   }
 
   get expiresAt(): Date | null {
