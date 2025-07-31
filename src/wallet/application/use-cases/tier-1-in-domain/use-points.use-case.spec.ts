@@ -4,37 +4,48 @@ import {
   InsufficientPointBalanceError,
   UserBalanceNotFoundError,
 } from "@/wallet/domain/exceptions/point.exceptions";
-import { UserBalanceRepositoryInterface } from "@/wallet/domain/interfaces/user-balance.repository.interface";
-import { PointTransactionRepositoryInterface } from "@/wallet/domain/interfaces/point-transaction.repository.interface";
 import { v4 as uuidv4 } from "uuid";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
 
+jest.mock("@/wallet/infrastructure/persistence/use-balance.repository");
+jest.mock("@/wallet/infrastructure/persistence/point-transaction.repository");
+jest.mock("typeorm-transactional", () => ({
+  Transactional: () => () => ({}),
+}));
+
+import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
+import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
+import { Test } from "@nestjs/testing";
+
 describe("UsePointsUseCase", () => {
   let useCase: UsePointsUseCase;
-  let userBalanceRepository: jest.Mocked<UserBalanceRepositoryInterface>;
-  let pointTransactionRepository: jest.Mocked<PointTransactionRepositoryInterface>;
+  let userBalanceRepository: jest.Mocked<UserBalanceRepository>;
+  let pointTransactionRepository: jest.Mocked<PointTransactionRepository>;
   let validatePointTransactionService: ValidatePointTransactionService;
   const mockUserId = "test-user-id";
 
-  beforeEach(() => {
-    userBalanceRepository = {
-      findByUserId: jest.fn(),
-      save: jest.fn(),
-    };
+  beforeEach(async () => {
+    const module = await Test.createTestingModule({
+      providers: [
+        UsePointsUseCase,
+        UserBalanceRepository,
+        PointTransactionRepository,
+        ValidatePointTransactionService,
+      ],
+    }).compile();
 
-    pointTransactionRepository = {
-      findByUserId: jest.fn(),
-      findByOrderIdempotencyKey: jest.fn(),
-      save: jest.fn(),
-    };
-
-    validatePointTransactionService = new ValidatePointTransactionService();
-
-    useCase = new UsePointsUseCase(
-      userBalanceRepository,
-      pointTransactionRepository,
-      validatePointTransactionService
+    useCase = module.get<UsePointsUseCase>(UsePointsUseCase);
+    userBalanceRepository = module.get<jest.Mocked<UserBalanceRepository>>(
+      UserBalanceRepository
     );
+    pointTransactionRepository = module.get<
+      jest.Mocked<PointTransactionRepository>
+    >(PointTransactionRepository);
+
+    validatePointTransactionService =
+      module.get<ValidatePointTransactionService>(
+        ValidatePointTransactionService
+      );
   });
 
   const validUseTestCases: Array<

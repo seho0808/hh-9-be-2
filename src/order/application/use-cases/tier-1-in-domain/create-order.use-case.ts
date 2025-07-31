@@ -1,9 +1,9 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { Order, OrderStatus } from "@/order/domain/entities/order.entitiy";
-import { OrderRepositoryInterface } from "@/order/domain/interfaces/order.repository.interface";
-import { OrderItemRepositoryInterface } from "@/order/domain/interfaces/order-item.repository.interface";
 import { Transactional } from "typeorm-transactional";
 import { OrderItem } from "@/order/domain/entities/order-item.entity";
+import { OrderRepository } from "@/order/infrastructure/persistence/order.repository";
+import { OrderItemRepository } from "@/order/infrastructure/persistence/order-item.repository";
 
 export interface CreateOrderUseCaseCommand {
   userId: string;
@@ -22,10 +22,8 @@ export interface CreateOrderUseCaseResult {
 @Injectable()
 export class CreateOrderUseCase {
   constructor(
-    @Inject("OrderRepositoryInterface")
-    private readonly orderRepository: OrderRepositoryInterface,
-    @Inject("OrderItemRepositoryInterface")
-    private readonly orderItemRepository: OrderItemRepositoryInterface
+    private readonly orderRepository: OrderRepository,
+    private readonly orderItemRepository: OrderItemRepository
   ) {}
 
   @Transactional()

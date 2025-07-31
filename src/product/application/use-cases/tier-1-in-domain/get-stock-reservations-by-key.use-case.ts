@@ -1,6 +1,6 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { StockReservationRepositoryInterface } from "@/product/domain/interfaces/stock-reservation.repository.interface";
+import { Injectable } from "@nestjs/common";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
+import { StockReservationRepository } from "@/product/infrastructure/persistence/stock-reservations.repository";
 import { Transactional } from "typeorm-transactional";
 
 export interface GetStockReservationsByKeyUseCaseCommand {
@@ -14,8 +14,7 @@ export interface GetStockReservationsByKeyUseCaseResult {
 @Injectable()
 export class GetStockReservationsByKeyUseCase {
   constructor(
-    @Inject("StockReservationRepositoryInterface")
-    private readonly stockReservationRepository: StockReservationRepositoryInterface
+    private readonly stockReservationRepository: StockReservationRepository
   ) {}
 
   @Transactional()

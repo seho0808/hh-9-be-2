@@ -1,6 +1,6 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { ProductRepositoryInterface } from "@/product/domain/interfaces/product.repository.interface";
+import { Injectable } from "@nestjs/common";
 import { Product } from "@/product/domain/entities/product.entity";
+import { ProductRepository } from "@/product/infrastructure/persistence/product.repository";
 import { Transactional } from "typeorm-transactional";
 
 export interface GetAllProductsCommand {
@@ -20,10 +20,7 @@ export interface GetAllProductsResult {
 
 @Injectable()
 export class GetAllProductsUseCase {
-  constructor(
-    @Inject("ProductRepositoryInterface")
-    private readonly productRepository: ProductRepositoryInterface
-  ) {}
+  constructor(private readonly productRepository: ProductRepository) {}
 
   @Transactional()
   async execute(command: GetAllProductsCommand): Promise<GetAllProductsResult> {

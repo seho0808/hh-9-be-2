@@ -12,40 +12,34 @@ import {
 } from "@/coupon/domain/entities/user-coupon.entity";
 import { v4 as uuidv4 } from "uuid";
 
+jest.mock("@/coupon/infrastructure/persistence/user-coupon.repository");
+jest.mock("@/coupon/infrastructure/persistence/coupon.repository");
 jest.mock("typeorm-transactional", () => ({
   Transactional: () => () => ({}),
 }));
+
+import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
+import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
+
 describe("CancelUserCouponUseCase", () => {
   let useCase: CancelUserCouponUseCase;
-  let userCouponRepository: any;
-  let couponRepository: any;
+  let userCouponRepository: jest.Mocked<UserCouponRepository>;
+  let couponRepository: jest.Mocked<CouponRepository>;
 
   beforeEach(async () => {
-    userCouponRepository = {
-      findById: jest.fn(),
-      save: jest.fn(),
-    };
-
-    couponRepository = {
-      findById: jest.fn(),
-      save: jest.fn(),
-    };
-
     const module = await Test.createTestingModule({
       providers: [
         CancelUserCouponUseCase,
-        {
-          provide: "UserCouponRepositoryInterface",
-          useValue: userCouponRepository,
-        },
-        {
-          provide: "CouponRepositoryInterface",
-          useValue: couponRepository,
-        },
+        UserCouponRepository,
+        CouponRepository,
       ],
     }).compile();
 
     useCase = module.get<CancelUserCouponUseCase>(CancelUserCouponUseCase);
+    userCouponRepository =
+      module.get<jest.Mocked<UserCouponRepository>>(UserCouponRepository);
+    couponRepository =
+      module.get<jest.Mocked<CouponRepository>>(CouponRepository);
   });
 
   describe("쿠폰 취소 성공 케이스", () => {

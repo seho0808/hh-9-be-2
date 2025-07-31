@@ -1,12 +1,9 @@
-import { Injectable, Inject } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
-import {
-  InsufficientPointBalanceError,
-  UserBalanceNotFoundError,
-} from "@/wallet/domain/exceptions/point.exceptions";
-import { PointTransactionRepositoryInterface } from "@/wallet/domain/interfaces/point-transaction.repository.interface";
-import { UserBalanceRepositoryInterface } from "@/wallet/domain/interfaces/user-balance.repository.interface";
+import { UserBalanceNotFoundError } from "@/wallet/domain/exceptions/point.exceptions";
+import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
+import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
 
 export interface UsePointsUseCaseCommand {
@@ -23,10 +20,8 @@ export interface UsePointsUseCaseResult {
 @Injectable()
 export class UsePointsUseCase {
   constructor(
-    @Inject("UserBalanceRepositoryInterface")
-    private readonly userBalanceRepository: UserBalanceRepositoryInterface,
-    @Inject("PointTransactionRepositoryInterface")
-    private readonly pointTransactionRepository: PointTransactionRepositoryInterface,
+    private readonly userBalanceRepository: UserBalanceRepository,
+    private readonly pointTransactionRepository: PointTransactionRepository,
     private readonly validatePointTransactionService: ValidatePointTransactionService
   ) {}
 

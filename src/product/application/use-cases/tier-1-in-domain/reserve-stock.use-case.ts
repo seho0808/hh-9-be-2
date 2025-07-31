@@ -1,11 +1,11 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { ProductRepositoryInterface } from "@/product/domain/interfaces/product.repository.interface";
+import { Injectable } from "@nestjs/common";
 import { Product } from "@/product/domain/entities/product.entity";
 import { ProductNotFoundError } from "@/product/domain/exceptions/product.exceptions";
-import { StockReservationRepositoryInterface } from "@/product/domain/interfaces/stock-reservation.repository.interface";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { Transactional } from "typeorm-transactional";
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
+import { StockReservationRepository } from "@/product/infrastructure/persistence/stock-reservations.repository";
+import { ProductRepository } from "@/product/infrastructure/persistence/product.repository";
 
 export interface ReserveStockCommand {
   productId: string;
@@ -17,10 +17,8 @@ export interface ReserveStockCommand {
 @Injectable()
 export class ReserveStockUseCase {
   constructor(
-    @Inject("ProductRepositoryInterface")
-    private readonly productRepository: ProductRepositoryInterface,
-    @Inject("StockReservationRepositoryInterface")
-    private readonly stockReservationRepository: StockReservationRepositoryInterface,
+    private readonly productRepository: ProductRepository,
+    private readonly stockReservationRepository: StockReservationRepository,
     private readonly validateStockService: ValidateStockService
   ) {}
 

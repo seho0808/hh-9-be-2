@@ -1,14 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { StockReservationRepositoryInterface } from "@/product/domain/interfaces/stock-reservation.repository.interface";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { StockReservationTypeOrmEntity } from "./orm/stock-reservations.typeorm.entity";
 
 @Injectable()
-export class StockReservationRepository
-  implements StockReservationRepositoryInterface
-{
+export class StockReservationRepository {
   constructor(
     @InjectRepository(StockReservationTypeOrmEntity)
     private readonly stockReservationRepository: Repository<StockReservationTypeOrmEntity>

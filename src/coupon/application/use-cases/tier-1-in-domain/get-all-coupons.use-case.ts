@@ -1,6 +1,6 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { CouponRepositoryInterface } from "@/coupon/domain/interfaces/coupon.repository.interface";
+import { Injectable } from "@nestjs/common";
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
+import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 
 export interface GetAllCouponsResult {
   coupons: Coupon[];
@@ -8,10 +8,7 @@ export interface GetAllCouponsResult {
 
 @Injectable()
 export class GetAllCouponsUseCase {
-  constructor(
-    @Inject("CouponRepositoryInterface")
-    private readonly couponRepository: CouponRepositoryInterface
-  ) {}
+  constructor(private readonly couponRepository: CouponRepository) {}
 
   async execute(): Promise<GetAllCouponsResult> {
     const coupons = await this.couponRepository.findAll();

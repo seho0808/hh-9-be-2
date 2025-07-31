@@ -4,27 +4,24 @@ import { Order, OrderStatus } from "@/order/domain/entities/order.entitiy";
 import { OrderNotFoundError } from "@/order/domain/exceptions/order.exceptions";
 import { v4 as uuidv4 } from "uuid";
 
+jest.mock("@/order/infrastructure/persistence/order.repository");
+jest.mock("typeorm-transactional", () => ({
+  Transactional: () => () => ({}),
+}));
+
+import { OrderRepository } from "@/order/infrastructure/persistence/order.repository";
+
 describe("ApplyDiscountUseCase", () => {
   let useCase: ApplyDiscountUseCase;
-  let orderRepository: any;
+  let orderRepository: jest.Mocked<OrderRepository>;
 
   beforeEach(async () => {
-    orderRepository = {
-      findById: jest.fn(),
-      save: jest.fn(),
-    };
-
     const module = await Test.createTestingModule({
-      providers: [
-        ApplyDiscountUseCase,
-        {
-          provide: "OrderRepositoryInterface",
-          useValue: orderRepository,
-        },
-      ],
+      providers: [ApplyDiscountUseCase, OrderRepository],
     }).compile();
 
     useCase = module.get<ApplyDiscountUseCase>(ApplyDiscountUseCase);
+    orderRepository = module.get<jest.Mocked<OrderRepository>>(OrderRepository);
   });
 
   const discountApplicationTestCases: Array<

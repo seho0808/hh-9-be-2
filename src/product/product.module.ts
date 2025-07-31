@@ -41,14 +41,8 @@ import { ValidateStockService } from "./domain/services/validate-stock.service";
     GetStockReservationsByKeyUseCase,
     GetPopularProductsWithDetailUseCase,
     ValidateStockService,
-    {
-      provide: "ProductRepositoryInterface",
-      useClass: ProductRepository,
-    },
-    {
-      provide: "StockReservationRepositoryInterface",
-      useClass: StockReservationRepository,
-    },
+    ProductRepository,
+    StockReservationRepository,
   ],
   exports: [
     GetProductsPriceUseCase,

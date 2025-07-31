@@ -10,27 +10,25 @@ import {
 } from "@/coupon/domain/entities/user-coupon.entity";
 import { v4 as uuidv4 } from "uuid";
 
+jest.mock("@/coupon/infrastructure/persistence/user-coupon.repository");
+jest.mock("typeorm-transactional", () => ({
+  Transactional: () => () => ({}),
+}));
+
+import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
+
 describe("RecoverUserCouponUseCase", () => {
   let useCase: RecoverUserCouponUseCase;
-  let userCouponRepository: any;
+  let userCouponRepository: jest.Mocked<UserCouponRepository>;
 
   beforeEach(async () => {
-    userCouponRepository = {
-      findById: jest.fn(),
-      save: jest.fn(),
-    };
-
     const module = await Test.createTestingModule({
-      providers: [
-        RecoverUserCouponUseCase,
-        {
-          provide: "UserCouponRepositoryInterface",
-          useValue: userCouponRepository,
-        },
-      ],
+      providers: [RecoverUserCouponUseCase, UserCouponRepository],
     }).compile();
 
     useCase = module.get<RecoverUserCouponUseCase>(RecoverUserCouponUseCase);
+    userCouponRepository =
+      module.get<jest.Mocked<UserCouponRepository>>(UserCouponRepository);
   });
 
   describe("쿠폰 복구 성공 케이스", () => {

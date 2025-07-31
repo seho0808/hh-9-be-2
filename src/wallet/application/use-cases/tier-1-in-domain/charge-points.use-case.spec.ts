@@ -4,33 +4,41 @@ import {
   InvalidChargeAmountError,
   UserBalanceNotFoundError,
 } from "@/wallet/domain/exceptions/point.exceptions";
-import { UserBalanceRepositoryInterface } from "@/wallet/domain/interfaces/user-balance.repository.interface";
-import { PointTransactionRepositoryInterface } from "@/wallet/domain/interfaces/point-transaction.repository.interface";
 import { v4 as uuidv4 } from "uuid";
+
+jest.mock("@/wallet/infrastructure/persistence/use-balance.repository");
+jest.mock("@/wallet/infrastructure/persistence/point-transaction.repository");
+jest.mock("typeorm-transactional", () => ({
+  Transactional: () => () => ({}),
+}));
+
+import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
+import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
+import { Test } from "@nestjs/testing";
 
 describe("ChargePointsUseCase", () => {
   let useCase: ChargePointsUseCase;
-  let userBalanceRepository: jest.Mocked<UserBalanceRepositoryInterface>;
-  let pointTransactionRepository: jest.Mocked<PointTransactionRepositoryInterface>;
+  let userBalanceRepository: jest.Mocked<UserBalanceRepository>;
+  let pointTransactionRepository: jest.Mocked<PointTransactionRepository>;
 
   const mockUserId = "test-user-id";
 
-  beforeEach(() => {
-    userBalanceRepository = {
-      findByUserId: jest.fn(),
-      save: jest.fn(),
-    };
+  beforeEach(async () => {
+    const module = await Test.createTestingModule({
+      providers: [
+        ChargePointsUseCase,
+        UserBalanceRepository,
+        PointTransactionRepository,
+      ],
+    }).compile();
 
-    pointTransactionRepository = {
-      findByUserId: jest.fn(),
-      findByOrderIdempotencyKey: jest.fn(),
-      save: jest.fn(),
-    };
-
-    useCase = new ChargePointsUseCase(
-      userBalanceRepository,
-      pointTransactionRepository
+    useCase = module.get<ChargePointsUseCase>(ChargePointsUseCase);
+    userBalanceRepository = module.get<jest.Mocked<UserBalanceRepository>>(
+      UserBalanceRepository
     );
+    pointTransactionRepository = module.get<
+      jest.Mocked<PointTransactionRepository>
+    >(PointTransactionRepository);
   });
 
   const validChargeTestCases: Array<

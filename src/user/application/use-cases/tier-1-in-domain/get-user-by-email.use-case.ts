@@ -1,13 +1,10 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { UserRepositoryInterface } from "@/user/domain/interfaces/user.repository.interface";
+import { Injectable } from "@nestjs/common";
 import { User } from "@/user/domain/entities/user.entity";
+import { UserRepository } from "@/user/infrastructure/persistence/user.repository";
 
 @Injectable()
 export class GetUserByEmailUseCase {
-  constructor(
-    @Inject("UserRepositoryInterface")
-    private readonly userRepository: UserRepositoryInterface
-  ) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   async execute(email: string): Promise<User | null> {
     return this.userRepository.findByEmail(email);

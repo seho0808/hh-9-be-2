@@ -3,39 +3,29 @@ import { CreateOrderUseCase } from "./create-order.use-case";
 import { OrderStatus } from "@/order/domain/entities/order.entitiy";
 import { v4 as uuidv4 } from "uuid";
 
+jest.mock("@/order/infrastructure/persistence/order.repository");
+jest.mock("@/order/infrastructure/persistence/order-item.repository");
 jest.mock("typeorm-transactional", () => ({
   Transactional: () => () => ({}),
 }));
 
+import { OrderRepository } from "@/order/infrastructure/persistence/order.repository";
+import { OrderItemRepository } from "@/order/infrastructure/persistence/order-item.repository";
+
 describe("CreateOrderUseCase", () => {
   let useCase: CreateOrderUseCase;
-  let orderRepository: any;
-  let orderItemRepository: any;
+  let orderRepository: jest.Mocked<OrderRepository>;
+  let orderItemRepository: jest.Mocked<OrderItemRepository>;
 
   beforeEach(async () => {
-    orderRepository = {
-      save: jest.fn(),
-    };
-
-    orderItemRepository = {
-      save: jest.fn(),
-    };
-
     const module = await Test.createTestingModule({
-      providers: [
-        CreateOrderUseCase,
-        {
-          provide: "OrderRepositoryInterface",
-          useValue: orderRepository,
-        },
-        {
-          provide: "OrderItemRepositoryInterface",
-          useValue: orderItemRepository,
-        },
-      ],
+      providers: [CreateOrderUseCase, OrderRepository, OrderItemRepository],
     }).compile();
 
     useCase = module.get<CreateOrderUseCase>(CreateOrderUseCase);
+    orderRepository = module.get<jest.Mocked<OrderRepository>>(OrderRepository);
+    orderItemRepository =
+      module.get<jest.Mocked<OrderItemRepository>>(OrderItemRepository);
   });
 
   const orderCreationTestCases: Array<

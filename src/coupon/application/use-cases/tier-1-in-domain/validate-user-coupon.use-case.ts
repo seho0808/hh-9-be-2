@@ -1,8 +1,8 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { CouponRepositoryInterface } from "@/coupon/domain/interfaces/coupon.repository.interface";
-import { UserCouponRepositoryInterface } from "@/coupon/domain/interfaces/user-coupon.repository.interface";
+import { Injectable } from "@nestjs/common";
 import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
 import { ValidateUserCouponService } from "@/coupon/domain/services/validate-user-coupon.service";
+import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
+import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
 
 export interface ValidateCouponCommand {
   couponId: string;
@@ -19,10 +19,8 @@ export interface ValidateCouponResult {
 @Injectable()
 export class ValidateCouponUseCase {
   constructor(
-    @Inject("CouponRepositoryInterface")
-    private readonly couponRepository: CouponRepositoryInterface,
-    @Inject("UserCouponRepositoryInterface")
-    private readonly userCouponRepository: UserCouponRepositoryInterface,
+    private readonly couponRepository: CouponRepository,
+    private readonly userCouponRepository: UserCouponRepository,
     private readonly validateUserCouponService: ValidateUserCouponService
   ) {}
 
