@@ -101,7 +101,7 @@ describe("CancelUserCouponUseCase", () => {
 
       // NOTE: 다른 유스케이스 가져다가 써야할수도
       const { discountPrice } = coupon.use(50000);
-      userCoupon.use("order-1", discountPrice, uuidv4());
+      userCoupon.use("order-1", discountPrice);
 
       const initialUsedCount = coupon.usedCount;
 

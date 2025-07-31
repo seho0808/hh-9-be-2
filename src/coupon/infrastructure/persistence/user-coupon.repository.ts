@@ -53,7 +53,6 @@ export class UserCouponRepository {
     entity.discountPrice = userCoupon.discountPrice;
     entity.status = userCoupon.status;
     entity.issuedIdempotencyKey = userCoupon.issuedIdempotencyKey;
-    entity.usedIdempotencyKey = userCoupon.usedIdempotencyKey;
     entity.expiresAt = userCoupon.expiresAt;
     entity.usedAt = userCoupon.usedAt;
     entity.cancelledAt = userCoupon.cancelledAt;
@@ -71,7 +70,6 @@ export class UserCouponRepository {
       discountPrice: entity.discountPrice,
       status: entity.status as UserCouponStatus,
       issuedIdempotencyKey: entity.issuedIdempotencyKey,
-      usedIdempotencyKey: entity.usedIdempotencyKey,
       expiresAt: entity.expiresAt,
       usedAt: entity.usedAt,
       cancelledAt: entity.cancelledAt,
