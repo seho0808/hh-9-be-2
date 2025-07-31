@@ -46,7 +46,7 @@ export class OrderTypeOrmEntity {
   @Column({ type: "text", name: "failed_reason", nullable: true })
   failedReason: string | null;
 
-  @Column({ type: "varchar", length: 255, name: "idempotency_key" })
+  @Column({ type: "varchar", length: 100, name: "idempotency_key" })
   @Index("idx_orders_idempotency_key", { unique: true })
   idempotencyKey: string;
 

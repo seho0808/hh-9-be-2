@@ -31,10 +31,15 @@ export class PointTransactionTypeOrmEntity {
   @Column({ type: "enum", name: "type", enum: PointTransactionType })
   type: PointTransactionType;
 
-  @Column({ type: "varchar", name: "idempotency_key", nullable: true })
+  @Column({
+    type: "varchar",
+    length: 100,
+    name: "idempotency_key",
+    nullable: true,
+  })
   idempotencyKey: string | null;
 
-  @Column({ type: "varchar", name: "ref_id", nullable: true })
+  @Column({ type: "varchar", length: 100, name: "ref_id", nullable: true })
   refId: string | null;
 
   @CreateDateColumn({ name: "created_at" })

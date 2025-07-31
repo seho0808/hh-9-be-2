@@ -12,7 +12,7 @@ export class ProductTypeOrmEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: "varchar", length: 255, unique: true })
+  @Column({ type: "varchar", length: 100, unique: true })
   @Index("idx_products_name")
   name: string;
 
