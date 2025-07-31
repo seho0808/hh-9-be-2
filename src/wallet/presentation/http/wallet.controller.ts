@@ -76,6 +76,7 @@ export class WalletController {
       userId: user.id,
       amount: chargeDto.amount,
       idempotencyKey: chargeDto.idempotencyKey ?? uuidv4(),
+      refId: null,
     });
     return ApiResponseDto.success(
       ChargeResponseDto.fromEntity(result.userBalance, result.pointTransaction),

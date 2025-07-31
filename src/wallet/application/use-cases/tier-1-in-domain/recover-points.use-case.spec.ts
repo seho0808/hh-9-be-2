@@ -70,12 +70,13 @@ describe("RecoverPointsUseCase", () => {
         });
 
         userBalanceRepository.findByUserId.mockResolvedValue(existingBalance);
-        pointTransactionRepository.findByOrderIdempotencyKey.mockResolvedValue([
+        pointTransactionRepository.findByRefId.mockResolvedValue([
           PointTransaction.create({
             userId: mockUserId,
             amount: recoverAmount,
             type: "USE",
-            idempotencyKey: "test-idempotency-key",
+            idempotencyKey: null,
+            refId: "test-order-id",
           }),
         ]);
 
@@ -83,7 +84,7 @@ describe("RecoverPointsUseCase", () => {
         const result = await useCase.execute({
           userId: mockUserId,
           amount: recoverAmount,
-          idempotencyKey: "test-idempotency-key",
+          refId: "test-order-id",
         });
 
         // then
@@ -104,7 +105,7 @@ describe("RecoverPointsUseCase", () => {
       useCase.execute({
         userId: mockUserId,
         amount: 10000,
-        idempotencyKey: uuidv4(),
+        refId: "test-order-id",
       })
     ).rejects.toThrow(UserBalanceNotFoundError);
   });
@@ -117,14 +118,14 @@ describe("RecoverPointsUseCase", () => {
         balance: 10000,
       })
     );
-    pointTransactionRepository.findByOrderIdempotencyKey.mockResolvedValue([]);
+    pointTransactionRepository.findByRefId.mockResolvedValue([]);
 
     // when & then
     await expect(
       useCase.execute({
         userId: mockUserId,
         amount: 10000,
-        idempotencyKey: uuidv4(),
+        refId: "test-order-id",
       })
     ).rejects.toThrow(PointTransactionNotFoundError);
   });
@@ -137,18 +138,20 @@ describe("RecoverPointsUseCase", () => {
         balance: 10000,
       })
     );
-    pointTransactionRepository.findByOrderIdempotencyKey.mockResolvedValue([
+    pointTransactionRepository.findByRefId.mockResolvedValue([
       PointTransaction.create({
         userId: mockUserId,
         amount: 10000,
         type: "USE",
-        idempotencyKey: "test-idempotency-key",
+        idempotencyKey: null,
+        refId: "test-order-id",
       }),
       PointTransaction.create({
         userId: mockUserId,
         amount: 10000,
         type: "RECOVER",
-        idempotencyKey: "test-idempotency-key",
+        idempotencyKey: null,
+        refId: "test-order-id",
       }),
     ]);
 
@@ -157,7 +160,7 @@ describe("RecoverPointsUseCase", () => {
       useCase.execute({
         userId: mockUserId,
         amount: 10000,
-        idempotencyKey: "test-idempotency-key",
+        refId: "test-order-id",
       })
     ).rejects.toThrow(PointTransactionAlreadyRecoveredError);
   });

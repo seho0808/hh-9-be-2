@@ -9,6 +9,7 @@ import { ValidatePointTransactionService } from "@/wallet/domain/services/valida
 export interface UsePointsUseCaseCommand {
   userId: string;
   amount: number;
+  refId: string;
   idempotencyKey: string;
 }
 
@@ -28,7 +29,7 @@ export class UsePointsUseCase {
   async execute(
     command: UsePointsUseCaseCommand
   ): Promise<UsePointsUseCaseResult> {
-    const { userId, amount, idempotencyKey } = command;
+    const { userId, amount, refId, idempotencyKey } = command;
 
     const userBalance = await this.userBalanceRepository.findByUserId(userId);
 
@@ -47,6 +48,7 @@ export class UsePointsUseCase {
       amount,
       type: "USE",
       idempotencyKey,
+      refId,
     });
 
     await Promise.all([
