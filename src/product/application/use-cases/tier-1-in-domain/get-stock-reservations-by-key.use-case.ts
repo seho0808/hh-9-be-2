@@ -4,7 +4,7 @@ import { StockReservationRepository } from "@/product/infrastructure/persistence
 import { Transactional } from "typeorm-transactional";
 
 export interface GetStockReservationsByKeyUseCaseCommand {
-  idempotencyKey: string;
+  orderId: string;
 }
 
 export interface GetStockReservationsByKeyUseCaseResult {
@@ -21,12 +21,10 @@ export class GetStockReservationsByKeyUseCase {
   async execute(
     command: GetStockReservationsByKeyUseCaseCommand
   ): Promise<GetStockReservationsByKeyUseCaseResult> {
-    const { idempotencyKey } = command;
+    const { orderId } = command;
 
     const stockReservations =
-      await this.stockReservationRepository.findByIdempotencyKey(
-        idempotencyKey
-      );
+      await this.stockReservationRepository.findByOrderId(orderId);
 
     return { stockReservations };
   }

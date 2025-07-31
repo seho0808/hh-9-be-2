@@ -8,25 +8,25 @@ import {
 
 export class ValidatePointTransactionService {
   validatePointRecovery({
-    idempotencyKey,
+    refId,
     existingPointTransaction,
   }: {
-    idempotencyKey: string;
+    refId: string;
     existingPointTransaction: PointTransaction[];
   }): void {
     const correctTransactionExists = existingPointTransaction.some(
-      (pt) => pt.type === "USE" && pt.idempotencyKey === idempotencyKey
+      (pt) => pt.type === "USE" && pt.refId === refId
     );
     const isAlreadyRecovered = existingPointTransaction.some(
-      (pt) => pt.type === "RECOVER" && pt.idempotencyKey === idempotencyKey
+      (pt) => pt.type === "RECOVER" && pt.refId === refId
     );
 
     if (!correctTransactionExists) {
-      throw new PointTransactionNotFoundError(idempotencyKey);
+      throw new PointTransactionNotFoundError(refId);
     }
 
     if (isAlreadyRecovered) {
-      throw new PointTransactionAlreadyRecoveredError(idempotencyKey);
+      throw new PointTransactionAlreadyRecoveredError(refId);
     }
   }
 

@@ -2,7 +2,7 @@ import { Test } from "@nestjs/testing";
 import { RecoverUserCouponUseCase } from "./recover-user-coupon.use-case";
 import {
   UserCouponNotFoundError,
-  UserCouponRecoverIdempotencyKeyMismatchError,
+  UserCouponRecoverOrderIdMismatchError,
 } from "@/coupon/domain/exceptions/user-coupon.exception";
 import {
   UserCoupon,
@@ -42,16 +42,15 @@ describe("RecoverUserCouponUseCase", () => {
 
       const orderId = uuidv4();
       const discountPrice = 10000;
-      const usedIdempotencyKey = uuidv4();
 
       // 쿠폰을 사용된 상태로 만들기
-      userCoupon.use(orderId, discountPrice, usedIdempotencyKey);
+      userCoupon.use(orderId, discountPrice);
 
       userCouponRepository.findById.mockResolvedValue(userCoupon);
 
       const result = await useCase.execute({
         userCouponId: userCoupon.id,
-        idempotencyKey: usedIdempotencyKey,
+        orderId,
       });
 
       expect(result.userCoupon.status).toBe(UserCouponStatus.ISSUED);
@@ -74,7 +73,7 @@ describe("RecoverUserCouponUseCase", () => {
 
       const result = await useCase.execute({
         userCouponId: userCoupon.id,
-        idempotencyKey: uuidv4(),
+        orderId: uuidv4(),
       });
 
       expect(result.userCoupon.status).toBe(originalStatus);
@@ -98,7 +97,7 @@ describe("RecoverUserCouponUseCase", () => {
 
       const result = await useCase.execute({
         userCouponId: userCoupon.id,
-        idempotencyKey: uuidv4(),
+        orderId: uuidv4(),
       });
 
       expect(result.userCoupon.status).toBe(originalStatus);
@@ -114,7 +113,7 @@ describe("RecoverUserCouponUseCase", () => {
       await expect(
         useCase.execute({
           userCouponId: nonExistentUserCouponId,
-          idempotencyKey: uuidv4(),
+          orderId: uuidv4(),
         })
       ).rejects.toThrow(UserCouponNotFoundError);
     });
@@ -129,20 +128,19 @@ describe("RecoverUserCouponUseCase", () => {
 
       const orderId = uuidv4();
       const discountPrice = 10000;
-      const correctIdempotencyKey = uuidv4();
-      const wrongIdempotencyKey = uuidv4();
+      const wrongOrderId = uuidv4();
 
       // 쿠폰을 사용된 상태로 만들기
-      userCoupon.use(orderId, discountPrice, correctIdempotencyKey);
+      userCoupon.use(orderId, discountPrice);
 
       userCouponRepository.findById.mockResolvedValue(userCoupon);
 
       await expect(
         useCase.execute({
           userCouponId: userCoupon.id,
-          idempotencyKey: wrongIdempotencyKey, // 잘못된 키 사용
+          orderId: wrongOrderId, // 잘못된 키 사용
         })
-      ).rejects.toThrow(UserCouponRecoverIdempotencyKeyMismatchError);
+      ).rejects.toThrow(UserCouponRecoverOrderIdMismatchError);
     });
 
     it("동일한 idempotencyKey로 여러 번 복구 요청시 정상적으로 처리되어야 한다", async () => {
@@ -155,17 +153,16 @@ describe("RecoverUserCouponUseCase", () => {
 
       const orderId = uuidv4();
       const discountPrice = 10000;
-      const usedIdempotencyKey = uuidv4();
 
       // 쿠폰을 사용된 상태로 만들기
-      userCoupon.use(orderId, discountPrice, usedIdempotencyKey);
+      userCoupon.use(orderId, discountPrice);
 
       userCouponRepository.findById.mockResolvedValue(userCoupon);
 
       // 첫 번째 복구
       const firstResult = await useCase.execute({
         userCouponId: userCoupon.id,
-        idempotencyKey: usedIdempotencyKey,
+        orderId,
       });
 
       expect(firstResult.userCoupon.status).toBe(UserCouponStatus.ISSUED);
@@ -173,7 +170,7 @@ describe("RecoverUserCouponUseCase", () => {
       // 두 번째 복구 (이미 복구된 상태)
       const secondResult = await useCase.execute({
         userCouponId: userCoupon.id,
-        idempotencyKey: usedIdempotencyKey,
+        orderId,
       });
 
       expect(secondResult.userCoupon.status).toBe(UserCouponStatus.ISSUED);

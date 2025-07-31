@@ -11,7 +11,7 @@ export interface ReserveStockCommand {
   productId: string;
   userId: string;
   quantity: number;
-  idempotencyKey: string;
+  orderId: string;
 }
 
 @Injectable()
@@ -27,7 +27,7 @@ export class ReserveStockUseCase {
     stockReservation: StockReservation;
     product: Product;
   }> {
-    const { productId, userId, quantity, idempotencyKey } = command;
+    const { productId, userId, quantity, orderId } = command;
 
     const product = await this.productRepository.findById(productId);
     if (!product) {
@@ -44,7 +44,7 @@ export class ReserveStockUseCase {
       productId: product.id,
       userId,
       quantity,
-      idempotencyKey,
+      orderId,
     });
 
     await this.stockReservationRepository.save(stockReservation);

@@ -77,7 +77,6 @@ describe("UseUserCouponUseCase", () => {
           userId: userCoupon.userId,
           orderId,
           orderPrice: 60000,
-          idempotencyKey: uuidv4(),
         });
 
         expect(result.discountPrice).toBe(10000);
@@ -123,7 +122,6 @@ describe("UseUserCouponUseCase", () => {
           userId: userCoupon.userId,
           orderId: uuidv4(),
           orderPrice: 100000, // 50% = 50000원이지만 최대 20000원으로 제한
-          idempotencyKey: uuidv4(),
         });
 
         expect(result.discountPrice).toBe(20000);
@@ -162,7 +160,6 @@ describe("UseUserCouponUseCase", () => {
           userId: userCoupon.userId,
           orderId: uuidv4(),
           orderPrice: 100000,
-          idempotencyKey: uuidv4(),
         });
 
         expect(result.discountPrice).toBe(30000);
@@ -201,7 +198,6 @@ describe("UseUserCouponUseCase", () => {
           userId: userCoupon.userId,
           orderId: uuidv4(),
           orderPrice: 1235, // 10% = 123.5원 → 123원 (소수점 버림)
-          idempotencyKey: uuidv4(),
         });
 
         expect(result.discountPrice).toBe(123); // 123.5가 아닌 123원
@@ -221,7 +217,6 @@ describe("UseUserCouponUseCase", () => {
           userId: uuidv4(),
           orderId: uuidv4(),
           orderPrice: 10000,
-          idempotencyKey: uuidv4(),
         })
       ).rejects.toThrow(CouponNotFoundError);
     });
@@ -259,7 +254,6 @@ describe("UseUserCouponUseCase", () => {
           userId: expiredUserCoupon.userId,
           orderId: uuidv4(),
           orderPrice: 60000,
-          idempotencyKey: uuidv4(),
         })
       ).rejects.toThrow(UserCouponExpiredError);
     });
@@ -286,7 +280,7 @@ describe("UseUserCouponUseCase", () => {
         issuedIdempotencyKey: uuidv4(),
       });
 
-      userCoupon.use("previous-order", 10000, uuidv4());
+      userCoupon.use("previous-order", 10000);
 
       couponRepository.findById.mockResolvedValue(coupon);
       userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
@@ -299,7 +293,6 @@ describe("UseUserCouponUseCase", () => {
           userId: userCoupon.userId,
           orderId: uuidv4(),
           orderPrice: 60000,
-          idempotencyKey: uuidv4(),
         })
       ).rejects.toThrow(UserCouponAlreadyUsedError);
     });
@@ -339,7 +332,6 @@ describe("UseUserCouponUseCase", () => {
           userId: userCoupon.userId,
           orderId: uuidv4(),
           orderPrice: 60000,
-          idempotencyKey: uuidv4(),
         })
       ).rejects.toThrow(UserCouponCancelledError);
     });

@@ -53,10 +53,10 @@ export class OrderTypeOrmEntity {
   @Column({
     type: "varchar",
     length: 255,
-    name: "applied_coupon_id",
+    name: "applied_user_coupon_id",
     nullable: true,
   })
-  appliedCouponId: string | null;
+  appliedUserCouponId: string | null;
 
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;

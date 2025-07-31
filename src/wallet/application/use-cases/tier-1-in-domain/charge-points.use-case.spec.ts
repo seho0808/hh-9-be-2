@@ -69,6 +69,7 @@ describe("ChargePointsUseCase", () => {
           userId: mockUserId,
           amount: chargeAmount,
           idempotencyKey: uuidv4(),
+          refId: null,
         });
 
         // then
@@ -90,6 +91,7 @@ describe("ChargePointsUseCase", () => {
         userId: mockUserId,
         amount: 10000,
         idempotencyKey: uuidv4(),
+        refId: null,
       })
     ).rejects.toThrow(UserBalanceNotFoundError);
   });
@@ -121,6 +123,7 @@ describe("ChargePointsUseCase", () => {
             userId: mockUserId,
             amount: chargeAmount,
             idempotencyKey: uuidv4(),
+            refId: null,
           })
         ).rejects.toThrow(InvalidChargeAmountError);
       });

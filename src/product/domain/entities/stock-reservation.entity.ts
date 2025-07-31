@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import {
-  StockReservationConfirmStockIdempotencyKeyMismatchError,
-  StockReservationReleaseIdempotencyKeyMismatchError,
+  StockReservationConfirmStockOrderIdMismatchError,
+  StockReservationReleaseOrderIdMismatchError,
 } from "../exceptions/product.exceptions";
 
 export interface StockReservationProps {
@@ -9,7 +9,7 @@ export interface StockReservationProps {
   productId: string;
   userId: string;
   quantity: number;
-  idempotencyKey: string;
+  orderId: string;
   createdAt: Date;
   updatedAt: Date;
   expiresAt: Date;
@@ -37,22 +37,22 @@ export class StockReservation {
     });
   }
 
-  releaseStock(idempotencyKey: string): void {
-    if (this.props.idempotencyKey !== idempotencyKey) {
-      throw new StockReservationReleaseIdempotencyKeyMismatchError(
+  releaseStock(orderId: string): void {
+    if (this.props.orderId !== orderId) {
+      throw new StockReservationReleaseOrderIdMismatchError(
         this.props.id,
-        idempotencyKey
+        orderId
       );
     }
     this.props.isActive = false;
     this.props.updatedAt = new Date();
   }
 
-  confirmStock(idempotencyKey: string): void {
-    if (this.props.idempotencyKey !== idempotencyKey) {
-      throw new StockReservationConfirmStockIdempotencyKeyMismatchError(
+  confirmStock(orderId: string): void {
+    if (this.props.orderId !== orderId) {
+      throw new StockReservationConfirmStockOrderIdMismatchError(
         this.props.id,
-        idempotencyKey
+        orderId
       );
     }
     this.props.isActive = false;
@@ -75,8 +75,8 @@ export class StockReservation {
     return this.props.quantity;
   }
 
-  get idempotencyKey(): string {
-    return this.props.idempotencyKey;
+  get orderId(): string {
+    return this.props.orderId;
   }
 
   get createdAt(): Date {

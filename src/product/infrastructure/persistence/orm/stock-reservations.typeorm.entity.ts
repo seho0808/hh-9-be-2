@@ -28,8 +28,8 @@ export class StockReservationTypeOrmEntity {
   @Column({ type: "boolean", name: "is_active", default: true })
   isActive: boolean;
 
-  @Column({ type: "varchar", length: 255, name: "idempotency_key" })
-  idempotencyKey: string;
+  @Column({ type: "varchar", length: 255, name: "order_id" })
+  orderId: string;
 
   @Column({ type: "timestamp", name: "expires_at" })
   expiresAt: Date;

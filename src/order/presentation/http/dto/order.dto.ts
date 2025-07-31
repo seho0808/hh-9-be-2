@@ -211,8 +211,8 @@ export class OrderResponseDto {
       discountAmount: order.discountPrice,
       finalAmount: order.finalPrice,
       status: order.status as OrderStatus,
-      usedCouponId: order.appliedCouponId,
-      usedCouponName: order.appliedCouponId, // For simplicity
+      usedCouponId: order.appliedUserCouponId,
+      usedCouponName: order.appliedUserCouponId, // For simplicity
       idempotencyKey: order.idempotencyKey,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,

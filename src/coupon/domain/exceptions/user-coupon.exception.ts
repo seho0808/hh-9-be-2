@@ -32,12 +32,12 @@ export class UserCouponNotFoundError extends CouponDomainError {
   }
 }
 
-export class UserCouponRecoverIdempotencyKeyMismatchError extends CouponDomainError {
-  readonly code = "USER_COUPON_RECOVER_IDEMPOTENCY_KEY_MISMATCH";
+export class UserCouponRecoverOrderIdMismatchError extends CouponDomainError {
+  readonly code = "USER_COUPON_RECOVER_ORDER_ID_MISMATCH";
 
-  constructor(userCouponId: string, idempotencyKey: string) {
+  constructor(userCouponId: string, orderId: string) {
     super(
-      `쿠폰 복구를 위한 멱등성 키가 일치하지 않습니다. ID: ${userCouponId}, 키: ${idempotencyKey}`
+      `쿠폰 복구를 위한 주문 ID가 일치하지 않습니다. ID: ${userCouponId}, 주문 ID: ${orderId}`
     );
   }
 }

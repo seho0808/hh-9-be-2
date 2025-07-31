@@ -9,7 +9,7 @@ import { ValidatePointTransactionService } from "@/wallet/domain/services/valida
 export interface RecoverPointsUseCaseCommand {
   userId: string;
   amount: number;
-  idempotencyKey: string;
+  refId: string;
 }
 
 export interface RecoverPointsUseCaseResult {
@@ -28,7 +28,7 @@ export class RecoverPointsUseCase {
   async execute(
     command: RecoverPointsUseCaseCommand
   ): Promise<RecoverPointsUseCaseResult> {
-    const { userId, amount, idempotencyKey } = command;
+    const { userId, amount, refId } = command;
 
     const userBalance = await this.userBalanceRepository.findByUserId(userId);
 
@@ -37,13 +37,10 @@ export class RecoverPointsUseCase {
     }
 
     const existingPointTransaction =
-      await this.pointTransactionRepository.findByOrderIdempotencyKey(
-        userId,
-        idempotencyKey
-      );
+      await this.pointTransactionRepository.findByRefId(userId, refId);
 
     this.validatePointTransactionService.validatePointRecovery({
-      idempotencyKey,
+      refId,
       existingPointTransaction,
     });
 
@@ -52,7 +49,8 @@ export class RecoverPointsUseCase {
       userId,
       amount,
       type: "RECOVER",
-      idempotencyKey,
+      idempotencyKey: null,
+      refId,
     });
 
     await Promise.all([

@@ -257,7 +257,7 @@ describe("ValidateCouponUseCase", () => {
         issuedIdempotencyKey: uuidv4(),
       });
 
-      usedUserCoupon.use("order-1", 10000, uuidv4()); // 쿠폰 사용 처리
+      usedUserCoupon.use("order-1", 10000); // 쿠폰 사용 처리
 
       couponRepository.findById.mockResolvedValue(coupon);
       userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(

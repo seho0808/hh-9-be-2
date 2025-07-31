@@ -12,7 +12,7 @@ import { ProductRepository } from "@/product/infrastructure/persistence/product.
 
 export interface ConfirmStockCommand {
   stockReservationId: string;
-  idempotencyKey: string;
+  orderId: string;
 }
 
 @Injectable()
@@ -28,7 +28,7 @@ export class ConfirmStockUseCase {
     stockReservation: StockReservation;
     product: Product;
   }> {
-    const { stockReservationId, idempotencyKey } = command;
+    const { stockReservationId, orderId } = command;
 
     const stockReservation =
       await this.stockReservationRepository.findById(stockReservationId);
@@ -50,7 +50,7 @@ export class ConfirmStockUseCase {
     });
 
     product.confirmStock(stockReservation.quantity);
-    stockReservation.confirmStock(idempotencyKey);
+    stockReservation.confirmStock(orderId);
 
     await this.stockReservationRepository.save(stockReservation);
     await this.productRepository.save(product);

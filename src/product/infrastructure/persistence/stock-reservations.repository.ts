@@ -24,11 +24,9 @@ export class StockReservationRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
-  async findByIdempotencyKey(
-    idempotencyKey: string
-  ): Promise<StockReservation[]> {
+  async findByOrderId(orderId: string): Promise<StockReservation[]> {
     const entities = await this.stockReservationRepository.find({
-      where: { idempotencyKey },
+      where: { orderId },
     });
     return entities.map((entity) => this.toDomain(entity));
   }
@@ -41,7 +39,7 @@ export class StockReservationRepository {
     entity.productId = stockReservation.productId;
     entity.userId = stockReservation.userId;
     entity.quantity = stockReservation.quantity;
-    entity.idempotencyKey = stockReservation.idempotencyKey;
+    entity.orderId = stockReservation.orderId;
     entity.createdAt = stockReservation.createdAt;
     entity.updatedAt = stockReservation.updatedAt;
     entity.expiresAt = stockReservation.expiresAt;
@@ -55,7 +53,7 @@ export class StockReservationRepository {
       productId: entity.productId,
       userId: entity.userId,
       quantity: entity.quantity,
-      idempotencyKey: entity.idempotencyKey,
+      orderId: entity.orderId,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       expiresAt: entity.expiresAt,

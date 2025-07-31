@@ -5,7 +5,7 @@ import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-c
 
 export interface RecoverUserCouponCommand {
   userCouponId: string;
-  idempotencyKey: string;
+  orderId: string;
 }
 
 export interface RecoverUserCouponResult {
@@ -19,14 +19,14 @@ export class RecoverUserCouponUseCase {
   async execute(
     command: RecoverUserCouponCommand
   ): Promise<RecoverUserCouponResult> {
-    const { userCouponId, idempotencyKey } = command;
+    const { userCouponId, orderId } = command;
 
     const userCoupon = await this.userCouponRepository.findById(userCouponId);
     if (!userCoupon) {
       throw new UserCouponNotFoundError(userCouponId);
     }
 
-    userCoupon.recover(idempotencyKey);
+    userCoupon.recover(orderId);
 
     await this.userCouponRepository.save(userCoupon);
 

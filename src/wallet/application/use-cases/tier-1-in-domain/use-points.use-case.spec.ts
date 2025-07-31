@@ -75,6 +75,7 @@ describe("UsePointsUseCase", () => {
           userId: mockUserId,
           amount: useAmount,
           idempotencyKey: uuidv4(),
+          refId: null,
         });
 
         // then
@@ -112,6 +113,7 @@ describe("UsePointsUseCase", () => {
             userId: mockUserId,
             amount: useAmount,
             idempotencyKey: uuidv4(),
+            refId: null,
           })
         ).rejects.toThrow(InsufficientPointBalanceError);
       });
@@ -128,6 +130,7 @@ describe("UsePointsUseCase", () => {
         userId: mockUserId,
         amount: 10000,
         idempotencyKey: uuidv4(),
+        refId: null,
       })
     ).rejects.toThrow(UserBalanceNotFoundError);
   });

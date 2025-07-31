@@ -80,7 +80,7 @@ describe("ReleaseStockUseCase", () => {
           productId: mockProduct.id,
           userId: uuidv4(),
           quantity: reservationQuantity,
-          idempotencyKey: uuidv4(),
+          orderId: uuidv4(),
         });
 
         stockReservationRepository.findById.mockResolvedValue(
@@ -90,7 +90,7 @@ describe("ReleaseStockUseCase", () => {
 
         const result = await useCase.execute({
           stockReservationId: "reservation-1",
-          idempotencyKey: mockStockReservation.idempotencyKey,
+          orderId: mockStockReservation.orderId,
         });
 
         expect(mockStockReservation.isActive).toBe(false);
@@ -109,7 +109,7 @@ describe("ReleaseStockUseCase", () => {
     await expect(
       useCase.execute({
         stockReservationId: "non-existent",
-        idempotencyKey: "non-existent",
+        orderId: "non-existent",
       })
     ).rejects.toThrow(StockReservationNotFoundError);
   });
@@ -119,7 +119,7 @@ describe("ReleaseStockUseCase", () => {
       productId: "product-1",
       userId: uuidv4(),
       quantity: 2,
-      idempotencyKey: uuidv4(),
+      orderId: uuidv4(),
     });
 
     const mockProduct = Product.create({
@@ -134,12 +134,12 @@ describe("ReleaseStockUseCase", () => {
     stockReservationRepository.findById.mockResolvedValue(inactiveReservation);
     productRepository.findById.mockResolvedValue(mockProduct);
 
-    inactiveReservation.releaseStock(inactiveReservation.idempotencyKey);
+    inactiveReservation.releaseStock(inactiveReservation.orderId);
 
     await expect(
       useCase.execute({
         stockReservationId: "inactive-reservation",
-        idempotencyKey: "inactive-reservation",
+        orderId: "inactive-reservation",
       })
     ).rejects.toThrow(StockReservationNotActiveError);
   });

@@ -9,6 +9,7 @@ export interface ChargePointsUseCaseCommand {
   userId: string;
   amount: number;
   idempotencyKey: string;
+  refId: string | null;
 }
 
 export interface ChargePointsUseCaseResult {
@@ -26,7 +27,7 @@ export class ChargePointsUseCase {
   async execute(
     command: ChargePointsUseCaseCommand
   ): Promise<ChargePointsUseCaseResult> {
-    const { userId, amount, idempotencyKey } = command;
+    const { userId, amount, idempotencyKey, refId } = command;
 
     const userBalance = await this.userBalanceRepository.findByUserId(userId);
 
@@ -40,6 +41,7 @@ export class ChargePointsUseCase {
       amount,
       type: "CHARGE",
       idempotencyKey,
+      refId,
     });
 
     await Promise.all([
