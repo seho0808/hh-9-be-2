@@ -59,7 +59,6 @@ export class ProcessOrderUseCase {
         userId,
         orderId: order.id,
         orderPrice: order.totalPrice,
-        idempotencyKey,
       });
     }
 
@@ -69,6 +68,7 @@ export class ProcessOrderUseCase {
       userId,
       amount: finalAmountToPay,
       idempotencyKey,
+      refId: order.id,
     });
 
     // 재고 확정
@@ -77,7 +77,7 @@ export class ProcessOrderUseCase {
       stockReservationIds.map((stockReservationId) =>
         this.confirmStockUseCase.execute({
           stockReservationId,
-          idempotencyKey,
+          orderId: order.id,
         })
       )
     );

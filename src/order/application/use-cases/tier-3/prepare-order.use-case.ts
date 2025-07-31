@@ -72,7 +72,7 @@ export class PrepareOrderUseCase {
         productId: item.productId,
         userId,
         quantity: item.quantity,
-        idempotencyKey,
+        orderId: order.id,
       })),
     });
 

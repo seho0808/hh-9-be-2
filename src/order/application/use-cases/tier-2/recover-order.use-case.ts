@@ -10,7 +10,7 @@ export interface RecoverOrderCommand {
   order: Order;
   couponId: string | null;
   stockReservationIds: string[];
-  idempotencyKey: string;
+  orderId: string;
 }
 
 export interface RecoverOrderResult {
@@ -28,13 +28,13 @@ export class RecoverOrderUseCase {
 
   @Transactional()
   async execute(command: RecoverOrderCommand) {
-    const { order, couponId, stockReservationIds, idempotencyKey } = command;
+    const { order, couponId, stockReservationIds, orderId } = command;
 
     await Promise.all(
       stockReservationIds.map((stockReservationId) =>
         this.releaseStockUseCase.execute({
           stockReservationId,
-          idempotencyKey,
+          orderId,
         })
       )
     );
@@ -42,14 +42,14 @@ export class RecoverOrderUseCase {
     if (couponId) {
       await this.recoverUserCouponUseCase.execute({
         userCouponId: couponId,
-        idempotencyKey,
+        orderId,
       });
     }
 
     await this.recoverPointsUseCase.execute({
       userId: order.userId,
       amount: order.finalPrice,
-      idempotencyKey,
+      refId: orderId,
     });
 
     await this.changeOrderStatusUseCase.execute({

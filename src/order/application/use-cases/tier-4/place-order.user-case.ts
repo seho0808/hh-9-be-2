@@ -57,7 +57,7 @@ export class PlaceOrderUseCase {
         order,
         couponId,
         stockReservationIds,
-        idempotencyKey,
+        orderId: order.id,
       });
       throw error;
     }
