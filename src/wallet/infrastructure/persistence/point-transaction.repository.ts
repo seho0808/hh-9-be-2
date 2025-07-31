@@ -1,4 +1,3 @@
-import { PointTransactionRepositoryInterface } from "@/wallet/domain/interfaces/point-transaction.repository.interface";
 import { Injectable } from "@nestjs/common";
 import {
   PointTransactionType,
@@ -9,9 +8,7 @@ import { Repository } from "typeorm";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
 
 @Injectable()
-export class PointTransactionRepository
-  implements PointTransactionRepositoryInterface
-{
+export class PointTransactionRepository {
   constructor(
     @InjectRepository(PointTransactionTypeOrmEntity)
     private readonly pointTransactionRepository: Repository<PointTransactionTypeOrmEntity>

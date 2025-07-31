@@ -1,12 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { In, Repository } from "typeorm";
-import { ProductRepositoryInterface } from "@/product/domain/interfaces/product.repository.interface";
 import { Product } from "@/product/domain/entities/product.entity";
 import { ProductTypeOrmEntity } from "./orm/product.typeorm.entity";
 
 @Injectable()
-export class ProductRepository implements ProductRepositoryInterface {
+export class ProductRepository {
   constructor(
     @InjectRepository(ProductTypeOrmEntity)
     private readonly productRepository: Repository<ProductTypeOrmEntity>

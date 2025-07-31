@@ -1,4 +1,3 @@
-import { UserBalanceRepositoryInterface } from "@/wallet/domain/interfaces/user-balance.repository.interface";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -6,7 +5,7 @@ import { UserBalanceTypeOrmEntity } from "./orm/user-balance.typeorm.entity";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
 
 @Injectable()
-export class UserBalanceRepository implements UserBalanceRepositoryInterface {
+export class UserBalanceRepository {
   constructor(
     @InjectRepository(UserBalanceTypeOrmEntity)
     private readonly userBalanceRepository: Repository<UserBalanceTypeOrmEntity>

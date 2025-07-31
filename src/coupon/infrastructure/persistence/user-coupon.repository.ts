@@ -2,14 +2,13 @@ import {
   UserCoupon,
   UserCouponStatus,
 } from "@/coupon/domain/entities/user-coupon.entity";
-import { UserCouponRepositoryInterface } from "@/coupon/domain/interfaces/user-coupon.repository.interface";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UserCouponTypeOrmEntity } from "./orm/user-coupon.typeorm.entity";
 
 @Injectable()
-export class UserCouponRepository implements UserCouponRepositoryInterface {
+export class UserCouponRepository {
   constructor(
     @InjectRepository(UserCouponTypeOrmEntity)
     private readonly userCouponRepository: Repository<UserCouponTypeOrmEntity>

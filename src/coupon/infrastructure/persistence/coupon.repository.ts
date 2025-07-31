@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { CouponRepositoryInterface } from "@/coupon/domain/interfaces/coupon.repository.interface";
 import {
   Coupon,
   CouponDiscountType,
@@ -9,7 +8,7 @@ import {
 import { CouponTypeOrmEntity } from "./orm/coupon.typeorm.entity";
 
 @Injectable()
-export class CouponRepository implements CouponRepositoryInterface {
+export class CouponRepository {
   constructor(
     @InjectRepository(CouponTypeOrmEntity)
     private readonly couponRepository: Repository<CouponTypeOrmEntity>
