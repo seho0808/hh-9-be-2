@@ -72,38 +72,13 @@ import { ProcessOrderUseCase } from "./application/use-cases/tier-2/process-orde
     PrepareOrderUseCase,
     ProcessOrderUseCase,
     RecoverOrderUseCase,
-    {
-      provide: "OrderRepositoryInterface",
-      useClass: OrderRepository,
-    },
-    {
-      provide: "OrderItemRepositoryInterface",
-      useClass: OrderItemRepository,
-    },
-    {
-      provide: "CouponRepositoryInterface",
-      useClass: CouponRepository,
-    },
-    {
-      provide: "UserCouponRepositoryInterface",
-      useClass: UserCouponRepository,
-    },
-    {
-      provide: "ProductRepositoryInterface",
-      useClass: ProductRepository,
-    },
-    {
-      provide: "StockReservationRepositoryInterface",
-      useClass: StockReservationRepository,
-    },
-    {
-      provide: "UserBalanceRepositoryInterface",
-      useClass: UserBalanceRepository,
-    },
-    {
-      provide: "PointTransactionRepositoryInterface",
-      useClass: PointTransactionRepository,
-    },
+    OrderRepository,
+    CouponRepository,
+    UserCouponRepository,
+    ProductRepository,
+    StockReservationRepository,
+    UserBalanceRepository,
+    PointTransactionRepository,
   ],
   exports: [GetPopularProductsUseCase],
 })

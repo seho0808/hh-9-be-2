@@ -33,14 +33,8 @@ import { ValidateUserCouponService } from "./domain/services/validate-user-coupo
     CancelUserCouponUseCase,
     RecoverUserCouponUseCase,
     ValidateUserCouponService,
-    {
-      provide: "UserCouponRepositoryInterface",
-      useClass: UserCouponRepository,
-    },
-    {
-      provide: "CouponRepositoryInterface",
-      useClass: CouponRepository,
-    },
+    UserCouponRepository,
+    CouponRepository,
   ],
   exports: [
     ValidateCouponUseCase,

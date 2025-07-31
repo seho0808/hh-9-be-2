@@ -31,14 +31,8 @@ import { ValidatePointTransactionService } from "./domain/services/validate-poin
     CreateUserBalanceUseCase,
     ValidateUsePointsUseCase,
     ValidatePointTransactionService,
-    {
-      provide: "UserBalanceRepositoryInterface",
-      useClass: UserBalanceRepository,
-    },
-    {
-      provide: "PointTransactionRepositoryInterface",
-      useClass: PointTransactionRepository,
-    },
+    UserBalanceRepository,
+    PointTransactionRepository,
   ],
   exports: [
     ChargePointsUseCase,

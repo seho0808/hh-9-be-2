@@ -24,10 +24,7 @@ import { CreateUserUseCaseWithBalanceUseCase } from "./application/use-cases/tie
     CreateUserUseCaseWithBalanceUseCase,
     CreateUserUseCase,
     ValidateUserService,
-    {
-      provide: "UserRepositoryInterface",
-      useClass: UserRepository,
-    },
+    UserRepository,
   ],
   exports: [CreateUserUseCase, GetUserByEmailUseCase],
 })
