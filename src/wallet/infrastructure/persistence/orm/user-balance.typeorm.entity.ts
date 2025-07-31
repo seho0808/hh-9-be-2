@@ -15,7 +15,7 @@ export class UserBalanceTypeOrmEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: "varchar", name: "user_id" })
+  @Column({ type: "uuid", name: "user_id" })
   @Index("idx_user_balances_user_id")
   userId: string;
 

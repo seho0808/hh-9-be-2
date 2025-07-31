@@ -21,7 +21,7 @@ export class PointTransactionTypeOrmEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: "varchar", name: "user_id" })
+  @Column({ type: "uuid", name: "user_id" })
   @Index("idx_point_transactions_user_id")
   userId: string;
 

@@ -26,7 +26,7 @@ export class OrderTypeOrmEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: "varchar", length: 255, name: "user_id" })
+  @Column({ type: "uuid", name: "user_id" })
   @Index("idx_orders_user_id")
   userId: string;
 
@@ -51,8 +51,7 @@ export class OrderTypeOrmEntity {
   idempotencyKey: string;
 
   @Column({
-    type: "varchar",
-    length: 255,
+    type: "uuid",
     name: "applied_user_coupon_id",
     nullable: true,
   })

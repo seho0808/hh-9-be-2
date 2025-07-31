@@ -24,15 +24,15 @@ export class UserCouponTypeOrmEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: "varchar", name: "coupon_id", length: 255 })
+  @Column({ type: "uuid", name: "coupon_id" })
   @Index("idx_user_coupons_coupon_id")
   couponId: string;
 
-  @Column({ type: "varchar", name: "user_id", length: 255 })
+  @Column({ type: "uuid", name: "user_id" })
   @Index("idx_user_coupons_user_id")
   userId: string;
 
-  @Column({ type: "varchar", name: "order_id", length: 255, nullable: true })
+  @Column({ type: "uuid", name: "order_id", nullable: true })
   orderId: string | null;
 
   @Column({ type: "int", name: "discount_price", nullable: true })
