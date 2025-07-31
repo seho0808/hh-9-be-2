@@ -21,7 +21,7 @@ export class PointTransactionTypeOrmEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: "varchar", name: "user_id" })
+  @Column({ type: "uuid", name: "user_id" })
   @Index("idx_point_transactions_user_id")
   userId: string;
 
@@ -31,10 +31,15 @@ export class PointTransactionTypeOrmEntity {
   @Column({ type: "enum", name: "type", enum: PointTransactionType })
   type: PointTransactionType;
 
-  @Column({ type: "varchar", name: "idempotency_key", nullable: true })
+  @Column({
+    type: "varchar",
+    length: 100,
+    name: "idempotency_key",
+    nullable: true,
+  })
   idempotencyKey: string | null;
 
-  @Column({ type: "varchar", name: "ref_id", nullable: true })
+  @Column({ type: "varchar", length: 100, name: "ref_id", nullable: true })
   refId: string | null;
 
   @CreateDateColumn({ name: "created_at" })

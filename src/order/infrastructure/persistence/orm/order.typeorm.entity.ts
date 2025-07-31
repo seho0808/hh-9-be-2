@@ -26,7 +26,7 @@ export class OrderTypeOrmEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: "varchar", length: 255, name: "user_id" })
+  @Column({ type: "uuid", name: "user_id" })
   @Index("idx_orders_user_id")
   userId: string;
 
@@ -46,13 +46,12 @@ export class OrderTypeOrmEntity {
   @Column({ type: "text", name: "failed_reason", nullable: true })
   failedReason: string | null;
 
-  @Column({ type: "varchar", length: 255, name: "idempotency_key" })
+  @Column({ type: "varchar", length: 100, name: "idempotency_key" })
   @Index("idx_orders_idempotency_key", { unique: true })
   idempotencyKey: string;
 
   @Column({
-    type: "varchar",
-    length: 255,
+    type: "uuid",
     name: "applied_user_coupon_id",
     nullable: true,
   })

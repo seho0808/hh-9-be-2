@@ -16,11 +16,11 @@ export class OrderItemTypeOrmEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: "varchar", length: 255, name: "order_id" })
+  @Column({ type: "uuid", name: "order_id" })
   @Index("idx_order_items_order_id")
   orderId: string;
 
-  @Column({ type: "varchar", length: 255, name: "product_id" })
+  @Column({ type: "uuid", name: "product_id" })
   @Index("idx_order_items_product_id")
   productId: string;
 
