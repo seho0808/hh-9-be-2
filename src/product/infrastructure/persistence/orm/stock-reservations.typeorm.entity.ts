@@ -42,9 +42,9 @@ export class StockReservationTypeOrmEntity {
 
   @ManyToOne(() => ProductTypeOrmEntity, { onDelete: "CASCADE" })
   @JoinColumn({ name: "product_id" })
-  product: ProductTypeOrmEntity;
+  product?: ProductTypeOrmEntity;
 
   @ManyToOne(() => UserTypeOrmEntity, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })
-  user: UserTypeOrmEntity;
+  user?: UserTypeOrmEntity;
 }
