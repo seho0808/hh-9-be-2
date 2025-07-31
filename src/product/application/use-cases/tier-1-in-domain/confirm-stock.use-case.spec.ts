@@ -56,7 +56,7 @@ describe("ConfirmStockUseCase", () => {
       productId: mockProduct.id,
       userId: uuidv4(),
       quantity: 2,
-      idempotencyKey: uuidv4(),
+      orderId: uuidv4(),
     });
 
     stockReservationRepository.findById.mockResolvedValue(mockStockReservation);
@@ -64,7 +64,7 @@ describe("ConfirmStockUseCase", () => {
 
     const result = await useCase.execute({
       stockReservationId: mockStockReservation.id,
-      idempotencyKey: mockStockReservation.idempotencyKey,
+      orderId: mockStockReservation.orderId,
     });
 
     expect(result.stockReservation.isActive).toBe(false);
@@ -77,7 +77,7 @@ describe("ConfirmStockUseCase", () => {
     await expect(
       useCase.execute({
         stockReservationId: "non-existent",
-        idempotencyKey: uuidv4(),
+        orderId: uuidv4(),
       })
     ).rejects.toThrow(StockReservationNotFoundError);
   });
@@ -87,9 +87,9 @@ describe("ConfirmStockUseCase", () => {
       productId: uuidv4(),
       userId: uuidv4(),
       quantity: 2,
-      idempotencyKey: uuidv4(),
+      orderId: uuidv4(),
     });
-    mockStockReservation.releaseStock(mockStockReservation.idempotencyKey);
+    mockStockReservation.releaseStock(mockStockReservation.orderId);
 
     const mockProduct = Product.create({
       name: "테스트 상품",
@@ -106,7 +106,7 @@ describe("ConfirmStockUseCase", () => {
     await expect(
       useCase.execute({
         stockReservationId: mockStockReservation.id,
-        idempotencyKey: mockStockReservation.idempotencyKey,
+        orderId: mockStockReservation.orderId,
       })
     ).rejects.toThrow(StockReservationNotActiveError);
   });
@@ -117,7 +117,7 @@ describe("ConfirmStockUseCase", () => {
       productId: uuidv4(),
       userId: uuidv4(),
       quantity: 2,
-      idempotencyKey: uuidv4(),
+      orderId: uuidv4(),
       createdAt: new Date(),
       updatedAt: new Date(),
       expiresAt: new Date(Date.now() - 1000),
@@ -142,7 +142,7 @@ describe("ConfirmStockUseCase", () => {
     await expect(
       useCase.execute({
         stockReservationId: mockStockReservation.id,
-        idempotencyKey: mockStockReservation.idempotencyKey,
+        orderId: mockStockReservation.orderId,
       })
     ).rejects.toThrow(StockReservationExpiredError);
   });

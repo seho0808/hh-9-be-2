@@ -69,22 +69,22 @@ export class StockReservationExpiredError extends ProductDomainError {
   }
 }
 
-export class StockReservationReleaseIdempotencyKeyMismatchError extends ProductDomainError {
+export class StockReservationReleaseOrderIdMismatchError extends ProductDomainError {
   readonly code = "STOCK_RESERVATION_RELEASE_IDEMPOTENCY_KEY_MISMATCH";
 
-  constructor(stockReservationId: string, idempotencyKey: string) {
+  constructor(stockReservationId: string, orderId: string) {
     super(
-      `재고 예약 취소를 위한 멱등성 키가 일치하지 않습니다. ID: ${stockReservationId}, 키: ${idempotencyKey}`
+      `재고 예약 취소를 위한 주문 ID가 일치하지 않습니다. ID: ${stockReservationId}, 주문 ID: ${orderId}`
     );
   }
 }
 
-export class StockReservationConfirmStockIdempotencyKeyMismatchError extends ProductDomainError {
+export class StockReservationConfirmStockOrderIdMismatchError extends ProductDomainError {
   readonly code = "STOCK_RESERVATION_CONFIRM_STOCK_IDEMPOTENCY_KEY_MISMATCH";
 
-  constructor(stockReservationId: string, idempotencyKey: string) {
+  constructor(stockReservationId: string, orderId: string) {
     super(
-      `재고 예약 확정을 위한 멱등성 키가 일치하지 않습니다. ID: ${stockReservationId}, 키: ${idempotencyKey}`
+      `재고 예약 확정을 위한 주문 ID가 일치하지 않습니다. ID: ${stockReservationId}, 주문 ID: ${orderId}`
     );
   }
 }

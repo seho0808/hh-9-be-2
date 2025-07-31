@@ -9,7 +9,7 @@ export interface ReserveStocksCommand {
     productId: string;
     userId: string;
     quantity: number;
-    idempotencyKey: string;
+    orderId: string;
   }[];
 }
 
@@ -32,7 +32,7 @@ export class ReserveStocksUseCase {
           productId: request.productId,
           userId: request.userId,
           quantity: request.quantity,
-          idempotencyKey: request.idempotencyKey,
+          orderId: request.orderId,
         })
       )
     );
