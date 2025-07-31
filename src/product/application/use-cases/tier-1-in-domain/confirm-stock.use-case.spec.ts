@@ -10,42 +10,36 @@ import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
 
+jest.mock("@/product/infrastructure/persistence/product.repository");
+jest.mock("@/product/infrastructure/persistence/stock-reservations.repository");
 jest.mock("typeorm-transactional", () => ({
   Transactional: () => () => ({}),
 }));
 
+import { ProductRepository } from "@/product/infrastructure/persistence/product.repository";
+import { StockReservationRepository } from "@/product/infrastructure/persistence/stock-reservations.repository";
+
 describe("ConfirmStockUseCase", () => {
   let useCase: ConfirmStockUseCase;
-  let productRepository: any;
-  let stockReservationRepository: any;
+  let productRepository: jest.Mocked<ProductRepository>;
+  let stockReservationRepository: jest.Mocked<StockReservationRepository>;
 
   beforeEach(async () => {
-    productRepository = {
-      findById: jest.fn(),
-      save: jest.fn(),
-    };
-
-    stockReservationRepository = {
-      findById: jest.fn(),
-      save: jest.fn(),
-    };
-
     const module = await Test.createTestingModule({
       providers: [
         ConfirmStockUseCase,
         ValidateStockService,
-        {
-          provide: "ProductRepositoryInterface",
-          useValue: productRepository,
-        },
-        {
-          provide: "StockReservationRepositoryInterface",
-          useValue: stockReservationRepository,
-        },
+        ProductRepository,
+        StockReservationRepository,
       ],
     }).compile();
 
     useCase = module.get<ConfirmStockUseCase>(ConfirmStockUseCase);
+    productRepository =
+      module.get<jest.Mocked<ProductRepository>>(ProductRepository);
+    stockReservationRepository = module.get<
+      jest.Mocked<StockReservationRepository>
+    >(StockReservationRepository);
   });
 
   it("재고 예약 확정이 성공적으로 처리되어야 한다", async () => {

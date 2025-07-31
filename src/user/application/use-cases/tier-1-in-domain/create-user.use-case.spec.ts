@@ -1,6 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { CreateUserUseCase, CreateUserCommand } from "./create-user.use-case";
-import { UserRepositoryInterface } from "@/user/domain/interfaces/user.repository.interface";
 import { User } from "@/user/domain/entities/user.entity";
 import {
   EmailDuplicateError,
@@ -9,30 +8,22 @@ import {
 } from "@/user/domain/exceptions/user.exceptions";
 import { ValidateUserService } from "@/user/domain/services/validate-user.service";
 
+jest.mock("@/user/infrastructure/persistence/user.repository");
+
+import { UserRepository } from "@/user/infrastructure/persistence/user.repository";
+
 describe("CreateUserUseCase", () => {
   let createUserUseCase: CreateUserUseCase;
-  let mockUserRepository: jest.Mocked<UserRepositoryInterface>;
+  let mockUserRepository: jest.Mocked<UserRepository>;
 
   beforeEach(async () => {
-    mockUserRepository = {
-      findById: jest.fn(),
-      findByEmail: jest.fn(),
-      save: jest.fn(),
-      exists: jest.fn(),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        CreateUserUseCase,
-        ValidateUserService,
-        {
-          provide: "UserRepositoryInterface",
-          useValue: mockUserRepository,
-        },
-      ],
+      providers: [CreateUserUseCase, ValidateUserService, UserRepository],
     }).compile();
 
     createUserUseCase = module.get<CreateUserUseCase>(CreateUserUseCase);
+    mockUserRepository =
+      module.get<jest.Mocked<UserRepository>>(UserRepository);
   });
 
   afterEach(() => {

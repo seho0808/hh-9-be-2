@@ -9,36 +9,35 @@ import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 import { v4 as uuidv4 } from "uuid";
 import { ValidateUserCouponService } from "@/coupon/domain/services/validate-user-coupon.service";
 
+jest.mock("@/coupon/infrastructure/persistence/coupon.repository");
+jest.mock("@/coupon/infrastructure/persistence/user-coupon.repository");
+jest.mock("typeorm-transactional", () => ({
+  Transactional: () => () => ({}),
+}));
+
+import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
+import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
+
 describe("ValidateCouponUseCase", () => {
   let useCase: ValidateCouponUseCase;
-  let couponRepository: any;
-  let userCouponRepository: any;
+  let couponRepository: jest.Mocked<CouponRepository>;
+  let userCouponRepository: jest.Mocked<UserCouponRepository>;
 
   beforeEach(async () => {
-    couponRepository = {
-      findById: jest.fn(),
-    };
-
-    userCouponRepository = {
-      findByCouponIdAndUserId: jest.fn(),
-    };
-
     const module = await Test.createTestingModule({
       providers: [
         ValidateCouponUseCase,
         ValidateUserCouponService,
-        {
-          provide: "CouponRepositoryInterface",
-          useValue: couponRepository,
-        },
-        {
-          provide: "UserCouponRepositoryInterface",
-          useValue: userCouponRepository,
-        },
+        CouponRepository,
+        UserCouponRepository,
       ],
     }).compile();
 
     useCase = module.get<ValidateCouponUseCase>(ValidateCouponUseCase);
+    couponRepository =
+      module.get<jest.Mocked<CouponRepository>>(CouponRepository);
+    userCouponRepository =
+      module.get<jest.Mocked<UserCouponRepository>>(UserCouponRepository);
   });
 
   describe("고정 금액(FIXED) 할인 쿠폰 검증", () => {

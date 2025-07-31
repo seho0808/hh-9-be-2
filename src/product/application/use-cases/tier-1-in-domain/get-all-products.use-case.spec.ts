@@ -1,35 +1,25 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { GetAllProductsUseCase } from "./get-all-products.use-case";
-import { ProductRepositoryInterface } from "@/product/domain/interfaces/product.repository.interface";
 
+jest.mock("@/product/infrastructure/persistence/product.repository");
 jest.mock("typeorm-transactional", () => ({
   Transactional: () => () => ({}),
 }));
 
+import { ProductRepository } from "@/product/infrastructure/persistence/product.repository";
+
 describe("GetAllProductsUseCase", () => {
   let useCase: GetAllProductsUseCase;
-  let productRepository: jest.Mocked<ProductRepositoryInterface>;
+  let productRepository: jest.Mocked<ProductRepository>;
 
   beforeEach(async () => {
-    const mockProductRepository = {
-      findPaginated: jest.fn(),
-      findById: jest.fn(),
-      findByName: jest.fn(),
-      save: jest.fn(),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        GetAllProductsUseCase,
-        {
-          provide: "ProductRepositoryInterface",
-          useValue: mockProductRepository,
-        },
-      ],
+      providers: [GetAllProductsUseCase, ProductRepository],
     }).compile();
 
     useCase = module.get<GetAllProductsUseCase>(GetAllProductsUseCase);
-    productRepository = module.get("ProductRepositoryInterface");
+    productRepository =
+      module.get<jest.Mocked<ProductRepository>>(ProductRepository);
   });
 
   describe("정상적인 페이지네이션 조회", () => {

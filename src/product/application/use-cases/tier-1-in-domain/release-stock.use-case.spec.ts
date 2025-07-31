@@ -7,44 +7,38 @@ import {
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
-import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
 
+jest.mock("@/product/infrastructure/persistence/product.repository");
+jest.mock("@/product/infrastructure/persistence/stock-reservations.repository");
 jest.mock("typeorm-transactional", () => ({
   Transactional: () => () => ({}),
 }));
 
+import { ProductRepository } from "@/product/infrastructure/persistence/product.repository";
+import { StockReservationRepository } from "@/product/infrastructure/persistence/stock-reservations.repository";
+import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
+
 describe("ReleaseStockUseCase", () => {
   let useCase: ReleaseStockUseCase;
-  let productRepository: any;
-  let stockReservationRepository: any;
+  let productRepository: jest.Mocked<ProductRepository>;
+  let stockReservationRepository: jest.Mocked<StockReservationRepository>;
 
   beforeEach(async () => {
-    productRepository = {
-      findById: jest.fn(),
-      save: jest.fn(),
-    };
-
-    stockReservationRepository = {
-      findById: jest.fn(),
-      save: jest.fn(),
-    };
-
     const module = await Test.createTestingModule({
       providers: [
         ReleaseStockUseCase,
+        ProductRepository,
+        StockReservationRepository,
         ValidateStockService,
-        {
-          provide: "ProductRepositoryInterface",
-          useValue: productRepository,
-        },
-        {
-          provide: "StockReservationRepositoryInterface",
-          useValue: stockReservationRepository,
-        },
       ],
     }).compile();
 
     useCase = module.get<ReleaseStockUseCase>(ReleaseStockUseCase);
+    productRepository =
+      module.get<jest.Mocked<ProductRepository>>(ProductRepository);
+    stockReservationRepository = module.get<
+      jest.Mocked<StockReservationRepository>
+    >(StockReservationRepository);
   });
 
   const testCases: Array<
@@ -121,11 +115,12 @@ describe("ReleaseStockUseCase", () => {
   });
 
   it("이미 비활성화된 재고 예약으로 요청시 에러가 발생해야 한다", async () => {
-    const inactiveReservation = {
+    const inactiveReservation = StockReservation.create({
       productId: "product-1",
+      userId: uuidv4(),
       quantity: 2,
-      isActive: false,
-    };
+      idempotencyKey: uuidv4(),
+    });
 
     const mockProduct = Product.create({
       name: "테스트 상품",
@@ -138,6 +133,8 @@ describe("ReleaseStockUseCase", () => {
 
     stockReservationRepository.findById.mockResolvedValue(inactiveReservation);
     productRepository.findById.mockResolvedValue(mockProduct);
+
+    inactiveReservation.releaseStock(inactiveReservation.idempotencyKey);
 
     await expect(
       useCase.execute({
