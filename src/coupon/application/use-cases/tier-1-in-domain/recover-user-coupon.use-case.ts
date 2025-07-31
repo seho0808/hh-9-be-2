@@ -1,7 +1,7 @@
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 import { UserCouponNotFoundError } from "@/coupon/domain/exceptions/user-coupon.exception";
-import { UserCouponRepositoryInterface } from "@/coupon/domain/interfaces/user-coupon.repository.interface";
-import { Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
+import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
 
 export interface RecoverUserCouponCommand {
   userCouponId: string;
@@ -14,10 +14,7 @@ export interface RecoverUserCouponResult {
 
 @Injectable()
 export class RecoverUserCouponUseCase {
-  constructor(
-    @Inject("UserCouponRepositoryInterface")
-    private readonly userCouponRepository: UserCouponRepositoryInterface
-  ) {}
+  constructor(private readonly userCouponRepository: UserCouponRepository) {}
 
   async execute(
     command: RecoverUserCouponCommand

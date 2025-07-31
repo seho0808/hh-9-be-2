@@ -1,8 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import {
-  CreateUserCommand,
-  CreateUserUseCase,
-} from "../tier-1-in-domain/create-user.use-case";
+import { CreateUserUseCase } from "../tier-1-in-domain/create-user.use-case";
 import { User } from "@/user/domain/entities/user.entity";
 import { CreateUserBalanceUseCase } from "@/wallet/application/use-cases/tier-1-in-domain/create-user-balance.use-case";
 

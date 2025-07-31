@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { Order, OrderStatus } from "@/order/domain/entities/order.entitiy";
-import { OrderRepositoryInterface } from "@/order/domain/interfaces/order.repository.interface";
 import { OrderNotFoundError } from "@/order/domain/exceptions/order.exceptions";
+import { OrderRepository } from "@/order/infrastructure/persistence/order.repository";
 
 export interface ChangeOrderStatusUseCaseCommand {
   orderId: string;
@@ -14,10 +14,7 @@ export interface ChangeOrderStatusUseCaseResult {
 
 @Injectable()
 export class ChangeOrderStatusUseCase {
-  constructor(
-    @Inject("OrderRepositoryInterface")
-    private readonly orderRepository: OrderRepositoryInterface
-  ) {}
+  constructor(private readonly orderRepository: OrderRepository) {}
 
   async execute(
     command: ChangeOrderStatusUseCaseCommand

@@ -1,6 +1,6 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
-import { UserBalanceRepositoryInterface } from "@/wallet/domain/interfaces/user-balance.repository.interface";
+import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
 
 export interface GetUserPointsUseCaseCommand {
   userId: string;
@@ -12,10 +12,7 @@ export interface GetUserPointsUseCaseResult {
 
 @Injectable()
 export class GetUserPointsUseCase {
-  constructor(
-    @Inject("UserBalanceRepositoryInterface")
-    private readonly userBalanceRepository: UserBalanceRepositoryInterface
-  ) {}
+  constructor(private readonly userBalanceRepository: UserBalanceRepository) {}
 
   async execute(
     command: GetUserPointsUseCaseCommand

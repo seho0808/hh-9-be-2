@@ -1,10 +1,10 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { CouponRepositoryInterface } from "@/coupon/domain/interfaces/coupon.repository.interface";
-import { UserCouponRepositoryInterface } from "@/coupon/domain/interfaces/user-coupon.repository.interface";
+import { Injectable } from "@nestjs/common";
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
 import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
 import { Transactional } from "typeorm-transactional";
+import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
+import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
 
 export interface UseUserCouponCommand {
   couponId: string;
@@ -24,10 +24,8 @@ export interface UseUserCouponResult {
 @Injectable()
 export class UseUserCouponUseCase {
   constructor(
-    @Inject("CouponRepositoryInterface")
-    private readonly couponRepository: CouponRepositoryInterface,
-    @Inject("UserCouponRepositoryInterface")
-    private readonly userCouponRepository: UserCouponRepositoryInterface
+    private readonly couponRepository: CouponRepository,
+    private readonly userCouponRepository: UserCouponRepository
   ) {}
 
   @Transactional()

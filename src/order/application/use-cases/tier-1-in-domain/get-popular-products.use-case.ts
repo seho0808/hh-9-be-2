@@ -1,8 +1,6 @@
 import { Injectable, Inject } from "@nestjs/common";
-import {
-  OrderItemRepositoryInterface,
-  PopularProductResult,
-} from "@/order/domain/interfaces/order-item.repository.interface";
+import { PopularProductResult } from "@/product/application/use-cases/tier-2/get-popular-products-with-detail.use-case";
+import { OrderItemRepository } from "@/order/infrastructure/persistence/order-item.repository";
 
 export interface GetPopularProductsCommand {
   limit?: number;
@@ -10,10 +8,7 @@ export interface GetPopularProductsCommand {
 
 @Injectable()
 export class GetPopularProductsUseCase {
-  constructor(
-    @Inject("OrderItemRepositoryInterface")
-    private readonly orderItemRepository: OrderItemRepositoryInterface
-  ) {}
+  constructor(private readonly orderItemRepository: OrderItemRepository) {}
 
   async execute(
     command: GetPopularProductsCommand

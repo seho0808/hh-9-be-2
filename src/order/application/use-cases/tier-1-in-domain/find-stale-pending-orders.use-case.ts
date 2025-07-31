@@ -1,6 +1,6 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { OrderRepositoryInterface } from "@/order/domain/interfaces/order.repository.interface";
+import { Injectable } from "@nestjs/common";
 import { Order } from "@/order/domain/entities/order.entitiy";
+import { OrderRepository } from "@/order/infrastructure/persistence/order.repository";
 
 export interface FindStalePendingOrdersUseCaseCommand {
   minutesThreshold: number;
@@ -13,10 +13,7 @@ export interface FindStalePendingOrdersUseCaseResult {
 
 @Injectable()
 export class FindStalePendingOrdersUseCase {
-  constructor(
-    @Inject("OrderRepositoryInterface")
-    private readonly orderRepository: OrderRepositoryInterface
-  ) {}
+  constructor(private readonly orderRepository: OrderRepository) {}
 
   async execute(
     command: FindStalePendingOrdersUseCaseCommand

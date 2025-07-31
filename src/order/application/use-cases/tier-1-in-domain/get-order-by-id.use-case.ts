@@ -1,13 +1,10 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { Order } from "@/order/domain/entities/order.entitiy";
-import { OrderRepositoryInterface } from "@/order/domain/interfaces/order.repository.interface";
+import { OrderRepository } from "@/order/infrastructure/persistence/order.repository";
 
 @Injectable()
 export class GetOrderByIdUseCase {
-  constructor(
-    @Inject("OrderRepositoryInterface")
-    private readonly orderRepository: OrderRepositoryInterface
-  ) {}
+  constructor(private readonly orderRepository: OrderRepository) {}
 
   async execute(orderId: string): Promise<Order | null> {
     const order = await this.orderRepository.findById(orderId);
