@@ -33,13 +33,12 @@ export class UserResponseDto {
   updatedAt: Date;
 
   static fromEntity(user: User): UserResponseDto {
-    const props = user.toPersistence();
     return {
-      id: props.id,
-      email: props.email,
-      name: props.name,
-      createdAt: props.createdAt,
-      updatedAt: props.updatedAt,
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
   }
 }
