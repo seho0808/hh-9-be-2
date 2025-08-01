@@ -412,6 +412,10 @@ class DirectExplainRunner {
       },
     ];
 
+    // 먼저 테이블 통계 갱신
+    console.log("📊 테이블 통계 갱신 중...\n");
+    await this.dataSource.query("ANALYZE TABLE orders, order_items");
+
     for (const { name, query } of optimizedQueries) {
       console.log(`📊 ${name}`);
       console.log("=".repeat(60));
@@ -425,7 +429,56 @@ class DirectExplainRunner {
         this.printExplainTable(explainResult);
         console.log("```\n");
       } catch (error) {
-        console.error(`❌ 쿼리 실행 실패: ${error.message}`);
+        console.error(`❌ 쿼리 실행 실패: ${error.message}\n`);
+      }
+    }
+
+    // 통계 정보 확인
+    console.log("📈 테이블 통계 정보 확인:\n");
+
+    const statsQueries = [
+      {
+        name: "Orders 테이블 통계",
+        query: "SHOW TABLE STATUS LIKE 'orders'",
+      },
+      {
+        name: "인덱스 카디널리티 확인",
+        query: "SHOW INDEX FROM orders",
+      },
+    ];
+
+    for (const { name, query } of statsQueries) {
+      console.log(`📊 ${name}`);
+      console.log("=".repeat(60));
+
+      try {
+        const result = await this.dataSource.query(query);
+        console.log("```");
+        if (result.length > 0) {
+          const keys = Object.keys(result[0]);
+          const importantKeys = name.includes("통계")
+            ? ["Name", "Rows", "Data_length", "Index_length", "Auto_increment"]
+            : [
+                "Table",
+                "Key_name",
+                "Seq_in_index",
+                "Column_name",
+                "Cardinality",
+              ];
+
+          const filteredResult = result.map((row) => {
+            const filtered = {};
+            importantKeys.forEach((key) => {
+              if (row[key] !== undefined) filtered[key] = row[key];
+            });
+            return filtered;
+          });
+
+          this.printExplainTable(filteredResult);
+        }
+        console.log("```\n");
+      } catch (error) {
+        console.error(`❌ 쿼리 실행 실패: ${error.message}\n`);
       }
     }
 
