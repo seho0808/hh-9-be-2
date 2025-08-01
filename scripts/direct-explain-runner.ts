@@ -304,7 +304,7 @@ class DirectExplainRunner {
 
     const queries = [
       {
-        name: "사용자별 주문 이력 조회 (인덱스 적용 전)",
+        name: "사용자별 주문 이력 조회",
         query: `
           SELECT o.*, oi.* 
           FROM orders o
@@ -347,9 +347,11 @@ class DirectExplainRunner {
       },
     ];
 
-    // 인덱스 적용 전 EXPLAIN 실행
+    // 🔴 인덱스 적용 전 EXPLAIN 실행
+    console.log("🔴 ======== 인덱스 적용 전 ========\n");
+
     for (const { name, query } of queries) {
-      console.log(`📊 ${name}`);
+      console.log(`📊 ${name} (인덱스 적용 전)`);
       console.log("=".repeat(60));
 
       try {
@@ -385,39 +387,17 @@ class DirectExplainRunner {
       }
     }
 
-    // 인덱스 적용 후 EXPLAIN 실행
-    console.log("\n🚀 인덱스 적용 후 EXPLAIN 결과:\n");
-
-    const optimizedQueries = [
-      {
-        name: "사용자별 주문 이력 조회 (인덱스 적용 후)",
-        query: `
-          SELECT o.*, oi.* 
-          FROM orders o
-          LEFT JOIN order_items oi ON o.id = oi.order_id
-          WHERE o.user_id = '${testUserId}'
-          ORDER BY o.created_at DESC
-        `,
-      },
-      {
-        name: "실패한 주문 배치 조회 (인덱스 적용 후)",
-        query: `
-          SELECT o.*, oi.* 
-          FROM orders o
-          LEFT JOIN order_items oi ON o.id = oi.order_id
-          WHERE o.status = 'FAILED'
-          ORDER BY o.updated_at ASC
-          LIMIT 100
-        `,
-      },
-    ];
-
     // 먼저 테이블 통계 갱신
-    console.log("📊 테이블 통계 갱신 중...\n");
-    await this.dataSource.query("ANALYZE TABLE orders, order_items");
+    console.log("\n📊 테이블 통계 갱신 중...\n");
+    await this.dataSource.query(
+      "ANALYZE TABLE orders, order_items, products, stock_reservations"
+    );
 
-    for (const { name, query } of optimizedQueries) {
-      console.log(`📊 ${name}`);
+    // 🟢 인덱스 적용 후 EXPLAIN 실행
+    console.log("🟢 ======== 인덱스 적용 후 ========\n");
+
+    for (const { name, query } of queries) {
+      console.log(`📊 ${name} (인덱스 적용 후)`);
       console.log("=".repeat(60));
 
       try {
@@ -433,8 +413,29 @@ class DirectExplainRunner {
       }
     }
 
-    // 통계 정보 확인
-    console.log("📈 테이블 통계 정보 확인:\n");
+    // 재고 예약 조회 테스트
+    const [orderResult] = await this.dataSource.query(
+      "SELECT id FROM orders ORDER BY RAND() LIMIT 1"
+    );
+    const testOrderId = orderResult.id;
+
+    console.log(`📊 재고 예약 조회 (order_id: ${testOrderId})`);
+    console.log("=".repeat(60));
+
+    try {
+      const explainResult = await this.dataSource.query(
+        `EXPLAIN SELECT * FROM stock_reservations WHERE order_id = '${testOrderId}'`
+      );
+
+      console.log("```");
+      this.printExplainTable(explainResult);
+      console.log("```\n");
+    } catch (error) {
+      console.error(`❌ 쿼리 실행 실패: ${error.message}`);
+    }
+
+    // 📈 카디널리티 및 통계 정보 확인
+    console.log("📈 ======== 카디널리티 및 통계 정보 ========\n");
 
     const statsQueries = [
       {
@@ -442,8 +443,20 @@ class DirectExplainRunner {
         query: "SHOW TABLE STATUS LIKE 'orders'",
       },
       {
-        name: "인덱스 카디널리티 확인",
+        name: "Products 테이블 통계",
+        query: "SHOW TABLE STATUS LIKE 'products'",
+      },
+      {
+        name: "Orders 인덱스 카디널리티",
         query: "SHOW INDEX FROM orders",
+      },
+      {
+        name: "Products 인덱스 카디널리티",
+        query: "SHOW INDEX FROM products",
+      },
+      {
+        name: "Stock Reservations 인덱스 카디널리티",
+        query: "SHOW INDEX FROM stock_reservations",
       },
     ];
 
@@ -480,27 +493,6 @@ class DirectExplainRunner {
       } catch (error) {
         console.error(`❌ 쿼리 실행 실패: ${error.message}\n`);
       }
-    }
-
-    // 재고 예약 조회 테스트
-    const [orderResult] = await this.dataSource.query(
-      "SELECT id FROM orders ORDER BY RAND() LIMIT 1"
-    );
-    const testOrderId = orderResult.id;
-
-    console.log(`📊 재고 예약 조회 (order_id: ${testOrderId})`);
-    console.log("=".repeat(60));
-
-    try {
-      const explainResult = await this.dataSource.query(
-        `EXPLAIN SELECT * FROM stock_reservations WHERE order_id = '${testOrderId}'`
-      );
-
-      console.log("```");
-      this.printExplainTable(explainResult);
-      console.log("```\n");
-    } catch (error) {
-      console.error(`❌ 쿼리 실행 실패: ${error.message}`);
     }
   }
 
