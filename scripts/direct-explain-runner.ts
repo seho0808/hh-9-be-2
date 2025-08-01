@@ -154,9 +154,9 @@ class DirectExplainRunner {
 
     console.log("📊 테스트 데이터 생성 중...");
 
-    // 사용자 데이터 생성 (100명)
+    // 사용자 데이터 생성 (1,000명)
     const users = [];
-    for (let i = 1; i <= 100; i++) {
+    for (let i = 1; i <= 1000; i++) {
       const userId = uuid();
       users.push([
         userId,
@@ -175,9 +175,9 @@ class DirectExplainRunner {
     `;
     await this.dataSource.query(userInsertQuery, [users]);
 
-    // 상품 데이터 생성 (50개)
+    // 상품 데이터 생성 (200개)
     const products = [];
-    for (let i = 1; i <= 50; i++) {
+    for (let i = 1; i <= 200; i++) {
       const productId = uuid();
       products.push([
         productId,
@@ -198,11 +198,11 @@ class DirectExplainRunner {
     `;
     await this.dataSource.query(productInsertQuery, [products]);
 
-    // 주문 데이터 생성 (500개)
+    // 주문 데이터 생성 (10,000개)
     const orders = [];
     const orderItems = [];
 
-    for (let i = 1; i <= 500; i++) {
+    for (let i = 1; i <= 10000; i++) {
       const orderId = uuid();
       const userId = users[Math.floor(Math.random() * users.length)][0];
       const status =
@@ -258,9 +258,9 @@ class DirectExplainRunner {
     `;
     await this.dataSource.query(orderItemInsertQuery, [orderItems]);
 
-    // 재고 예약 데이터 생성 (100개)
+    // 재고 예약 데이터 생성 (1,000개)
     const stockReservations = [];
-    for (let i = 1; i <= 100; i++) {
+    for (let i = 1; i <= 1000; i++) {
       const user = users[Math.floor(Math.random() * users.length)];
       const product = products[Math.floor(Math.random() * products.length)];
       const order = orders[Math.floor(Math.random() * orders.length)];
@@ -412,6 +412,10 @@ class DirectExplainRunner {
       },
     ];
 
+    // 먼저 테이블 통계 갱신
+    console.log("📊 테이블 통계 갱신 중...\n");
+    await this.dataSource.query("ANALYZE TABLE orders, order_items");
+
     for (const { name, query } of optimizedQueries) {
       console.log(`📊 ${name}`);
       console.log("=".repeat(60));
@@ -425,7 +429,56 @@ class DirectExplainRunner {
         this.printExplainTable(explainResult);
         console.log("```\n");
       } catch (error) {
-        console.error(`❌ 쿼리 실행 실패: ${error.message}`);
+        console.error(`❌ 쿼리 실행 실패: ${error.message}\n`);
+      }
+    }
+
+    // 통계 정보 확인
+    console.log("📈 테이블 통계 정보 확인:\n");
+
+    const statsQueries = [
+      {
+        name: "Orders 테이블 통계",
+        query: "SHOW TABLE STATUS LIKE 'orders'",
+      },
+      {
+        name: "인덱스 카디널리티 확인",
+        query: "SHOW INDEX FROM orders",
+      },
+    ];
+
+    for (const { name, query } of statsQueries) {
+      console.log(`📊 ${name}`);
+      console.log("=".repeat(60));
+
+      try {
+        const result = await this.dataSource.query(query);
+        console.log("```");
+        if (result.length > 0) {
+          const keys = Object.keys(result[0]);
+          const importantKeys = name.includes("통계")
+            ? ["Name", "Rows", "Data_length", "Index_length", "Auto_increment"]
+            : [
+                "Table",
+                "Key_name",
+                "Seq_in_index",
+                "Column_name",
+                "Cardinality",
+              ];
+
+          const filteredResult = result.map((row) => {
+            const filtered = {};
+            importantKeys.forEach((key) => {
+              if (row[key] !== undefined) filtered[key] = row[key];
+            });
+            return filtered;
+          });
+
+          this.printExplainTable(filteredResult);
+        }
+        console.log("```\n");
+      } catch (error) {
+        console.error(`❌ 쿼리 실행 실패: ${error.message}\n`);
       }
     }
 
