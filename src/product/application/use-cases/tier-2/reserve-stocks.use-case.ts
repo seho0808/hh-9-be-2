@@ -26,16 +26,16 @@ export class ReserveStocksUseCase {
 
   @Transactional()
   async execute(command: ReserveStocksCommand): Promise<ReserveStocksResult> {
-    const result = await Promise.all(
-      command.requests.map((request) =>
-        this.reserveStockUseCase.execute({
-          productId: request.productId,
-          userId: request.userId,
-          quantity: request.quantity,
-          orderId: request.orderId,
-        })
-      )
-    );
+    const result = [];
+    for (const request of command.requests) {
+      const res = await this.reserveStockUseCase.execute({
+        productId: request.productId,
+        userId: request.userId,
+        quantity: request.quantity,
+        orderId: request.orderId,
+      });
+      result.push(res);
+    }
     return { result };
   }
 }

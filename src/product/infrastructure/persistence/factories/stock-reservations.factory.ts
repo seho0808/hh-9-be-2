@@ -17,6 +17,7 @@ export const StockReservationFactory =
       productId:
         options.productId || createTestName("상품", timestamp, counter),
       userId: options.userId || createTestName("사용자", timestamp, counter),
+      orderId: options.orderId || createTestName("주문", timestamp, counter),
       quantity:
         options.quantity ?? TEST_FACTORY_DEFAULTS.STOCK_RESERVATION.QUANTITY,
       isActive:
