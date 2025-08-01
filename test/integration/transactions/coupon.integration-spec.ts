@@ -1,22 +1,22 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DataSource, Repository } from "typeorm";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { TestContainersHelper } from "../testcontainers-helper";
-import { CouponFactory } from "../../src/coupon/infrastructure/persistence/factories/coupon.factory";
-import { UserCouponFactory } from "../../src/coupon/infrastructure/persistence/factories/user-coupon.factory";
-import { CouponTypeOrmEntity } from "../../src/coupon/infrastructure/persistence/orm/coupon.typeorm.entity";
+import { TestContainersHelper } from "../../testcontainers-helper";
+import { CouponFactory } from "@/coupon/infrastructure/persistence/factories/coupon.factory";
+import { UserCouponFactory } from "@/coupon/infrastructure/persistence/factories/user-coupon.factory";
+import { CouponTypeOrmEntity } from "@/coupon/infrastructure/persistence/orm/coupon.typeorm.entity";
 import {
   UserCouponStatus,
   UserCouponTypeOrmEntity,
-} from "../../src/coupon/infrastructure/persistence/orm/user-coupon.typeorm.entity";
-import { IssueUserCouponUseCase } from "../../src/coupon/application/use-cases/tier-1-in-domain/issue-user-coupon.use-case";
-import { CancelUserCouponUseCase } from "../../src/coupon/application/use-cases/tier-1-in-domain/cancel-user-coupon.use-case";
-import { UseUserCouponUseCase } from "../../src/coupon/application/use-cases/tier-1-in-domain/use-user-coupon.use-case";
-import { CouponRepository } from "../../src/coupon/infrastructure/persistence/coupon.repository";
-import { UserCouponRepository } from "../../src/coupon/infrastructure/persistence/user-coupon.repository";
-import { ValidateUserCouponService } from "../../src/coupon/domain/services/validate-user-coupon.service";
-import { CouponNotFoundError } from "../../src/coupon/domain/exceptions/coupon.exceptions";
-import { UserCouponNotFoundError } from "../../src/coupon/domain/exceptions/user-coupon.exception";
+} from "@/coupon/infrastructure/persistence/orm/user-coupon.typeorm.entity";
+import { IssueUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/issue-user-coupon.use-case";
+import { CancelUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/cancel-user-coupon.use-case";
+import { UseUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/use-user-coupon.use-case";
+import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
+import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
+import { ValidateUserCouponService } from "@/coupon/domain/services/validate-user-coupon.service";
+import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
+import { UserCouponNotFoundError } from "@/coupon/domain/exceptions/user-coupon.exception";
 
 describe("Coupon Domain Integration Tests", () => {
   let testHelper: TestContainersHelper;

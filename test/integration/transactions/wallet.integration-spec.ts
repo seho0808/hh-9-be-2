@@ -1,24 +1,24 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DataSource, Repository } from "typeorm";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { TestContainersHelper } from "../testcontainers-helper";
-import { UserBalanceFactory } from "../../src/wallet/infrastructure/persistence/factories/user-balance.factory";
-import { PointTransactionFactory } from "../../src/wallet/infrastructure/persistence/factories/point-transaction.factory";
-import { UserBalanceTypeOrmEntity } from "../../src/wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
+import { TestContainersHelper } from "../../testcontainers-helper";
+import { UserBalanceFactory } from "@/wallet/infrastructure/persistence/factories/user-balance.factory";
+import { PointTransactionFactory } from "@/wallet/infrastructure/persistence/factories/point-transaction.factory";
+import { UserBalanceTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
 import {
   PointTransactionType,
   PointTransactionTypeOrmEntity,
-} from "../../src/wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
-import { ChargePointsUseCase } from "../../src/wallet/application/use-cases/tier-1-in-domain/charge-points.use-case";
-import { UsePointsUseCase } from "../../src/wallet/application/use-cases/tier-1-in-domain/use-points.use-case";
-import { RecoverPointsUseCase } from "../../src/wallet/application/use-cases/tier-1-in-domain/recover-points.use-case";
-import { UserBalanceRepository } from "../../src/wallet/infrastructure/persistence/use-balance.repository";
-import { PointTransactionRepository } from "../../src/wallet/infrastructure/persistence/point-transaction.repository";
-import { ValidatePointTransactionService } from "../../src/wallet/domain/services/validate-point-transaction.service";
+} from "@/wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
+import { ChargePointsUseCase } from "@/wallet/application/use-cases/tier-1-in-domain/charge-points.use-case";
+import { UsePointsUseCase } from "@/wallet/application/use-cases/tier-1-in-domain/use-points.use-case";
+import { RecoverPointsUseCase } from "@/wallet/application/use-cases/tier-1-in-domain/recover-points.use-case";
+import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
+import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
+import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
 import {
   UserBalanceNotFoundError,
   InsufficientPointBalanceError,
-} from "../../src/wallet/domain/exceptions/point.exceptions";
+} from "@/wallet/domain/exceptions/point.exceptions";
 
 describe("Wallet Domain Integration Tests", () => {
   let testHelper: TestContainersHelper;
