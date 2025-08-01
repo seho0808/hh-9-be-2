@@ -16,6 +16,11 @@ export type EntityFactory<T extends BaseEntityProps> = {
     count: number,
     baseOptions?: Partial<T>
   ): Promise<T[]>;
+  createManyWithOptions(optionsArray: Partial<T>[]): T[];
+  createManyWithOptionsAndSave(
+    repository: Repository<T>,
+    optionsArray: Partial<T>[]
+  ): Promise<T[]>;
   resetCounter(): void;
 };
 
@@ -50,6 +55,18 @@ export function createEntityFactory<T extends BaseEntityProps>(
       baseOptions: Partial<T> = {}
     ) {
       const entities = factory.createMany(count, baseOptions);
+      return await repository.save(entities);
+    },
+
+    createManyWithOptions(optionsArray: Partial<T>[]) {
+      return optionsArray.map((options) => factory.create(options));
+    },
+
+    async createManyWithOptionsAndSave(
+      repository: Repository<T>,
+      optionsArray: Partial<T>[]
+    ) {
+      const entities = factory.createManyWithOptions(optionsArray);
       return await repository.save(entities);
     },
 
