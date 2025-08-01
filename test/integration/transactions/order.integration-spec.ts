@@ -1,51 +1,51 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DataSource, Repository } from "typeorm";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { TestContainersHelper } from "../testcontainers-helper";
-import { OrderFactory } from "../../src/order/infrastructure/persistence/factories/order.factory";
-import { OrderItemFactory } from "../../src/order/infrastructure/persistence/factories/order-item.factory";
-import { ProductFactory } from "../../src/product/infrastructure/persistence/factories/product.factory";
-import { CouponFactory } from "../../src/coupon/infrastructure/persistence/factories/coupon.factory";
-import { UserCouponFactory } from "../../src/coupon/infrastructure/persistence/factories/user-coupon.factory";
-import { UserBalanceFactory } from "../../src/wallet/infrastructure/persistence/factories/user-balance.factory";
-import { StockReservationFactory } from "../../src/product/infrastructure/persistence/factories/stock-reservations.factory";
+import { TestContainersHelper } from "../../testcontainers-helper";
+import { OrderFactory } from "@/order/infrastructure/persistence/factories/order.factory";
+import { OrderItemFactory } from "@/order/infrastructure/persistence/factories/order-item.factory";
+import { ProductFactory } from "@/product/infrastructure/persistence/factories/product.factory";
+import { CouponFactory } from "@/coupon/infrastructure/persistence/factories/coupon.factory";
+import { UserCouponFactory } from "@/coupon/infrastructure/persistence/factories/user-coupon.factory";
+import { UserBalanceFactory } from "@/wallet/infrastructure/persistence/factories/user-balance.factory";
+import { StockReservationFactory } from "@/product/infrastructure/persistence/factories/stock-reservations.factory";
 import {
   OrderStatus,
   OrderTypeOrmEntity,
-} from "../../src/order/infrastructure/persistence/orm/order.typeorm.entity";
-import { OrderItemTypeOrmEntity } from "../../src/order/infrastructure/persistence/orm/order-item.typeorm.entity";
-import { ProductTypeOrmEntity } from "../../src/product/infrastructure/persistence/orm/product.typeorm.entity";
-import { StockReservationTypeOrmEntity } from "../../src/product/infrastructure/persistence/orm/stock-reservations.typeorm.entity";
-import { CouponTypeOrmEntity } from "../../src/coupon/infrastructure/persistence/orm/coupon.typeorm.entity";
+} from "@/order/infrastructure/persistence/orm/order.typeorm.entity";
+import { OrderItemTypeOrmEntity } from "@/order/infrastructure/persistence/orm/order-item.typeorm.entity";
+import { ProductTypeOrmEntity } from "@/product/infrastructure/persistence/orm/product.typeorm.entity";
+import { StockReservationTypeOrmEntity } from "@/product/infrastructure/persistence/orm/stock-reservations.typeorm.entity";
+import { CouponTypeOrmEntity } from "@/coupon/infrastructure/persistence/orm/coupon.typeorm.entity";
 import {
   UserCouponStatus,
   UserCouponTypeOrmEntity,
-} from "../../src/coupon/infrastructure/persistence/orm/user-coupon.typeorm.entity";
-import { UserBalanceTypeOrmEntity } from "../../src/wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
-import { PointTransactionTypeOrmEntity } from "../../src/wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
-import { Order } from "../../src/order/domain/entities/order.entitiy";
-import { CreateOrderUseCase } from "../../src/order/application/use-cases/tier-1-in-domain/create-order.use-case";
-import { ApplyDiscountUseCase } from "../../src/order/application/use-cases/tier-1-in-domain/apply-discount.use-case";
-import { ChangeOrderStatusUseCase } from "../../src/order/application/use-cases/tier-1-in-domain/change-order-status.use-case";
-import { ProcessOrderUseCase } from "../../src/order/application/use-cases/tier-2/process-order.use-case";
-import { RecoverOrderUseCase } from "../../src/order/application/use-cases/tier-2/recover-order.use-case";
-import { UseUserCouponUseCase } from "../../src/coupon/application/use-cases/tier-1-in-domain/use-user-coupon.use-case";
-import { RecoverUserCouponUseCase } from "../../src/coupon/application/use-cases/tier-1-in-domain/recover-user-coupon.use-case";
-import { UsePointsUseCase } from "../../src/wallet/application/use-cases/tier-1-in-domain/use-points.use-case";
-import { RecoverPointsUseCase } from "../../src/wallet/application/use-cases/tier-1-in-domain/recover-points.use-case";
-import { ConfirmStockUseCase } from "../../src/product/application/use-cases/tier-1-in-domain/confirm-stock.use-case";
-import { ReleaseStockUseCase } from "../../src/product/application/use-cases/tier-1-in-domain/release-stock.use-case";
+} from "@/coupon/infrastructure/persistence/orm/user-coupon.typeorm.entity";
+import { UserBalanceTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
+import { PointTransactionTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
+import { Order } from "@/order/domain/entities/order.entitiy";
+import { CreateOrderUseCase } from "@/order/application/use-cases/tier-1-in-domain/create-order.use-case";
+import { ApplyDiscountUseCase } from "@/order/application/use-cases/tier-1-in-domain/apply-discount.use-case";
+import { ChangeOrderStatusUseCase } from "@/order/application/use-cases/tier-1-in-domain/change-order-status.use-case";
+import { ProcessOrderUseCase } from "@/order/application/use-cases/tier-2/process-order.use-case";
+import { RecoverOrderUseCase } from "@/order/application/use-cases/tier-2/recover-order.use-case";
+import { UseUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/use-user-coupon.use-case";
+import { RecoverUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/recover-user-coupon.use-case";
+import { UsePointsUseCase } from "@/wallet/application/use-cases/tier-1-in-domain/use-points.use-case";
+import { RecoverPointsUseCase } from "@/wallet/application/use-cases/tier-1-in-domain/recover-points.use-case";
+import { ConfirmStockUseCase } from "@/product/application/use-cases/tier-1-in-domain/confirm-stock.use-case";
+import { ReleaseStockUseCase } from "@/product/application/use-cases/tier-1-in-domain/release-stock.use-case";
 import { OrderRepository } from "@/order/infrastructure/persistence/order.repository";
 import { OrderItemRepository } from "@/order/infrastructure/persistence/order-item.repository";
-import { ProductRepository } from "../../src/product/infrastructure/persistence/product.repository";
-import { StockReservationRepository } from "../../src/product/infrastructure/persistence/stock-reservations.repository";
-import { CouponRepository } from "../../src/coupon/infrastructure/persistence/coupon.repository";
-import { UserCouponRepository } from "../../src/coupon/infrastructure/persistence/user-coupon.repository";
-import { UserBalanceRepository } from "../../src/wallet/infrastructure/persistence/use-balance.repository";
-import { PointTransactionRepository } from "../../src/wallet/infrastructure/persistence/point-transaction.repository";
-import { ValidateStockService } from "../../src/product/domain/services/validate-stock.service";
-import { ValidateUserCouponService } from "../../src/coupon/domain/services/validate-user-coupon.service";
-import { ValidatePointTransactionService } from "../../src/wallet/domain/services/validate-point-transaction.service";
+import { ProductRepository } from "@/product/infrastructure/persistence/product.repository";
+import { StockReservationRepository } from "@/product/infrastructure/persistence/stock-reservations.repository";
+import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
+import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
+import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
+import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
+import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
+import { ValidateUserCouponService } from "@/coupon/domain/services/validate-user-coupon.service";
+import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
 
 describe("Order Domain Integration Tests", () => {
   let testHelper: TestContainersHelper;

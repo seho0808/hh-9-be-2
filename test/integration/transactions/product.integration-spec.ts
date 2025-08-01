@@ -1,20 +1,20 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DataSource, Repository } from "typeorm";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { TestContainersHelper } from "../testcontainers-helper";
-import { ProductFactory } from "../../src/product/infrastructure/persistence/factories/product.factory";
-import { StockReservationFactory } from "../../src/product/infrastructure/persistence/factories/stock-reservations.factory";
-import { ProductTypeOrmEntity } from "../../src/product/infrastructure/persistence/orm/product.typeorm.entity";
-import { StockReservationTypeOrmEntity } from "../../src/product/infrastructure/persistence/orm/stock-reservations.typeorm.entity";
-import { ReserveStockUseCase } from "../../src/product/application/use-cases/tier-1-in-domain/reserve-stock.use-case";
-import { ReleaseStockUseCase } from "../../src/product/application/use-cases/tier-1-in-domain/release-stock.use-case";
-import { ConfirmStockUseCase } from "../../src/product/application/use-cases/tier-1-in-domain/confirm-stock.use-case";
-import { ReserveStocksUseCase } from "../../src/product/application/use-cases/tier-2/reserve-stocks.use-case";
-import { ProductNotFoundError } from "../../src/product/domain/exceptions/product.exceptions";
-import { InsufficientStockError } from "../../src/product/domain/exceptions/product.exceptions";
-import { ProductRepository } from "../../src/product/infrastructure/persistence/product.repository";
-import { StockReservationRepository } from "../../src/product/infrastructure/persistence/stock-reservations.repository";
-import { ValidateStockService } from "../../src/product/domain/services/validate-stock.service";
+import { TestContainersHelper } from "../../testcontainers-helper";
+import { ProductFactory } from "@/product/infrastructure/persistence/factories/product.factory";
+import { StockReservationFactory } from "@/product/infrastructure/persistence/factories/stock-reservations.factory";
+import { ProductTypeOrmEntity } from "@/product/infrastructure/persistence/orm/product.typeorm.entity";
+import { StockReservationTypeOrmEntity } from "@/product/infrastructure/persistence/orm/stock-reservations.typeorm.entity";
+import { ReserveStockUseCase } from "@/product/application/use-cases/tier-1-in-domain/reserve-stock.use-case";
+import { ReleaseStockUseCase } from "@/product/application/use-cases/tier-1-in-domain/release-stock.use-case";
+import { ConfirmStockUseCase } from "@/product/application/use-cases/tier-1-in-domain/confirm-stock.use-case";
+import { ReserveStocksUseCase } from "@/product/application/use-cases/tier-2/reserve-stocks.use-case";
+import { ProductNotFoundError } from "@/product/domain/exceptions/product.exceptions";
+import { InsufficientStockError } from "@/product/domain/exceptions/product.exceptions";
+import { ProductRepository } from "@/product/infrastructure/persistence/product.repository";
+import { StockReservationRepository } from "@/product/infrastructure/persistence/stock-reservations.repository";
+import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
 
 describe("Product Domain Integration Tests", () => {
   let testHelper: TestContainersHelper;

@@ -31,7 +31,6 @@ export class CouponRepository {
   }
 
   private toDomain(entity: CouponTypeOrmEntity): Coupon {
-    // Create domain entity directly using private constructor
     const couponProps = {
       id: entity.id,
       name: entity.name,
@@ -54,10 +53,7 @@ export class CouponRepository {
       updatedAt: entity.updatedAt,
     };
 
-    // Use reflection to access private constructor
-    return Object.create(Coupon.prototype, {
-      props: { value: couponProps, writable: false },
-    });
+    return new Coupon(couponProps);
   }
 
   private fromDomain(coupon: Coupon): CouponTypeOrmEntity {

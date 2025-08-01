@@ -34,7 +34,7 @@ export interface CouponProps {
 }
 
 export class Coupon {
-  private constructor(private readonly props: CouponProps) {}
+  constructor(private readonly props: CouponProps) {}
 
   static create(
     props: Omit<

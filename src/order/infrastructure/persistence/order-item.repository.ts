@@ -17,6 +17,7 @@ export class OrderItemRepository {
     await this.orderItemRepository.save(entity);
   }
 
+  // TODO: postres mv + redis 캐싱 적용
   async findPopularProducts(limit: number): Promise<PopularProductResult[]> {
     const result = await this.orderItemRepository
       .createQueryBuilder("orderItem")
