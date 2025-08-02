@@ -1,60 +1,37 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, EntityManager } from "typeorm";
-import { CouponRepositoryInterface } from "@/coupon/domain/interfaces/coupon.repository.interface";
+import { Repository } from "typeorm";
 import {
   Coupon,
   CouponDiscountType,
 } from "@/coupon/domain/entities/coupon.entity";
 import { CouponTypeOrmEntity } from "./orm/coupon.typeorm.entity";
-import { TransactionContext } from "@/common/services/transaction.service";
 
 @Injectable()
-export class CouponRepository implements CouponRepositoryInterface {
-  private entityManager?: EntityManager;
-
+export class CouponRepository {
   constructor(
     @InjectRepository(CouponTypeOrmEntity)
     private readonly couponRepository: Repository<CouponTypeOrmEntity>
-  ) {
-    TransactionContext.registerRepository(this);
-  }
-
-  setEntityManager(manager: EntityManager): void {
-    this.entityManager = manager;
-  }
-
-  clearEntityManager(): void {
-    this.entityManager = undefined;
-  }
-
-  private getRepository(): Repository<CouponTypeOrmEntity> {
-    return this.entityManager
-      ? this.entityManager.getRepository(CouponTypeOrmEntity)
-      : this.couponRepository;
-  }
+  ) {}
 
   async findById(id: string): Promise<Coupon | null> {
-    const repository = this.getRepository();
-    const entity = await repository.findOne({ where: { id } });
+    const entity = await this.couponRepository.findOne({ where: { id } });
     return entity ? this.toDomain(entity) : null;
   }
 
   async findAll(): Promise<Coupon[]> {
-    const repository = this.getRepository();
-    const entities = await repository.find();
+    const entities = await this.couponRepository.find();
     return entities.map((entity) => this.toDomain(entity));
   }
 
   async save(coupon: Coupon): Promise<Coupon> {
-    const repository = this.getRepository();
     const entity = this.fromDomain(coupon);
-    const savedEntity = await repository.save(entity);
+    const savedEntity = await this.couponRepository.save(entity);
     return this.toDomain(savedEntity);
   }
 
   private toDomain(entity: CouponTypeOrmEntity): Coupon {
-    return Coupon.fromPersistence({
+    const couponProps = {
       id: entity.id,
       name: entity.name,
       description: entity.description,
@@ -74,28 +51,29 @@ export class CouponRepository implements CouponRepositoryInterface {
       expiresInDays: entity.expiresInDays,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
-    });
+    };
+
+    return new Coupon(couponProps);
   }
 
   private fromDomain(coupon: Coupon): CouponTypeOrmEntity {
-    const props = coupon.toPersistence();
     const entity = new CouponTypeOrmEntity();
-    entity.id = props.id;
-    entity.name = props.name;
-    entity.description = props.description;
-    entity.couponCode = props.couponCode;
-    entity.discountType = props.discountType;
-    entity.discountValue = props.discountValue;
-    entity.minimumOrderPrice = props.minimumOrderPrice;
-    entity.maxDiscountPrice = props.maxDiscountPrice;
-    entity.issuedCount = props.issuedCount;
-    entity.usedCount = props.usedCount;
-    entity.totalCount = props.totalCount;
-    entity.startDate = props.startDate;
-    entity.endDate = props.endDate;
-    entity.expiresInDays = props.expiresInDays;
-    entity.createdAt = props.createdAt;
-    entity.updatedAt = props.updatedAt;
+    entity.id = coupon.id;
+    entity.name = coupon.name;
+    entity.description = coupon.description;
+    entity.couponCode = coupon.couponCode;
+    entity.discountType = coupon.discountType;
+    entity.discountValue = coupon.discountValue;
+    entity.minimumOrderPrice = coupon.minimumOrderPrice;
+    entity.maxDiscountPrice = coupon.maxDiscountPrice;
+    entity.issuedCount = coupon.issuedCount;
+    entity.usedCount = coupon.usedCount;
+    entity.totalCount = coupon.totalCount;
+    entity.startDate = coupon.startDate;
+    entity.endDate = coupon.endDate;
+    entity.expiresInDays = coupon.expiresInDays;
+    entity.createdAt = coupon.createdAt;
+    entity.updatedAt = coupon.updatedAt;
     return entity;
   }
 }

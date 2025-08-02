@@ -1,87 +1,64 @@
-import { PointTransactionRepositoryInterface } from "@/wallet/domain/interfaces/point-transaction.repository.interface";
 import { Injectable } from "@nestjs/common";
 import {
   PointTransactionType,
   PointTransactionTypeOrmEntity,
 } from "./orm/point-transaction.typeorm.entity";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, EntityManager } from "typeorm";
+import { Repository } from "typeorm";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
-import { TransactionContext } from "@/common/services/transaction.service";
 
 @Injectable()
-export class PointTransactionRepository
-  implements PointTransactionRepositoryInterface
-{
-  private entityManager?: EntityManager;
-
+export class PointTransactionRepository {
   constructor(
     @InjectRepository(PointTransactionTypeOrmEntity)
     private readonly pointTransactionRepository: Repository<PointTransactionTypeOrmEntity>
-  ) {
-    TransactionContext.registerRepository(this);
-  }
-
-  setEntityManager(manager: EntityManager): void {
-    this.entityManager = manager;
-  }
-
-  clearEntityManager(): void {
-    this.entityManager = undefined;
-  }
-
-  private getRepository(): Repository<PointTransactionTypeOrmEntity> {
-    return this.entityManager
-      ? this.entityManager.getRepository(PointTransactionTypeOrmEntity)
-      : this.pointTransactionRepository;
-  }
+  ) {}
 
   async findByUserId(userId: string): Promise<PointTransaction[]> {
-    const repository = this.getRepository();
-    const entities = await repository.find({
+    const entities = await this.pointTransactionRepository.find({
       where: { userId },
     });
     return entities.map((entity) => this.toDomain(entity));
   }
 
-  async findByOrderIdempotencyKey(
+  async findByRefId(
     userId: string,
-    idempotencyKey: string
+    refId: string
   ): Promise<PointTransaction[]> {
-    const repository = this.getRepository();
-    const entities = await repository.find({
-      where: { userId, idempotencyKey },
+    const entities = await this.pointTransactionRepository.find({
+      where: { userId, refId: refId },
     });
     return entities.map((entity) => this.toDomain(entity));
   }
 
   async save(pointTransaction: PointTransaction): Promise<PointTransaction> {
-    const repository = this.getRepository();
     const entity = this.fromDomain(pointTransaction);
-    const savedEntity = await repository.save(entity);
+    const savedEntity = await this.pointTransactionRepository.save(entity);
     return this.toDomain(savedEntity);
   }
 
   private toDomain(entity: PointTransactionTypeOrmEntity): PointTransaction {
-    return PointTransaction.fromPersistence({
+    return new PointTransaction({
       id: entity.id,
       userId: entity.userId,
       amount: entity.amount,
-      type: entity.type as PointTransactionType,
+      type: entity.type,
       idempotencyKey: entity.idempotencyKey,
+      refId: entity.refId,
       createdAt: entity.createdAt,
     });
   }
 
-  private fromDomain(domain: PointTransaction): PointTransactionTypeOrmEntity {
-    const props = domain.toPersistence();
+  private fromDomain(
+    pointTransaction: PointTransaction
+  ): PointTransactionTypeOrmEntity {
     const entity = new PointTransactionTypeOrmEntity();
-    entity.id = props.id;
-    entity.userId = props.userId;
-    entity.amount = props.amount;
-    entity.type = props.type as PointTransactionType;
-    entity.idempotencyKey = props.idempotencyKey;
-    entity.createdAt = props.createdAt;
+    entity.id = pointTransaction.id;
+    entity.userId = pointTransaction.userId;
+    entity.amount = pointTransaction.amount;
+    entity.type = pointTransaction.type as PointTransactionType;
+    entity.refId = pointTransaction.refId;
+    entity.createdAt = pointTransaction.createdAt;
     return entity;
   }
 }

@@ -5,14 +5,16 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  OneToMany,
 } from "typeorm";
+import { UserCouponTypeOrmEntity } from "./user-coupon.typeorm.entity";
 
 @Entity("coupons")
 export class CouponTypeOrmEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: "varchar", length: 255 })
+  @Column({ type: "varchar", length: 100 })
   name: string;
 
   @Column({ type: "text" })
@@ -60,4 +62,7 @@ export class CouponTypeOrmEntity {
 
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
+
+  @OneToMany(() => UserCouponTypeOrmEntity, "coupon")
+  userCoupons: UserCouponTypeOrmEntity[];
 }

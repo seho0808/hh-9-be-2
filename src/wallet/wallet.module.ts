@@ -1,19 +1,18 @@
 import { Module, forwardRef } from "@nestjs/common";
-import { WalletController } from "./infrastructure/http/wallet.controller";
+import { WalletController } from "./presentation/http/wallet.controller";
 import { AuthModule } from "../auth/auth.module";
-import { TransactionService } from "../common/services/transaction.service";
 import { UserBalanceRepository } from "./infrastructure/persistence/use-balance.repository";
 import { PointTransactionRepository } from "./infrastructure/persistence/point-transaction.repository";
-import { WalletApplicationService } from "./application/wallet.service";
-import { ChargePointsUseCase } from "./domain/use-cases/charge-points.use-case";
-import { RecoverPointsUseCase } from "./domain/use-cases/recover-points.use-case";
-import { UsePointsUseCase } from "./domain/use-cases/use-points.use-case";
-import { GetUserPointsUseCase } from "./domain/use-cases/get-user-points.use-case";
-import { CreateUserBalanceUseCase } from "./domain/use-cases/create-user-balance.use-case";
-import { ValidateUsePointsUseCase } from "./domain/use-cases/validate-use-points.use-case";
+import { ChargePointsUseCase } from "./application/use-cases/tier-1-in-domain/charge-points.use-case";
+import { RecoverPointsUseCase } from "./application/use-cases/tier-1-in-domain/recover-points.use-case";
+import { UsePointsUseCase } from "./application/use-cases/tier-1-in-domain/use-points.use-case";
+import { GetUserPointsUseCase } from "./application/use-cases/tier-1-in-domain/get-user-points.use-case";
+import { CreateUserBalanceUseCase } from "./application/use-cases/tier-1-in-domain/create-user-balance.use-case";
+import { ValidateUsePointsUseCase } from "./application/use-cases/tier-1-in-domain/validate-use-points.use-case";
 import { UserBalanceTypeOrmEntity } from "./infrastructure/persistence/orm/user-balance.typeorm.entity";
 import { PointTransactionTypeOrmEntity } from "./infrastructure/persistence/orm/point-transaction.typeorm.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { ValidatePointTransactionService } from "./domain/services/validate-point-transaction.service";
 
 @Module({
   imports: [
@@ -25,23 +24,22 @@ import { TypeOrmModule } from "@nestjs/typeorm";
   ],
   controllers: [WalletController],
   providers: [
-    TransactionService,
-    WalletApplicationService,
     ChargePointsUseCase,
     RecoverPointsUseCase,
     UsePointsUseCase,
     GetUserPointsUseCase,
     CreateUserBalanceUseCase,
     ValidateUsePointsUseCase,
-    {
-      provide: "UserBalanceRepositoryInterface",
-      useClass: UserBalanceRepository,
-    },
-    {
-      provide: "PointTransactionRepositoryInterface",
-      useClass: PointTransactionRepository,
-    },
+    ValidatePointTransactionService,
+    UserBalanceRepository,
+    PointTransactionRepository,
   ],
-  exports: [WalletApplicationService],
+  exports: [
+    ChargePointsUseCase,
+    RecoverPointsUseCase,
+    UsePointsUseCase,
+    CreateUserBalanceUseCase,
+    ValidateUsePointsUseCase,
+  ],
 })
 export class WalletModule {}

@@ -14,6 +14,11 @@ import { DataSource } from "typeorm";
 import * as request from "supertest";
 import { PointTransactionTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
 import { UserBalanceTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
+import {
+  initializeTransactionalContext,
+  addTransactionalDataSource,
+} from "typeorm-transactional";
+import * as bcrypt from "bcrypt";
 
 export interface TestContainerConfig {
   mysqlVersion?: string;
@@ -27,46 +32,90 @@ export class TestContainersHelper {
   private app: INestApplication | null = null;
   private dataSource: DataSource | null = null;
 
-  async setupWithMySQL(config: TestContainerConfig = {}): Promise<{
-    app: INestApplication;
-    dataSource: DataSource;
+  private async setupMySQLContainer(config: TestContainerConfig = {}): Promise<{
     container: StartedMySqlContainer;
+    workerId: string;
   }> {
-    // 워커별 고유 설정
     const workerId = process.env.JEST_WORKER_ID || "1";
-    const timestamp = Date.now(); // 추가적인 고유성을 위해
+    const timestamp = Date.now();
 
     const {
       mysqlVersion = "mysql:8.0",
-      database = `test_db_worker_${workerId}_${timestamp}`, // 더 고유한 DB명
+      database = `test_db_worker_${workerId}_${timestamp}`,
       username = "test_user",
       password = "test_password",
     } = config;
 
     console.log(`🚀 [Worker ${workerId}] Starting MySQL setup...`);
 
-    // MySQL 컨테이너 시작 (병렬 처리 최적화)
     this.mysqlContainer = await new MySqlContainer(mysqlVersion)
       .withDatabase(database)
       .withUsername(username)
       .withRootPassword(password)
-      .withExposedPorts(3306) // 동적 포트 할당
+      .withExposedPorts(3306)
       .start();
 
     console.log(
       `🐳 [Worker ${workerId}] MySQL Container started on port ${this.mysqlContainer.getPort()}`
     );
 
+    return {
+      container: this.mysqlContainer,
+      workerId,
+    };
+  }
+
+  private async createDataSource(
+    container: StartedMySqlContainer
+  ): Promise<DataSource> {
+    const dataSource = new DataSource({
+      type: "mysql",
+      host: container.getHost(),
+      port: container.getPort(),
+      username: container.getUsername(),
+      password: container.getUserPassword(),
+      database: container.getDatabase(),
+      entities: [
+        UserTypeOrmEntity,
+        ProductTypeOrmEntity,
+        StockReservationTypeOrmEntity,
+        CouponTypeOrmEntity,
+        UserCouponTypeOrmEntity,
+        UserBalanceTypeOrmEntity,
+        PointTransactionTypeOrmEntity,
+        OrderTypeOrmEntity,
+        OrderItemTypeOrmEntity,
+      ],
+      synchronize: true,
+      dropSchema: true,
+      logging: false,
+    });
+
+    await dataSource.initialize();
+    addTransactionalDataSource(dataSource);
+
+    return dataSource;
+  }
+
+  async setupWithMySQL(config: TestContainerConfig = {}): Promise<{
+    app: INestApplication;
+    dataSource: DataSource;
+    container: StartedMySqlContainer;
+  }> {
+    initializeTransactionalContext();
+
+    const { container, workerId } = await this.setupMySQLContainer(config);
+
     // 테스트 모듈 생성
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot({
           type: "mysql",
-          host: this.mysqlContainer.getHost(),
-          port: this.mysqlContainer.getPort(),
-          username: this.mysqlContainer.getUsername(),
-          password: this.mysqlContainer.getUserPassword(),
-          database: this.mysqlContainer.getDatabase(),
+          host: container.getHost(),
+          port: container.getPort(),
+          username: container.getUsername(),
+          password: container.getUserPassword(),
+          database: container.getDatabase(),
           entities: [
             UserTypeOrmEntity,
             ProductTypeOrmEntity,
@@ -112,13 +161,33 @@ export class TestContainersHelper {
     await this.app.init();
 
     this.dataSource = this.app.get(DataSource);
+    addTransactionalDataSource(this.dataSource);
 
     console.log(`✅ [Worker ${workerId}] NestJS Application initialized`);
 
     return {
       app: this.app,
       dataSource: this.dataSource,
-      container: this.mysqlContainer,
+      container,
+    };
+  }
+
+  async setupDatabaseOnly(config: TestContainerConfig = {}): Promise<{
+    dataSource: DataSource;
+    container: StartedMySqlContainer;
+  }> {
+    initializeTransactionalContext();
+
+    const { container, workerId } = await this.setupMySQLContainer(config);
+
+    // Create minimal DataSource for integration tests
+    this.dataSource = await this.createDataSource(container);
+
+    console.log(`✅ [Worker ${workerId}] Database initialized`);
+
+    return {
+      dataSource: this.dataSource,
+      container,
     };
   }
 
@@ -186,7 +255,6 @@ export class TestContainersHelper {
       name?: string;
     } = {}
   ): Promise<any> {
-    const bcrypt = require("bcrypt");
     const hashedPassword = bcrypt.hashSync("testPassword123", 10);
 
     const defaultUser = {

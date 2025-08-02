@@ -1,49 +1,25 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, EntityManager } from "typeorm";
-import {
-  OrderItemRepositoryInterface,
-  PopularProductResult,
-} from "@/order/domain/interfaces/order-item.repository.interface";
+import { Repository } from "typeorm";
 import { OrderItem } from "@/order/domain/entities/order-item.entity";
 import { OrderItemTypeOrmEntity } from "./orm/order-item.typeorm.entity";
-import { TransactionContext } from "@/common/services/transaction.service";
+import { PopularProductResult } from "@/product/application/use-cases/tier-2/get-popular-products-with-detail.use-case";
 
 @Injectable()
-export class OrderItemRepository implements OrderItemRepositoryInterface {
-  private entityManager?: EntityManager;
-
+export class OrderItemRepository {
   constructor(
     @InjectRepository(OrderItemTypeOrmEntity)
     private readonly orderItemRepository: Repository<OrderItemTypeOrmEntity>
-  ) {
-    TransactionContext.registerRepository(this);
-  }
-
-  setEntityManager(manager: EntityManager): void {
-    this.entityManager = manager;
-  }
-
-  clearEntityManager(): void {
-    this.entityManager = undefined;
-  }
-
-  private getRepository(): Repository<OrderItemTypeOrmEntity> {
-    return this.entityManager
-      ? this.entityManager.getRepository(OrderItemTypeOrmEntity)
-      : this.orderItemRepository;
-  }
+  ) {}
 
   async save(orderItem: OrderItem): Promise<void> {
-    const repository = this.getRepository();
     const entity = this.fromDomain(orderItem);
-    await repository.save(entity);
+    await this.orderItemRepository.save(entity);
   }
 
+  // TODO: postres mv + redis 캐싱 적용
   async findPopularProducts(limit: number): Promise<PopularProductResult[]> {
-    const repository = this.getRepository();
-
-    const result = await repository
+    const result = await this.orderItemRepository
       .createQueryBuilder("orderItem")
       .innerJoin("orderItem.order", "order")
       .select("orderItem.productId", "productId")
@@ -63,16 +39,15 @@ export class OrderItemRepository implements OrderItemRepositoryInterface {
   }
 
   private fromDomain(orderItem: OrderItem): OrderItemTypeOrmEntity {
-    const props = orderItem.toPersistence();
     const entity = new OrderItemTypeOrmEntity();
-    entity.id = props.id;
-    entity.orderId = props.orderId;
-    entity.productId = props.productId;
-    entity.quantity = props.quantity;
-    entity.unitPrice = props.unitPrice;
-    entity.totalPrice = props.totalPrice;
-    entity.createdAt = props.createdAt;
-    entity.updatedAt = props.updatedAt;
+    entity.id = orderItem.id;
+    entity.orderId = orderItem.orderId;
+    entity.productId = orderItem.productId;
+    entity.quantity = orderItem.quantity;
+    entity.unitPrice = orderItem.unitPrice;
+    entity.totalPrice = orderItem.totalPrice;
+    entity.createdAt = orderItem.createdAt;
+    entity.updatedAt = orderItem.updatedAt;
     return entity;
   }
 }

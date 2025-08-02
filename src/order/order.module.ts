@@ -3,7 +3,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import {
   OrderController,
   UserOrderController,
-} from "./infrastructure/http/order.controller";
+} from "./presentation/http/order.controller";
 import { AuthModule } from "../auth/auth.module";
 import { ProductModule } from "../product/product.module";
 import { WalletModule } from "../wallet/wallet.module";
@@ -27,23 +27,19 @@ import { StockReservationTypeOrmEntity } from "../product/infrastructure/persist
 import { UserBalanceTypeOrmEntity } from "../wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
 import { PointTransactionTypeOrmEntity } from "../wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
 
-// Application
-import { OrderApplicationService } from "./application/order.service";
-import { OrderRecoveryService } from "./application/order-recovery.service";
-
-// Common services
-import { TransactionService } from "../common/services/transaction.service";
-
 // Domain Use Cases
-import { CreateOrderUseCase } from "./domain/use-cases/create-order.use-case";
-import { ApplyDiscountUseCase } from "./domain/use-cases/apply-discount.use-case";
-import { ChangeOrderStatusUseCase } from "./domain/use-cases/change-order-status.use-case";
-import { GetOrderByIdUseCase } from "./domain/use-cases/get-order-by-id.use-case";
-import { GetOrderByUserIdUseCase } from "./domain/use-cases/get-order-by-user-id.use-case";
-import { FindStalePendingOrdersUseCase } from "./domain/use-cases/find-stale-pending-orders.use-case";
-import { FindFailedOrdersUseCase } from "./domain/use-cases/find-failed-orders.use-case";
-import { GetPopularProductsUseCase } from "./domain/use-cases/get-popular-products.use-case";
-import { OrderStatApplicationService } from "./application/order-stat.service";
+import { CreateOrderUseCase } from "./application/use-cases/tier-1-in-domain/create-order.use-case";
+import { ApplyDiscountUseCase } from "./application/use-cases/tier-1-in-domain/apply-discount.use-case";
+import { ChangeOrderStatusUseCase } from "./application/use-cases/tier-1-in-domain/change-order-status.use-case";
+import { GetOrderByIdUseCase } from "./application/use-cases/tier-1-in-domain/get-order-by-id.use-case";
+import { GetOrdersByUserIdUseCase } from "./application/use-cases/tier-1-in-domain/get-orders-by-user-id.use-case";
+import { FindStalePendingOrdersUseCase } from "./application/use-cases/tier-1-in-domain/find-stale-pending-orders.use-case";
+import { FindFailedOrdersUseCase } from "./application/use-cases/tier-1-in-domain/find-failed-orders.use-case";
+import { GetPopularProductsUseCase } from "./application/use-cases/tier-1-in-domain/get-popular-products.use-case";
+import { PlaceOrderUseCase } from "./application/use-cases/tier-4/place-order.user-case";
+import { RecoverOrderUseCase } from "./application/use-cases/tier-2/recover-order.use-case";
+import { PrepareOrderUseCase } from "./application/use-cases/tier-3/prepare-order.use-case";
+import { ProcessOrderUseCase } from "./application/use-cases/tier-2/process-order.use-case";
 
 @Module({
   imports: [
@@ -64,51 +60,27 @@ import { OrderStatApplicationService } from "./application/order-stat.service";
   ],
   controllers: [OrderController, UserOrderController],
   providers: [
-    TransactionService,
-    OrderApplicationService,
-    OrderStatApplicationService,
-    OrderRecoveryService,
     CreateOrderUseCase,
     ApplyDiscountUseCase,
     ChangeOrderStatusUseCase,
     GetOrderByIdUseCase,
-    GetOrderByUserIdUseCase,
+    GetOrdersByUserIdUseCase,
     FindStalePendingOrdersUseCase,
     FindFailedOrdersUseCase,
     GetPopularProductsUseCase,
-    {
-      provide: "OrderRepositoryInterface",
-      useClass: OrderRepository,
-    },
-    {
-      provide: "OrderItemRepositoryInterface",
-      useClass: OrderItemRepository,
-    },
-    {
-      provide: "CouponRepositoryInterface",
-      useClass: CouponRepository,
-    },
-    {
-      provide: "UserCouponRepositoryInterface",
-      useClass: UserCouponRepository,
-    },
-    {
-      provide: "ProductRepositoryInterface",
-      useClass: ProductRepository,
-    },
-    {
-      provide: "StockReservationRepositoryInterface",
-      useClass: StockReservationRepository,
-    },
-    {
-      provide: "UserBalanceRepositoryInterface",
-      useClass: UserBalanceRepository,
-    },
-    {
-      provide: "PointTransactionRepositoryInterface",
-      useClass: PointTransactionRepository,
-    },
+    PlaceOrderUseCase,
+    PrepareOrderUseCase,
+    ProcessOrderUseCase,
+    RecoverOrderUseCase,
+    OrderRepository,
+    OrderItemRepository,
+    CouponRepository,
+    UserCouponRepository,
+    ProductRepository,
+    StockReservationRepository,
+    UserBalanceRepository,
+    PointTransactionRepository,
   ],
-  exports: [OrderApplicationService, OrderStatApplicationService],
+  exports: [GetPopularProductsUseCase],
 })
 export class OrderModule {}

@@ -34,14 +34,6 @@ export class OrderItem {
     return unitPrice * quantity;
   }
 
-  static fromPersistence(props: OrderItemProps): OrderItem {
-    return new OrderItem(props);
-  }
-
-  toPersistence(): OrderItemProps {
-    return this.props;
-  }
-
   get id(): string {
     return this.props.id;
   }

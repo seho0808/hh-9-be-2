@@ -6,7 +6,13 @@ import {
   UpdateDateColumn,
   Index,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
+  OneToOne,
 } from "typeorm";
+import { UserTypeOrmEntity } from "@/user/infrastructure/persistence/orm/user.typeorm.entity";
+import { UserCouponTypeOrmEntity } from "@/coupon/infrastructure/persistence/orm/user-coupon.typeorm.entity";
+import { OrderItemTypeOrmEntity } from "./order-item.typeorm.entity";
 
 export enum OrderStatus {
   PENDING = "PENDING",
@@ -20,7 +26,7 @@ export class OrderTypeOrmEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: "varchar", length: 255, name: "user_id" })
+  @Column({ type: "uuid", name: "user_id" })
   @Index("idx_orders_user_id")
   userId: string;
 
@@ -40,17 +46,16 @@ export class OrderTypeOrmEntity {
   @Column({ type: "text", name: "failed_reason", nullable: true })
   failedReason: string | null;
 
-  @Column({ type: "varchar", length: 255, name: "idempotency_key" })
+  @Column({ type: "varchar", length: 100, name: "idempotency_key" })
   @Index("idx_orders_idempotency_key", { unique: true })
   idempotencyKey: string;
 
   @Column({
-    type: "varchar",
-    length: 255,
-    name: "applied_coupon_id",
+    type: "uuid",
+    name: "applied_user_coupon_id",
     nullable: true,
   })
-  appliedCouponId: string | null;
+  appliedUserCouponId: string | null;
 
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;
@@ -58,8 +63,15 @@ export class OrderTypeOrmEntity {
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
 
-  @OneToMany("OrderItemTypeOrmEntity", "order", {
+  @OneToMany(() => OrderItemTypeOrmEntity, "order", {
     cascade: true,
   })
-  orderItems: any[];
+  orderItems: OrderItemTypeOrmEntity[];
+
+  @ManyToOne(() => UserTypeOrmEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
+  user: UserTypeOrmEntity;
+
+  @OneToOne(() => UserCouponTypeOrmEntity, { onDelete: "SET NULL" })
+  appliedCoupon?: UserCouponTypeOrmEntity;
 }

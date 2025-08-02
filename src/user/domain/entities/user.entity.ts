@@ -8,7 +8,7 @@ export interface UserProps {
 }
 
 export class User {
-  private constructor(private readonly props: UserProps) {}
+  constructor(private readonly props: UserProps) {}
 
   static create(
     props: Omit<UserProps, "id" | "createdAt" | "updatedAt">
@@ -30,14 +30,6 @@ export class User {
   updatePassword(hashedPassword: string): void {
     this.props.password = hashedPassword;
     this.props.updatedAt = new Date();
-  }
-
-  static fromPersistence(props: UserProps): User {
-    return new User(props);
-  }
-
-  toPersistence(): UserProps {
-    return { ...this.props };
   }
 
   static isValidEmail(email: string): boolean {

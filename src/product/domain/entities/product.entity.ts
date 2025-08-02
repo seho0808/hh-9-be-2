@@ -14,7 +14,7 @@ export interface ProductProps {
 }
 
 export class Product {
-  private constructor(private readonly props: ProductProps) {}
+  constructor(private readonly props: ProductProps) {}
 
   static create(
     props: Omit<ProductProps, "id" | "createdAt" | "updatedAt">
@@ -49,6 +49,7 @@ export class Product {
       );
     }
     this.props.reservedStock -= amount;
+    this.props.totalStock -= amount;
     this.props.updatedAt = new Date();
   }
 
@@ -76,14 +77,6 @@ export class Product {
 
   getAvailableStock(): number {
     return this.props.totalStock - this.props.reservedStock;
-  }
-
-  static fromPersistence(props: ProductProps): Product {
-    return new Product(props);
-  }
-
-  toPersistence(): ProductProps {
-    return { ...this.props };
   }
 
   static isValidName(name: string): boolean {

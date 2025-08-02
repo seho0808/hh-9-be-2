@@ -5,7 +5,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  ManyToOne,
+  JoinColumn,
+  OneToOne,
 } from "typeorm";
+import { UserTypeOrmEntity } from "@/user/infrastructure/persistence/orm/user.typeorm.entity";
+import { CouponTypeOrmEntity } from "./coupon.typeorm.entity";
+import { OrderTypeOrmEntity } from "@/order/infrastructure/persistence/orm/order.typeorm.entity";
 
 export enum UserCouponStatus {
   ISSUED = "ISSUED",
@@ -18,15 +24,15 @@ export class UserCouponTypeOrmEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: "varchar", name: "coupon_id", length: 255 })
+  @Column({ type: "uuid", name: "coupon_id" })
   @Index("idx_user_coupons_coupon_id")
   couponId: string;
 
-  @Column({ type: "varchar", name: "user_id", length: 255 })
+  @Column({ type: "uuid", name: "user_id" })
   @Index("idx_user_coupons_user_id")
   userId: string;
 
-  @Column({ type: "varchar", name: "order_id", length: 255, nullable: true })
+  @Column({ type: "uuid", name: "order_id", nullable: true })
   orderId: string | null;
 
   @Column({ type: "int", name: "discount_price", nullable: true })
@@ -41,9 +47,6 @@ export class UserCouponTypeOrmEntity {
 
   @Column({ type: "varchar", name: "issued_idempotency_key", nullable: true })
   issuedIdempotencyKey: string | null;
-
-  @Column({ type: "varchar", name: "used_idempotency_key", nullable: true })
-  usedIdempotencyKey: string | null;
 
   @Column({ type: "timestamp", name: "expires_at" })
   @Index("idx_user_coupons_expires_at")
@@ -60,4 +63,16 @@ export class UserCouponTypeOrmEntity {
 
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
+
+  @ManyToOne(() => UserTypeOrmEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
+  user: UserTypeOrmEntity;
+
+  @ManyToOne(() => CouponTypeOrmEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "coupon_id" })
+  coupon: CouponTypeOrmEntity;
+
+  @OneToOne(() => OrderTypeOrmEntity, { onDelete: "SET NULL" })
+  @JoinColumn({ name: "order_id" })
+  order?: OrderTypeOrmEntity;
 }

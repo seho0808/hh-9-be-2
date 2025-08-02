@@ -1,77 +1,134 @@
-## <1> 아키텍처 설명과 선정 이유
+## <1> 계층 설명
 
-아키텍처 스타일인 클린, 헥사고널, 어니언, 릴랙스드 레이어드 등은
-서로 완전히 독립되거나 배타적인 개념이라고 보긴 어렵다고 생각합니다.
-코드베이스에 따라 한쪽 성향이 강하게 드러날 수는 있지만,
-관점에 따라 여러 아키텍처 스타일로 동시에 해석될 수 있는 경우도 많습니다.
+- domain-service에서 repository를 호출하고 여러가지 서비스 함수들을 구현하다보면 오히려 클린 아키텍처에서 추구하는 유스케이스에서 멀어진다고 생각했습니다. usecase의 역할을 도메인 서비스가 너무 많이 가져가는 느낌이 있었습니다.
+- 그래서 domain-service에는 정책만 넣어두고 usecase에서 그걸 조합해서 사용하는 방식으로 구현했습니다.
+- service, usecase, facade를 어떻게 구성하든 여러 레이어에서 조합해서 계속 위로 쌓아가는 구조라고 생각했습니다. 만약 동일 계층 순환참조를 원천 봉쇄하고 싶다면 usecase들에게 계층을 번호로 붙여서 DAG와 유사한 형식으로 구현해야한다고 결론을 지었습니다. 그래서 tier 구조를 도입했습니다.
 
-예를 들어, 릴랙스드 레이어드 아키텍처의 서비스 레이어에서
-엔티티를 먼저 생성하고 이들 간의 풍부한 상호작용을 통해 결과를 도출한다면,
-이는 클린 아키텍처에 한없이 가까운 형태의 레이어드 구조라고 볼 수 있습니다.
-결국 이 두 아키텍처는 출발점은 다르지만,
-설계가 잘 되면 어느 순간 자연스럽게 만나는 지점이 생깁니다.
+### Tiered UseCase Architecture
 
-- 클린 아키텍처로 시작할 경우
-  - 도메인이 외부에 종속되지 않는 깔끔한 구조를 얻을 수 있습니다.
-  - 초기에는 다소 복잡하지만, 복잡한 비즈니스 요구사항과 장기적 확장성을 고려할 때 유리합니다.
+\*예시) 일부 파일만 넣었습니다.
 
-- 레이어드 아키텍처로 시작할 경우
-  - 간결하고 빠르게 시작할 수 있으며,
-  - 초기 개발이나 단기 프로젝트에서는 보일러플레이트 유지 부담이 줄어듭니다.
+```mermaid
+graph TD
+    %% Presentation Layer
+    subgraph "Presentation Layer"
+        Order_Controller["OrderController"]
+        User_Controller["UserController"]
+    end
 
-저는 이번에 학습 목적으로 클린/어니언 아키텍처를 선택했습니다. 제가 해당 프로젝트를 회사에서 실제로 추진하는 것이었다면 다음과 같은 기준으로 적용했을 것입니다:
+    %% Application Layer - Tiers
+    subgraph "Application Layer (UseCases)"
+        %% Tier-3
+        subgraph "Tier-3"
+            T3_PlaceOrder["PlaceOrderUseCase"]
+        end
 
-1. 단기간에 쓰고 버릴 PoC 코드베이스이다 - 레이어드
-2. PoC이지만 버릴지 고도화할지 애매하다 - (릴랙스드 or 일반) 레이어드 + 엔티티 생성해서 테스터블하게 유스케이스처럼 서비스 작성 (이것도 코드베이스가 유지된다는 확신에 따라 강도를 조절할 것 같습니다.)
-3. 장기간 고도화 될것이며 꽤 큰 모놀리식 서비스로 갈 예정이다 - 클린/어니언에 가까운 아키텍처
+        %% Tier-2
+        subgraph "Tier-2"
+            T2_ProcessOrder["ProcessOrderUseCase"]
+            T2_CreateUserWithWallet["CreateUserWithWalletUseCase"]
+        end
 
-이렇게 정해버리고 시작하는 이유는 단 하나입니다:
+        %% Tier-1
+        subgraph "Tier-1(in-domain)"
+            T1_CreateOrder["CreateOrderUseCase"]
+            T1_UsePoints["UsePointsUseCase"]
+            T1_CreateUser["CreateUserUseCase"]
+            T1_CreateWallet["CreateWalletUseCase"]
+        end
+    end
 
-> “실무에서는 아키텍처 자체를 갈아엎을 여유가 거의 없기 때문입니다.”
+    %% Domain Layer
+    subgraph "Domain Layer"
+        DS_ValidateOrder["ValidateOrderService"]
+        DS_ValidateUser["ValidateUserService"]
+        DS_ValidatePoint["ValidatePointService"]
+    end
 
-특히 스타트업 환경에서는
-바쁘고, 일정이 빠르고, 리팩토링 시간은 제한적입니다.
-그래서 처음부터 구조를 잘 정해두는 것만으로도 유지보수 비용을 크게 줄일 수 있습니다.
 
-정말 필요할 때에는 잘 플래닝해서 점진적으로 도메인/모듈 단위로 잘라서 동일 리팩토링을 여러 차례에 거쳐서 진행할 수도 있습니다. 하지만 굳이 그럴 필요가 없도록 미리 잘 정하는 것이 제일 좋다고 생각합니다.
+    %% Controller -> UseCase (어떤 tier든 직접 호출)
+    Order_Controller -.-> T3_PlaceOrder
+    User_Controller -.-> T2_CreateUserWithWallet
+    Order_Controller -.-> T1_UsePoints
 
-P.S. 헥사고널 아키텍처도 직접 적용해보고 많은 고민을 해보았지만, 이번 프로젝트에는 다소 오버 엔지니어링처럼 느껴졌습니다. 외부 I/O가 정말 다양한 상황이 아니라면, 필요 이상으로 복잡도가 올라갈 수 있다고 판단했습니다.
+    %% UseCase Tier Dependencies (상위 -> 하위만)
+    T3_PlaceOrder --> T2_ProcessOrder
+    T2_ProcessOrder --> T1_CreateOrder
+    T2_ProcessOrder --> T1_UsePoints
+    T2_CreateUserWithWallet --> T1_CreateUser
+    T2_CreateUserWithWallet --> T1_CreateWallet
 
-P.S. 재미있는 점은 프론트엔드에서도 MVP, MVVM, MVC, Flux가 백엔드의 아키텍처들처럼 서로 완전히 독립적이거나 배타적인 개념이 아니라는 것입니다. 프론트에서 많은 고민을 해보고 넘어오니 백엔드에서도 유사한 결론을 빠르게 도출 할 수 있었씁니다.
+    %% UseCase -> Domain Service
+    T1_CreateOrder --> DS_ValidateOrder
+    T1_UsePoints --> DS_ValidatePoint
+    T1_CreateUser --> DS_ValidateUser
 
-## <2> 제 아키텍처의 특이할 수 있는 부분
+    %% 색상 및 스타일
+    classDef controller fill:#333,stroke:#01579b,stroke-width:2px
+    classDef tier3 fill:#333,stroke:#e65100,stroke-width:2px
+    classDef tier2 fill:#333,stroke:#4a148c,stroke-width:2px
+    classDef tier1 fill:#333,stroke:#1b5e20,stroke-width:2px
+    classDef service fill:#333,stroke:#ff6f00,stroke-width:2px
+    classDef repo fill:#333,stroke:#880e4f,stroke-width:2px
 
-- 기본 구조: ((entity <= usecase) <= application-service) <= infra
+    class Controller controller
+    class T3_PlaceOrder tier3
+    class T2_ProcessOrder,T2_CreateUserWithWallet tier2
+    class T1_CreateOrder,T1_UsePoints,T1_CreateUser,T1_CreateWallet tier1
+    class DS_ValidateOrder,DS_ValidateUser,DS_ValidatePoint service
+    class Repo_Order,Repo_User,Repo_Point repo
+```
 
-- domain entity, usecase를 모두 도메인 계층에 넣었습니다. usecase는 외부에 대해 전혀 모르기 때문에 트랜잭션은 application-service에서 관리됩니다.
-- application service에서 usecase들을 지휘하고 트랜잭션을 관리합니다. 또한 타 도메인의 서비스도 여기서 호출합니다. 다만, 타 도메인의 유스케이스는 절대로 직접 호출하지 않도록 구성했습니다. 서로 application-service 끼리만 참조 가능한 구조입니다. 만약 이게 복잡해진다면 application-service-facade로 구현할 계획이었습니다.
+### 규칙 설명
 
-이렇게 구성한 이유:
+- 상위 티어는 하위티어만 import할 수 있도록 eslint를 설정해두었습니다.
+- presentation 레이어에서는 티어 상관없이 바로 가져다가 사용할 수 있습니다.
+- 티어는 무한히 쌓을 수 있습니다.
+- 아래 완화책에 나온 것처럼 여러 장치를 마련해서 티어들에 추가적인 규칙을 부여할 수 있습니다.
+- 위 그림에서는 tier 1은 동일 도메인 내의 도메인 서비스만 import 가능합니다.
 
-- 저는 testability와 screaming architecture을 이루고 싶었습니다. 현재 다니는 회사에서 구성원들이 빠르게 일을 쳐내느라 코드베이스에서 잘 지켜지지 못하고 있는 것들이기 때문입니다.
-- testable 하려면 일단 트랜잭션을 아예 신경쓰지 않은 상태에서 도메인 모델들만 가지고 시나리오를 구성해서 테스트해볼 수 있어야한다고 생각했습니다. 그렇게 되면 매우 빠르게 수많은 비즈니스 로직만, 심지어 모킹 없이 테스트할 수 있습니다. 영속성 계층은 저장과 불러오기만 하기 때문이죠. 그래서 그렇게 구성했고, 현재는 다행히도 제가 바라던 형태에 가까운 것 같습니다. 레포지토리 불러오기와 저장을 제외하면 모든 비즈니스 로직은 모킹 없이 테스트할 수 있었고 그 부분은 매우 만족스러웠습니다.
+## <2> 한계점 + 생각해본 완화책
 
-## <3> 현재 아키텍처의 장점
+### 도메인 엉킴
 
-1. 도메인을 분리하는 데에 신경쓰다보니 도메인 레이어에 있는 유스케이스(혹은 도메인 서비스)와 엔티티를 테스팅 할 때에 너무 편하게 테스팅할 수 있음.
-2. 유스케이스가 읽을 때 무엇을 하는지 너무나도 명확해서 가독성이 높음. (screaming architecture)
+- 나중에 도메인을 똑 떼고 싶은데 usecase 끼리 특정 계층부터 엉켜있을 가능성이 존재합니다.
+- 그때의 혼돈을 최소화하려면 "특정 tier 미만은 무조건 도메인 내에서만 호출"과 같은 규칙을 도입할 수 있습니다.
+- 지금 제 현재 프로젝트에서는 usecase tier 1은 동일 도메인 내에서만 활용할 수 있도록 네이밍해놓았습니다. tier 2 부터 타 도메인에서 조립가능합니다.
+- 이 규칙은 정하기 나름일 것 같습니다. 아예 in-domain, cross-domain 폴더를 나누는 것도 가능해보입니다.
 
-## <4> 현재 아키텍처의 한계점
+### 파일 이름의 구분성
 
-1. 도메인 계층만으로 유스케이스를 구성하는 세상은 아름답습니다.
-   순수한 도메인 로직 위주로 유스케이스(도메인 서비스)를 만들 때는 구조가 깔끔하고 의도도 명확하게 드러납니다.
-   하지만 현실에서는 DB를 고려해야 하고, 이때부터 구조가 조금씩 흐트러지기 시작합니다.
-   예를 들어, 트랜잭션이 필요한 상황에서는 유스케이스 자체가 트랜잭션 처리 단위에 따라 모양이 결정되기도 하고,
-   idempotency key 같은 순수 도메인과는 거리가 있는 관심사가
-   결국 entity나 use case 내부에 들어가게 되는 경우도 발생합니다.
-   이처럼 도메인을 침범하는 요소들이 하나둘 생기면서 깨끗했던 경계가 흐려지는 느낌이 들었습니다.
-   그럼에도 불구하고, 클린 아키텍처의 장점인 testability는
-   이런 복잡성에도 불구하고 꾸준히 좋게 유지된다는 점은 인상 깊었습니다.
-   비즈니스 로직의 테스트가 깔끔하게 분리되어 있어서, 안정감을 주는 구조라는 건 분명한 장점입니다.
+- tiered 구조에서는 기존에 XService, YUsecase, ZFacade에 존재하던 prefix 이름이 사라졌기 때문에 묶음 구분이 어려울 수 있습니다.
+- 이걸 완화하려면 각 티어에 object literal map을 두거나하여 usecsae 위계에 이름을 부여할 수 있습니다.
 
-2. 보일러플레이트가 너무 많다는 점은 유지보수 관점에서 부담으로 다가왔습니다.
-   단순히 필드 하나를 추가하는 작업만 해도
-   5~8개의 파일을 연쇄적으로 수정해야 했고,
-   이런 작은 변경들도 커밋 단위로 쪼개기 어려워지는 경우가 많았습니다.
-   결과적으로 커밋 로그를 정리하는 데도 시간이 많이 들고,
-   추후에 히스토리를 읽는 것도 일반적인 레이어드 구조에 비해 상당히 피로하게 느껴졌습니다.
+  ```ts
+  export const ZFacade = {
+  ZZUsecase: ZZUsecase
+  ZZZUsecsae: ZZZUsecsae
+  ZZZZUsecsae: ZZZZUsecsae
+  }
+  ```
+
+- 혹은 폴더 구조로 동일 티어 내에서 usecase를 묶을 수도 있습니다.
+
+### 유스케이스 이름이 길어짐
+
+여러 유스케이스를 조합할 때 거의 동일한 동작을 하는데 이름을 구분하기 위해 이름이 길어지기도 합니다. 예시:
+
+- createuserWithbalance:
+  - 사용하는 유스케이스 조합:
+    - createuser
+    - createBalance
+- getpopularproductsWithDetail:
+  - 사용하는 유스케이스 조합:
+    - getPopularProducts
+    - getProductInfo
+
+이것을 완화하는 뚜렷한 방법은 못찾았습니다. 그나마 위에서 이야기한 파일 이름의 구분성 해결책에 조금 의존할 수 있긴합니다.
+
+### 트랜잭션에 의해 usecase 형태가 영향을 받음
+
+- 경우가 안 좋으면 트랜잭션에 따라서 유스케이스 형태가 바뀌어야합니다. 이거는 어쩔 수 없다고 생각했습니다.
+- 일부 유스케이스는 트랜잭션과 1:1로 대응되지만, 어떤 경우에는 하나의 유스케이스가 여러 개의 트랜잭션을 포함하기도 합니다.
+  - 유스케이스 내에서 여러 트랜잭션이 포함될 수 있는 상황을 완화하기 위한 방안으로, 특정 유스케이스가 트랜잭션 안에 포함되었을 때 예외를 던지는 커스텀 데코레이터를 만드는 것을 고려해보았습니다.
+  - 예를 들어 @DONT_WRAP_WITH_TRANSACTIONAL 같은 데코레이터를 도입하면, 해당 유스케이스가 @Transactional 내부에 포함될 경우 명시적으로 오류를 발생시켜, 트랜잭션으로 감싸면 안 되는 오케스트레이터에 대해 안전하게 방어할 수 있을 것이라 생각했습니다.

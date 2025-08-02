@@ -1,60 +1,36 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, Repository, EntityManager } from "typeorm";
-import { ProductRepositoryInterface } from "@/product/domain/interfaces/product.repository.interface";
+import { In, Repository } from "typeorm";
 import { Product } from "@/product/domain/entities/product.entity";
 import { ProductTypeOrmEntity } from "./orm/product.typeorm.entity";
-import { TransactionContext } from "@/common/services/transaction.service";
 
 @Injectable()
-export class ProductRepository implements ProductRepositoryInterface {
-  private entityManager?: EntityManager;
-
+export class ProductRepository {
   constructor(
     @InjectRepository(ProductTypeOrmEntity)
     private readonly productRepository: Repository<ProductTypeOrmEntity>
-  ) {
-    TransactionContext.registerRepository(this);
-  }
-
-  setEntityManager(manager: EntityManager): void {
-    this.entityManager = manager;
-  }
-
-  clearEntityManager(): void {
-    this.entityManager = undefined;
-  }
-
-  private getRepository(): Repository<ProductTypeOrmEntity> {
-    return this.entityManager
-      ? this.entityManager.getRepository(ProductTypeOrmEntity)
-      : this.productRepository;
-  }
+  ) {}
 
   async findById(id: string): Promise<Product | null> {
-    const repository = this.getRepository();
-    const entity = await repository.findOne({ where: { id } });
+    const entity = await this.productRepository.findOne({ where: { id } });
     return entity ? this.toDomain(entity) : null;
   }
 
   async findByIds(ids: string[]): Promise<Product[]> {
-    const repository = this.getRepository();
-    const entities = await repository.find({
+    const entities = await this.productRepository.find({
       where: { id: In(ids) },
     });
     return entities.map((entity) => this.toDomain(entity));
   }
 
   async findByName(name: string): Promise<Product | null> {
-    const repository = this.getRepository();
-    const entity = await repository.findOne({ where: { name } });
+    const entity = await this.productRepository.findOne({ where: { name } });
     return entity ? this.toDomain(entity) : null;
   }
 
   async save(product: Product): Promise<Product> {
-    const repository = this.getRepository();
     const entity = this.fromDomain(product);
-    const savedEntity = await repository.save(entity);
+    const savedEntity = await this.productRepository.save(entity);
     return this.toDomain(savedEntity);
   }
 
@@ -66,8 +42,7 @@ export class ProductRepository implements ProductRepositoryInterface {
       search?: string;
     }
   ): Promise<{ products: Product[]; total: number }> {
-    const repository = this.getRepository();
-    const queryBuilder = repository.createQueryBuilder("product");
+    const queryBuilder = this.productRepository.createQueryBuilder("product");
 
     // 활성화 상태 필터
     if (filters?.isActive !== undefined) {
@@ -97,7 +72,7 @@ export class ProductRepository implements ProductRepositoryInterface {
   }
 
   private toDomain(entity: ProductTypeOrmEntity): Product {
-    return Product.fromPersistence({
+    return new Product({
       id: entity.id,
       name: entity.name,
       description: entity.description,
@@ -111,17 +86,16 @@ export class ProductRepository implements ProductRepositoryInterface {
   }
 
   private fromDomain(product: Product): ProductTypeOrmEntity {
-    const props = product.toPersistence();
     const entity = new ProductTypeOrmEntity();
-    entity.id = props.id;
-    entity.name = props.name;
-    entity.description = props.description;
-    entity.price = props.price;
-    entity.totalStock = props.totalStock;
-    entity.reservedStock = props.reservedStock;
-    entity.isActive = props.isActive;
-    entity.createdAt = props.createdAt;
-    entity.updatedAt = props.updatedAt;
+    entity.id = product.id;
+    entity.name = product.name;
+    entity.description = product.description;
+    entity.price = product.price;
+    entity.totalStock = product.totalStock;
+    entity.reservedStock = product.reservedStock;
+    entity.isActive = product.isActive;
+    entity.createdAt = product.createdAt;
+    entity.updatedAt = product.updatedAt;
     return entity;
   }
 }

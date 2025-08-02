@@ -27,7 +27,7 @@ export const OrderFactory = createEntityFactory<OrderTypeOrmEntity>(
       failedReason: options.failedReason ?? null,
       idempotencyKey:
         options.idempotencyKey || createTestIdempotencyKey(timestamp, counter),
-      appliedCouponId: options.appliedCouponId ?? null,
+      appliedUserCouponId: options.appliedUserCouponId ?? null,
       orderItems: options.orderItems ?? [],
       ...options,
     });

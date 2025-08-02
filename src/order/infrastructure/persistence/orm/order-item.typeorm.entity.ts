@@ -9,17 +9,18 @@ import {
   JoinColumn,
 } from "typeorm";
 import { OrderTypeOrmEntity } from "./order.typeorm.entity";
+import { ProductTypeOrmEntity } from "@/product/infrastructure/persistence/orm/product.typeorm.entity";
 
 @Entity("order_items")
 export class OrderItemTypeOrmEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: "varchar", length: 255, name: "order_id" })
+  @Column({ type: "uuid", name: "order_id" })
   @Index("idx_order_items_order_id")
   orderId: string;
 
-  @Column({ type: "varchar", length: 255, name: "product_id" })
+  @Column({ type: "uuid", name: "product_id" })
   @Index("idx_order_items_product_id")
   productId: string;
 
@@ -43,4 +44,8 @@ export class OrderItemTypeOrmEntity {
   })
   @JoinColumn({ name: "order_id" })
   order: OrderTypeOrmEntity;
+
+  @ManyToOne(() => ProductTypeOrmEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "product_id" })
+  product: ProductTypeOrmEntity;
 }

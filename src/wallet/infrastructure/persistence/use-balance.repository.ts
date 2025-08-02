@@ -1,53 +1,31 @@
-import { UserBalanceRepositoryInterface } from "@/wallet/domain/interfaces/user-balance.repository.interface";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, EntityManager } from "typeorm";
+import { Repository } from "typeorm";
 import { UserBalanceTypeOrmEntity } from "./orm/user-balance.typeorm.entity";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
-import { TransactionContext } from "@/common/services/transaction.service";
 
 @Injectable()
-export class UserBalanceRepository implements UserBalanceRepositoryInterface {
-  private entityManager?: EntityManager;
-
+export class UserBalanceRepository {
   constructor(
     @InjectRepository(UserBalanceTypeOrmEntity)
     private readonly userBalanceRepository: Repository<UserBalanceTypeOrmEntity>
-  ) {
-    TransactionContext.registerRepository(this);
-  }
-
-  setEntityManager(manager: EntityManager): void {
-    this.entityManager = manager;
-  }
-
-  clearEntityManager(): void {
-    this.entityManager = undefined;
-  }
-
-  private getRepository(): Repository<UserBalanceTypeOrmEntity> {
-    return this.entityManager
-      ? this.entityManager.getRepository(UserBalanceTypeOrmEntity)
-      : this.userBalanceRepository;
-  }
+  ) {}
 
   async findByUserId(userId: string): Promise<UserBalance | null> {
-    const repository = this.getRepository();
-    const entity = await repository.findOne({
+    const entity = await this.userBalanceRepository.findOne({
       where: { userId },
     });
     return entity ? this.toDomain(entity) : null;
   }
 
   async save(userBalance: UserBalance): Promise<UserBalance> {
-    const repository = this.getRepository();
     const entity = this.fromDomain(userBalance);
-    const savedEntity = await repository.save(entity);
+    const savedEntity = await this.userBalanceRepository.save(entity);
     return this.toDomain(savedEntity);
   }
 
   private toDomain(entity: UserBalanceTypeOrmEntity): UserBalance {
-    return UserBalance.fromPersistence({
+    return new UserBalance({
       id: entity.id,
       userId: entity.userId,
       balance: entity.balance,
@@ -57,13 +35,12 @@ export class UserBalanceRepository implements UserBalanceRepositoryInterface {
   }
 
   private fromDomain(domain: UserBalance): UserBalanceTypeOrmEntity {
-    const props = domain.toPersistence();
     const entity = new UserBalanceTypeOrmEntity();
-    entity.id = props.id;
-    entity.userId = props.userId;
-    entity.balance = props.balance;
-    entity.createdAt = props.createdAt;
-    entity.updatedAt = props.updatedAt;
+    entity.id = domain.id;
+    entity.userId = domain.userId;
+    entity.balance = domain.balance;
+    entity.createdAt = domain.createdAt;
+    entity.updatedAt = domain.updatedAt;
     return entity;
   }
 }

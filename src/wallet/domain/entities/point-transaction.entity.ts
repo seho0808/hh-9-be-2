@@ -5,12 +5,13 @@ export interface PointTransactionProps {
   userId: string;
   amount: number;
   type: "CHARGE" | "USE" | "RECOVER";
-  idempotencyKey: string;
+  idempotencyKey: string | null;
+  refId: string | null;
   createdAt: Date;
 }
 
 export class PointTransaction {
-  private constructor(private readonly props: PointTransactionProps) {}
+  constructor(private readonly props: PointTransactionProps) {}
 
   static create(
     props: Omit<PointTransactionProps, "id" | "createdAt">
@@ -20,16 +21,6 @@ export class PointTransaction {
       id: uuidv4(),
       createdAt: new Date(),
     });
-  }
-
-  static fromPersistence(props: PointTransactionProps): PointTransaction {
-    return new PointTransaction(props);
-  }
-
-  toPersistence(): PointTransactionProps {
-    return {
-      ...this.props,
-    };
   }
 
   get id(): string {
@@ -50,6 +41,10 @@ export class PointTransaction {
 
   get idempotencyKey(): string {
     return this.props.idempotencyKey;
+  }
+
+  get refId(): string {
+    return this.props.refId;
   }
 
   get createdAt(): Date {

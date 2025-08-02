@@ -1,59 +1,32 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, EntityManager } from "typeorm";
-import { StockReservationRepositoryInterface } from "@/product/domain/interfaces/stock-reservation.repository.interface";
-import { StockReservationTypeOrmEntity } from "./orm/stock-reservations.typeorm.entity";
+import { Repository } from "typeorm";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
-import { TransactionContext } from "@/common/services/transaction.service";
+import { StockReservationTypeOrmEntity } from "./orm/stock-reservations.typeorm.entity";
 
 @Injectable()
-export class StockReservationRepository
-  implements StockReservationRepositoryInterface
-{
-  private entityManager?: EntityManager;
-
+export class StockReservationRepository {
   constructor(
     @InjectRepository(StockReservationTypeOrmEntity)
     private readonly stockReservationRepository: Repository<StockReservationTypeOrmEntity>
-  ) {
-    TransactionContext.registerRepository(this);
-  }
-
-  setEntityManager(manager: EntityManager): void {
-    this.entityManager = manager;
-  }
-
-  clearEntityManager(): void {
-    this.entityManager = undefined;
-  }
-
-  private getRepository(): Repository<StockReservationTypeOrmEntity> {
-    return this.entityManager
-      ? this.entityManager.getRepository(StockReservationTypeOrmEntity)
-      : this.stockReservationRepository;
-  }
+  ) {}
 
   async save(stockReservation: StockReservation): Promise<StockReservation> {
-    const repository = this.getRepository();
     const entity = this.fromDomain(stockReservation);
-    const savedEntity = await repository.save(entity);
+    const savedEntity = await this.stockReservationRepository.save(entity);
     return this.toDomain(savedEntity);
   }
 
   async findById(id: string): Promise<StockReservation | null> {
-    const repository = this.getRepository();
-    const entity = await repository.findOne({
+    const entity = await this.stockReservationRepository.findOne({
       where: { id },
     });
     return entity ? this.toDomain(entity) : null;
   }
 
-  async findByIdempotencyKey(
-    idempotencyKey: string
-  ): Promise<StockReservation[]> {
-    const repository = this.getRepository();
-    const entities = await repository.find({
-      where: { idempotencyKey },
+  async findByOrderId(orderId: string): Promise<StockReservation[]> {
+    const entities = await this.stockReservationRepository.find({
+      where: { orderId },
     });
     return entities.map((entity) => this.toDomain(entity));
   }
@@ -61,10 +34,30 @@ export class StockReservationRepository
   private fromDomain(
     stockReservation: StockReservation
   ): StockReservationTypeOrmEntity {
-    return stockReservation.toPersistence();
+    const entity = new StockReservationTypeOrmEntity();
+    entity.id = stockReservation.id;
+    entity.productId = stockReservation.productId;
+    entity.userId = stockReservation.userId;
+    entity.quantity = stockReservation.quantity;
+    entity.orderId = stockReservation.orderId;
+    entity.createdAt = stockReservation.createdAt;
+    entity.updatedAt = stockReservation.updatedAt;
+    entity.expiresAt = stockReservation.expiresAt;
+    entity.isActive = stockReservation.isActive;
+    return entity;
   }
 
   private toDomain(entity: StockReservationTypeOrmEntity): StockReservation {
-    return StockReservation.fromPersistence(entity);
+    return new StockReservation({
+      id: entity.id,
+      productId: entity.productId,
+      userId: entity.userId,
+      quantity: entity.quantity,
+      orderId: entity.orderId,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+      expiresAt: entity.expiresAt,
+      isActive: entity.isActive,
+    });
   }
 }

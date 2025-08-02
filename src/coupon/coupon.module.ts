@@ -1,22 +1,21 @@
 import { Module } from "@nestjs/common";
-import { CouponController } from "./infrastructure/http/coupon.controller";
 import { AuthModule } from "../auth/auth.module";
-import { TransactionService } from "../common/services/transaction.service";
-import { UserCouponController } from "./infrastructure/http/user-coupon.controller";
-import { CouponApplicationService } from "./application/services/coupon.service";
-import { GetAllCouponsUseCase } from "./domain/use-cases/get-all-coupons.use-case";
-import { UserCouponUseCase } from "./domain/use-cases/use-user-coupon.use-case";
-import { GetAllUserCouponsUseCase } from "./domain/use-cases/get-all-user-couponse.use-case";
-import { GetCouponByIdUseCase } from "./domain/use-cases/get-coupon-by-id.use-case";
-import { IssueUserCouponUseCase } from "./domain/use-cases/issue-user-coupon.use-case";
-import { ValidateCouponUseCase } from "./domain/use-cases/validate-user-coupon.use-case";
-import { CancelUserCouponUseCase } from "./domain/use-cases/cancel-user-coupon.use-case";
+import { CouponController } from "./presentation/http/coupon.controller";
+import { UserCouponController } from "./presentation/http/user-coupon.controller";
+import { GetAllCouponsUseCase } from "./application/use-cases/tier-1-in-domain/get-all-coupons.use-case";
+import { UseUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/use-user-coupon.use-case";
+import { GetAllUserCouponsUseCase } from "./application/use-cases/tier-1-in-domain/get-all-user-couponse.use-case";
+import { GetCouponByIdUseCase } from "./application/use-cases/tier-1-in-domain/get-coupon-by-id.use-case";
+import { IssueUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/issue-user-coupon.use-case";
+import { ValidateCouponUseCase } from "./application/use-cases/tier-1-in-domain/validate-user-coupon.use-case";
+import { CancelUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/cancel-user-coupon.use-case";
 import { UserCouponRepository } from "./infrastructure/persistence/user-coupon.repository";
 import { CouponRepository } from "./infrastructure/persistence/coupon.repository";
 import { CouponTypeOrmEntity } from "./infrastructure/persistence/orm/coupon.typeorm.entity";
 import { UserCouponTypeOrmEntity } from "./infrastructure/persistence/orm/user-coupon.typeorm.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { RecoverUserCouponUseCase } from "./domain/use-cases/recover-user-coupon.use-case";
+import { RecoverUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/recover-user-coupon.use-case";
+import { ValidateUserCouponService } from "./domain/services/validate-user-coupon.service";
 
 @Module({
   imports: [
@@ -25,25 +24,22 @@ import { RecoverUserCouponUseCase } from "./domain/use-cases/recover-user-coupon
   ],
   controllers: [CouponController, UserCouponController],
   providers: [
-    TransactionService,
-    CouponApplicationService,
     GetAllCouponsUseCase,
     GetAllUserCouponsUseCase,
     GetCouponByIdUseCase,
     IssueUserCouponUseCase,
-    UserCouponUseCase,
+    UseUserCouponUseCase,
     ValidateCouponUseCase,
     CancelUserCouponUseCase,
     RecoverUserCouponUseCase,
-    {
-      provide: "UserCouponRepositoryInterface",
-      useClass: UserCouponRepository,
-    },
-    {
-      provide: "CouponRepositoryInterface",
-      useClass: CouponRepository,
-    },
+    ValidateUserCouponService,
+    UserCouponRepository,
+    CouponRepository,
   ],
-  exports: [CouponApplicationService],
+  exports: [
+    ValidateCouponUseCase,
+    UseUserCouponUseCase,
+    RecoverUserCouponUseCase,
+  ],
 })
 export class CouponModule {}

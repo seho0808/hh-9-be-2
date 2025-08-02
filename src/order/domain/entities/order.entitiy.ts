@@ -17,7 +17,7 @@ export interface OrderProps {
   status: OrderStatus;
   failedReason: string | null;
   idempotencyKey: string;
-  appliedCouponId: string | null;
+  appliedUserCouponId: string | null;
   createdAt: Date;
   updatedAt: Date;
   OrderItems: OrderItem[];
@@ -31,7 +31,7 @@ export class Order {
       OrderProps,
       | "id"
       | "failedReason"
-      | "appliedCouponId"
+      | "appliedUserCouponId"
       | "createdAt"
       | "updatedAt"
       | "OrderItems"
@@ -42,19 +42,11 @@ export class Order {
       ...props,
       id: uuidv4(),
       failedReason: null,
-      appliedCouponId: null,
+      appliedUserCouponId: null,
       createdAt: now,
       updatedAt: now,
       OrderItems: [],
     });
-  }
-
-  static fromPersistence(props: OrderProps): Order {
-    return new Order(props);
-  }
-
-  toPersistence(): OrderProps {
-    return this.props;
   }
 
   changeStatus(status: OrderStatus): void {
@@ -78,15 +70,15 @@ export class Order {
   }
 
   applyDiscount({
-    appliedCouponId,
+    appliedUserCouponId,
     discountPrice,
     discountedPrice,
   }: {
-    appliedCouponId: string;
+    appliedUserCouponId: string;
     discountPrice: number;
     discountedPrice: number;
   }): void {
-    this.props.appliedCouponId = appliedCouponId;
+    this.props.appliedUserCouponId = appliedUserCouponId;
     this.props.discountPrice = discountPrice;
     this.props.finalPrice = discountedPrice;
     this.props.updatedAt = new Date();
@@ -120,8 +112,12 @@ export class Order {
     return this.props.idempotencyKey;
   }
 
-  get appliedCouponId(): string | null {
-    return this.props.appliedCouponId;
+  get appliedUserCouponId(): string | null {
+    return this.props.appliedUserCouponId;
+  }
+
+  get failedReason(): string | null {
+    return this.props.failedReason;
   }
 
   get createdAt(): Date {
