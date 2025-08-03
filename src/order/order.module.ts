@@ -40,6 +40,7 @@ import { PlaceOrderUseCase } from "./application/use-cases/tier-4/place-order.us
 import { RecoverOrderUseCase } from "./application/use-cases/tier-2/recover-order.use-case";
 import { PrepareOrderUseCase } from "./application/use-cases/tier-3/prepare-order.use-case";
 import { ProcessOrderUseCase } from "./application/use-cases/tier-2/process-order.use-case";
+import { AutoRecoverOrdersUseCase } from "./application/use-cases/tier-3/auto-recover-orders.use-case";
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { ProcessOrderUseCase } from "./application/use-cases/tier-2/process-orde
     PrepareOrderUseCase,
     ProcessOrderUseCase,
     RecoverOrderUseCase,
+    AutoRecoverOrdersUseCase,
     OrderRepository,
     OrderItemRepository,
     CouponRepository,
