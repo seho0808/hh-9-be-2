@@ -3,24 +3,24 @@ import { StockReservation } from "@/product/domain/entities/stock-reservation.en
 import { StockReservationRepository } from "@/product/infrastructure/persistence/stock-reservations.repository";
 import { Transactional } from "typeorm-transactional";
 
-export interface GetStockReservationsByKeyUseCaseCommand {
+export interface GetStockReservationsByOrderIdUseCaseCommand {
   orderId: string;
 }
 
-export interface GetStockReservationsByKeyUseCaseResult {
+export interface GetStockReservationsByOrderIdUseCaseResult {
   stockReservations: StockReservation[];
 }
 
 @Injectable()
-export class GetStockReservationsByKeyUseCase {
+export class GetStockReservationsByOrderIdUseCase {
   constructor(
     private readonly stockReservationRepository: StockReservationRepository
   ) {}
 
   @Transactional()
   async execute(
-    command: GetStockReservationsByKeyUseCaseCommand
-  ): Promise<GetStockReservationsByKeyUseCaseResult> {
+    command: GetStockReservationsByOrderIdUseCaseCommand
+  ): Promise<GetStockReservationsByOrderIdUseCaseResult> {
     const { orderId } = command;
 
     const stockReservations =
