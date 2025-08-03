@@ -5,7 +5,7 @@ import {
   InvalidChargeAmountError,
   InvalidUseAmountError,
 } from "@/wallet/domain/exceptions/point.exceptions";
-import { ErrorCode } from "@/common/types/error-codes.enum";
+import { ErrorCode } from "@/common/constants/error-codes.enum";
 import {
   BaseExceptionFilter,
   ErrorMapping,

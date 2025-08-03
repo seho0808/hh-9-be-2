@@ -6,7 +6,7 @@ import {
   InsufficientPointBalanceError,
   OrderNotFoundError,
 } from "@/order/application/order.application.exceptions";
-import { ErrorCode } from "@/common/types/error-codes.enum";
+import { ErrorCode } from "@/common/constants/error-codes.enum";
 import {
   BaseExceptionFilter,
   ErrorMapping,

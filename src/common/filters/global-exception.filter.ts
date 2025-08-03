@@ -9,7 +9,7 @@ import {
 } from "@nestjs/common";
 import { Response, Request } from "express";
 import { StandardErrorResponseDto } from "@/common/dto/standard-error-response.dto";
-import { ErrorCode } from "@/common/types/error-codes.enum";
+import { ErrorCode } from "@/common/constants/error-codes.enum";
 
 /**
  * 전역 예외 처리 필터

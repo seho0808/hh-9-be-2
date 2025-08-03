@@ -7,7 +7,7 @@ import {
   StockReservationNotActiveError,
   StockReservationExpiredError,
 } from "@/product/domain/exceptions/product.exceptions";
-import { ErrorCode } from "@/common/types/error-codes.enum";
+import { ErrorCode } from "@/common/constants/error-codes.enum";
 import {
   BaseExceptionFilter,
   ErrorMapping,

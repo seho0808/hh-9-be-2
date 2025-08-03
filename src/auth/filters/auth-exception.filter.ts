@@ -4,7 +4,7 @@ import {
   ConflictException,
   UnauthorizedException,
 } from "@nestjs/common";
-import { ErrorCode } from "@/common/types/error-codes.enum";
+import { ErrorCode } from "@/common/constants/error-codes.enum";
 import {
   BaseExceptionFilter,
   ErrorMapping,

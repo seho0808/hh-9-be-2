@@ -5,7 +5,7 @@ import {
   InvalidEmailFormatError,
   InvalidUserNameError,
 } from "@/user/domain/exceptions/user.exceptions";
-import { ErrorCode } from "@/common/types/error-codes.enum";
+import { ErrorCode } from "@/common/constants/error-codes.enum";
 import {
   BaseExceptionFilter,
   ErrorMapping,
