@@ -7,14 +7,6 @@ export abstract class ProductDomainError extends Error {
   }
 }
 
-export class ProductNotFoundError extends ProductDomainError {
-  readonly code = "PRODUCT_NOT_FOUND";
-
-  constructor(productId: string) {
-    super(`상품을 찾을 수 없습니다. ID: ${productId}`);
-  }
-}
-
 export class InsufficientStockError extends ProductDomainError {
   readonly code = "INSUFFICIENT_STOCK";
 
@@ -42,14 +34,6 @@ export class InactiveProductError extends ProductDomainError {
 
   constructor(productId: string) {
     super(`비활성화된 상품입니다. ID: ${productId}`);
-  }
-}
-
-export class StockReservationNotFoundError extends ProductDomainError {
-  readonly code = "STOCK_RESERVATION_NOT_FOUND";
-
-  constructor(stockReservationId: string) {
-    super(`예약된 재고가 없습니다. ID: ${stockReservationId}`);
   }
 }
 

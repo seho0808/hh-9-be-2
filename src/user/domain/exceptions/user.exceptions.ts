@@ -30,11 +30,3 @@ export class InvalidUserNameError extends UserDomainError {
     super(`유효하지 않은 사용자 이름입니다: ${name}`);
   }
 }
-
-export class UserNotFoundError extends UserDomainError {
-  readonly code = "USER_NOT_FOUND";
-
-  constructor(identifier: string) {
-    super(`사용자를 찾을 수 없습니다: ${identifier}`);
-  }
-}

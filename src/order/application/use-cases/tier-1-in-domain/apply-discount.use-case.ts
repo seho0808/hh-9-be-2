@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { Order } from "@/order/domain/entities/order.entitiy";
-import { OrderNotFoundError } from "@/order/domain/exceptions/order.exceptions";
+import { OrderNotFoundError } from "@/order/application/order.application.exceptions";
 import { OrderRepository } from "@/order/infrastructure/persistence/order.repository";
 
 export interface ApplyDiscountUseCaseCommand {

@@ -1,11 +1,11 @@
 import { Test } from "@nestjs/testing";
 import { IssueUserCouponUseCase } from "./issue-user-coupon.use-case";
 import {
-  CouponNotFoundError,
   CouponExhaustedError,
   CouponExpiredError,
   InvalidCouponCodeError,
 } from "@/coupon/domain/exceptions/coupon.exceptions";
+import { CouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
 import {
   Coupon,
   CouponDiscountType,

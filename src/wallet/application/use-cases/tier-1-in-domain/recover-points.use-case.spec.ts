@@ -1,12 +1,11 @@
 import { RecoverPointsUseCase } from "./recover-points.use-case";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
+import { PointTransactionAlreadyRecoveredError } from "@/wallet/domain/exceptions/point.exceptions";
 import {
-  PointTransactionAlreadyRecoveredError,
   PointTransactionNotFoundError,
   UserBalanceNotFoundError,
-} from "@/wallet/domain/exceptions/point.exceptions";
-import { v4 as uuidv4 } from "uuid";
+} from "@/wallet/application/wallet.application.exceptions";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
 
 jest.mock("@/wallet/infrastructure/persistence/use-balance.repository");

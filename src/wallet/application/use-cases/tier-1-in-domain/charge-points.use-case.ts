@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
-import { UserBalanceNotFoundError } from "@/wallet/domain/exceptions/point.exceptions";
+import { UserBalanceNotFoundError } from "@/wallet/application/wallet.application.exceptions";
 import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
 import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
 

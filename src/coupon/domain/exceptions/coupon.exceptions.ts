@@ -9,14 +9,6 @@ export abstract class CouponDomainError extends Error {
   }
 }
 
-export class CouponNotFoundError extends CouponDomainError {
-  readonly code = "COUPON_NOT_FOUND";
-
-  constructor(couponId: string) {
-    super(`쿠폰을 찾을 수 없습니다. ID: ${couponId}`);
-  }
-}
-
 export class InvalidCouponCodeError extends CouponDomainError {
   readonly code = "INVALID_COUPON_CODE";
 

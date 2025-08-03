@@ -1,5 +1,5 @@
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
-import { UserCouponNotFoundError } from "@/coupon/domain/exceptions/user-coupon.exception";
+import { UserCouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
 import { Injectable } from "@nestjs/common";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
 

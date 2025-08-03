@@ -1,9 +1,7 @@
 import { Test } from "@nestjs/testing";
 import { RecoverUserCouponUseCase } from "./recover-user-coupon.use-case";
-import {
-  UserCouponNotFoundError,
-  UserCouponRecoverOrderIdMismatchError,
-} from "@/coupon/domain/exceptions/user-coupon.exception";
+import { UserCouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
+import { UserCouponRecoverOrderIdMismatchError } from "@/coupon/domain/exceptions/user-coupon.exception";
 import {
   UserCoupon,
   UserCouponStatus,
