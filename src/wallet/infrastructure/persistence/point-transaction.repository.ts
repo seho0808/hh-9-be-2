@@ -31,6 +31,15 @@ export class PointTransactionRepository {
     return entities.map((entity) => this.toDomain(entity));
   }
 
+  async findByIdempotencyKey(
+    idempotencyKey: string
+  ): Promise<PointTransaction | null> {
+    const entity = await this.pointTransactionRepository.findOne({
+      where: { idempotencyKey },
+    });
+    return entity ? this.toDomain(entity) : null;
+  }
+
   async save(pointTransaction: PointTransaction): Promise<PointTransaction> {
     const entity = this.fromDomain(pointTransaction);
     const savedEntity = await this.pointTransactionRepository.save(entity);
@@ -57,6 +66,7 @@ export class PointTransactionRepository {
     entity.userId = pointTransaction.userId;
     entity.amount = pointTransaction.amount;
     entity.type = pointTransaction.type as PointTransactionType;
+    entity.idempotencyKey = pointTransaction.idempotencyKey;
     entity.refId = pointTransaction.refId;
     entity.createdAt = pointTransaction.createdAt;
     return entity;

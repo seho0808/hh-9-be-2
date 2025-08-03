@@ -22,3 +22,11 @@ export class PointTransactionNotFoundError extends WalletApplicationError {
     super(`사용 금액 트랜잭션을 찾을 수 없습니다. 키: ${idempotencyKey}`);
   }
 }
+
+export class DuplicateIdempotencyKeyError extends WalletApplicationError {
+  readonly code = "DUPLICATE_IDEMPOTENCY_KEY";
+
+  constructor(idempotencyKey: string) {
+    super(`중복된 idempotencyKey입니다. 키: ${idempotencyKey}`);
+  }
+}

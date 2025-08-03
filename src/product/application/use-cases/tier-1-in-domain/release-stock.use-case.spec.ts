@@ -1,8 +1,11 @@
 import { Test } from "@nestjs/testing";
 import { ReleaseStockUseCase } from "./release-stock.use-case";
-import { StockReservationNotActiveError } from "@/product/domain/exceptions/product.exceptions";
+import { StockReservationAlreadyReleasedError } from "@/product/domain/exceptions/product.exceptions";
+import {
+  StockReservation,
+  StockReservationStatus,
+} from "@/product/domain/entities/stock-reservation.entity";
 import { StockReservationNotFoundError } from "@/product/application/product.application.exceptions";
-import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
 
@@ -91,7 +94,9 @@ describe("ReleaseStockUseCase", () => {
           orderId: mockStockReservation.orderId,
         });
 
-        expect(mockStockReservation.isActive).toBe(false);
+        expect(mockStockReservation.status).toBe(
+          StockReservationStatus.RELEASED
+        );
         expect(mockProduct.getAvailableStock()).toBe(expectedAvailableStock);
         expect(result).toEqual({
           stockReservation: mockStockReservation,
@@ -139,6 +144,6 @@ describe("ReleaseStockUseCase", () => {
         stockReservationId: "inactive-reservation",
         orderId: "inactive-reservation",
       })
-    ).rejects.toThrow(StockReservationNotActiveError);
+    ).rejects.toThrow(StockReservationAlreadyReleasedError);
   });
 });

@@ -7,8 +7,7 @@ import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.rep
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
 
 export interface UseUserCouponCommand {
-  couponId: string;
-  userId: string;
+  userCouponId: string;
   orderId: string;
   orderPrice: number;
 }
@@ -29,17 +28,14 @@ export class UseUserCouponUseCase {
 
   @Transactional()
   async execute(command: UseUserCouponCommand): Promise<UseUserCouponResult> {
-    const { couponId, userId, orderId, orderPrice } = command;
+    const { userCouponId, orderId, orderPrice } = command;
 
-    const coupon = await this.couponRepository.findById(couponId);
-    if (!coupon) {
-      throw new CouponNotFoundError(couponId);
+    const userCoupon = await this.userCouponRepository.findById(userCouponId);
+    if (!userCoupon) {
+      throw new CouponNotFoundError(userCouponId);
     }
 
-    const userCoupon = await this.userCouponRepository.findByCouponIdAndUserId(
-      couponId,
-      userId
-    );
+    const coupon = await this.couponRepository.findById(userCoupon.couponId);
 
     const { discountPrice, discountedPrice } = coupon.use(orderPrice);
     userCoupon.use(orderId, discountPrice);

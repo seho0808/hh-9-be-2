@@ -5,8 +5,11 @@ import {
   InsufficientStockError,
   InvalidQuantityError,
 } from "@/product/domain/exceptions/product.exceptions";
+import {
+  StockReservation,
+  StockReservationStatus,
+} from "@/product/domain/entities/stock-reservation.entity";
 import { ProductNotFoundError } from "@/product/application/product.application.exceptions";
-import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
@@ -93,7 +96,9 @@ describe("ReserveStockUseCase", () => {
         expect(result.stockReservation.quantity).toBe(reservationQuantity);
         expect(result.stockReservation.userId).toBe(userId);
         expect(result.stockReservation.productId).toBe(mockProduct.id);
-        expect(result.stockReservation.isActive).toBe(true);
+        expect(result.stockReservation.status).toBe(
+          StockReservationStatus.RESERVED
+        );
       });
     }
   );

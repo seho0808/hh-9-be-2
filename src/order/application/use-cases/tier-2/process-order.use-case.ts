@@ -9,7 +9,7 @@ import { Transactional } from "typeorm-transactional";
 
 export interface ProcessOrderCommand {
   userId: string;
-  couponId: string | null;
+  userCouponId: string | null;
   order: Order;
   discountPrice: number;
   discountedPrice: number;
@@ -35,7 +35,7 @@ export class ProcessOrderUseCase {
   async execute(command: ProcessOrderCommand) {
     const {
       userId,
-      couponId,
+      userCouponId,
       discountPrice,
       discountedPrice,
       stockReservationIds,
@@ -44,19 +44,18 @@ export class ProcessOrderUseCase {
     let order = command.order;
 
     // 쿠폰 적용
-    if (couponId) {
+    if (userCouponId) {
       const { order: discountedOrder } =
         await this.applyDiscountUseCase.execute({
           orderId: order.id,
-          appliedUserCouponId: couponId,
+          appliedUserCouponId: userCouponId,
           discountPrice,
           discountedPrice,
         });
       order = discountedOrder;
 
       await this.useUserCouponUseCase.execute({
-        couponId,
-        userId,
+        userCouponId,
         orderId: order.id,
         orderPrice: order.totalPrice,
       });

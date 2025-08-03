@@ -15,6 +15,7 @@ import { ProductNotFoundError } from "@/product/application/product.application.
 import { ProductRepository } from "@/product/infrastructure/persistence/product.repository";
 import { StockReservationRepository } from "@/product/infrastructure/persistence/stock-reservations.repository";
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
+import { StockReservationStatus } from "@/product/domain/entities/stock-reservation.entity";
 
 describe("Product Domain Integration Tests", () => {
   let testHelper: TestContainersHelper;
@@ -111,7 +112,7 @@ describe("Product Domain Integration Tests", () => {
         where: { orderId: "order-1" },
       });
       expect(savedReservation).toBeDefined();
-      expect(savedReservation.isActive).toBe(true);
+      expect(savedReservation.status).toBe(StockReservationStatus.RESERVED);
     });
 
     it("재고가 부족할 때 예외가 발생해야 함", async () => {
@@ -171,7 +172,7 @@ describe("Product Domain Integration Tests", () => {
           productId: product.id,
           userId: "user-123",
           quantity: 5,
-          isActive: true,
+          status: StockReservationStatus.RESERVED,
         }
       );
 
@@ -184,7 +185,9 @@ describe("Product Domain Integration Tests", () => {
       const result = await releaseStockUseCase.execute(command);
 
       // Then: 예약이 비활성화되고 상품의 예약 재고가 감소해야 함
-      expect(result.stockReservation.isActive).toBe(false);
+      expect(result.stockReservation.status).toBe(
+        StockReservationStatus.RELEASED
+      );
       expect(result.product.reservedStock).toBe(10); // 15 - 5
 
       // DB 검증
@@ -196,7 +199,7 @@ describe("Product Domain Integration Tests", () => {
       const savedReservation = await stockReservationRepository.findOne({
         where: { orderId: stockReservation.orderId },
       });
-      expect(savedReservation.isActive).toBe(false);
+      expect(savedReservation.status).toBe(StockReservationStatus.RELEASED);
     });
 
     it("이미 해제된 재고에 대해 중복 해제가 방지되어야 함", async () => {
@@ -212,7 +215,7 @@ describe("Product Domain Integration Tests", () => {
           productId: product.id,
           userId: "user-123",
           quantity: 5,
-          isActive: false, // 이미 해제됨
+          status: StockReservationStatus.RELEASED, // 이미 해제됨
         }
       );
 
@@ -241,7 +244,7 @@ describe("Product Domain Integration Tests", () => {
           productId: product.id,
           userId: "user-123",
           quantity: 5,
-          isActive: true,
+          status: StockReservationStatus.RESERVED,
         }
       );
 
@@ -254,7 +257,9 @@ describe("Product Domain Integration Tests", () => {
       const result = await confirmStockUseCase.execute(command);
 
       // Then: 예약이 비활성화되고 상품의 총 재고와 예약 재고가 모두 감소해야 함
-      expect(result.stockReservation.isActive).toBe(false);
+      expect(result.stockReservation.status).toBe(
+        StockReservationStatus.CONFIRMED
+      );
       expect(result.product.totalStock).toBe(95); // 100 - 5
       expect(result.product.reservedStock).toBe(10); // 15 - 5
 
@@ -268,7 +273,7 @@ describe("Product Domain Integration Tests", () => {
       const savedReservation = await stockReservationRepository.findOne({
         where: { orderId: stockReservation.orderId },
       });
-      expect(savedReservation.isActive).toBe(false);
+      expect(savedReservation.status).toBe(StockReservationStatus.CONFIRMED);
     });
   });
 

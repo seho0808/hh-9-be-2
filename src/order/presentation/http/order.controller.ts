@@ -66,7 +66,7 @@ export class OrderController {
 
     const { order } = await this.placeOrderUseCase.execute({
       userId: user.id,
-      couponId: createOrderDto.couponId || null,
+      userCouponId: createOrderDto.userCouponId || null,
       idempotencyKey,
       itemsWithoutPrices: createOrderDto.items.map((item) => ({
         productId: item.productId,

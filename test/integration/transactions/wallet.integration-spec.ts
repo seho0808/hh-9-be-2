@@ -15,8 +15,11 @@ import { RecoverPointsUseCase } from "@/wallet/application/use-cases/tier-1-in-d
 import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
 import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
+import {
+  DuplicateIdempotencyKeyError,
+  UserBalanceNotFoundError,
+} from "@/wallet/application/wallet.application.exceptions";
 import { InsufficientPointBalanceError } from "@/wallet/domain/exceptions/point.exceptions";
-import { UserBalanceNotFoundError } from "@/wallet/application/wallet.application.exceptions";
 
 describe("Wallet Domain Integration Tests", () => {
   let testHelper: TestContainersHelper;
@@ -133,7 +136,7 @@ describe("Wallet Domain Integration Tests", () => {
       );
     });
 
-    it.skip("동일한 idempotencyKey로 중복 충전 시 중복이 방지되어야 함", async () => {
+    it("동일한 idempotencyKey로 중복 충전 시 중복이 방지되어야 함", async () => {
       // Given: 사용자 잔액과 첫 번째 충전
       const userBalance = await UserBalanceFactory.createAndSave(
         userBalanceRepository,
@@ -155,7 +158,9 @@ describe("Wallet Domain Integration Tests", () => {
       expect(result1.userBalance.balance).toBe(3000);
 
       // Then: 중복 충전이 방지되어야 함
-      await expect(chargePointsUseCase.execute(command)).rejects.toThrow();
+      await expect(chargePointsUseCase.execute(command)).rejects.toThrow(
+        DuplicateIdempotencyKeyError
+      );
 
       // DB 검증 - 잔액이 한 번만 증가했는지 확인
       const savedUserBalance = await userBalanceRepository.findOne({

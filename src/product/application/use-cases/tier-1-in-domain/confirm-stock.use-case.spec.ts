@@ -4,8 +4,11 @@ import {
   StockReservationNotActiveError,
   StockReservationExpiredError,
 } from "@/product/domain/exceptions/product.exceptions";
+import {
+  StockReservation,
+  StockReservationStatus,
+} from "@/product/domain/entities/stock-reservation.entity";
 import { StockReservationNotFoundError } from "@/product/application/product.application.exceptions";
-import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
@@ -67,7 +70,9 @@ describe("ConfirmStockUseCase", () => {
       orderId: mockStockReservation.orderId,
     });
 
-    expect(result.stockReservation.isActive).toBe(false);
+    expect(result.stockReservation.status).toBe(
+      StockReservationStatus.CONFIRMED
+    );
     expect(result.product.getAvailableStock()).toBe(8);
   });
 
@@ -121,7 +126,7 @@ describe("ConfirmStockUseCase", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       expiresAt: new Date(Date.now() - 1000),
-      isActive: true,
+      status: StockReservationStatus.RESERVED,
     });
 
     const pastDate = new Date();

@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import { ProductTypeOrmEntity } from "./product.typeorm.entity";
 import { UserTypeOrmEntity } from "@/user/infrastructure/persistence/orm/user.typeorm.entity";
+import { StockReservationStatus } from "@/product/domain/entities/stock-reservation.entity";
 
 @Entity("stock_reservations")
 export class StockReservationTypeOrmEntity {
@@ -25,8 +26,8 @@ export class StockReservationTypeOrmEntity {
   @Column({ type: "integer" })
   quantity: number;
 
-  @Column({ type: "boolean", name: "is_active", default: true })
-  isActive: boolean;
+  @Column({ type: "enum", name: "status", enum: StockReservationStatus })
+  status: StockReservationStatus;
 
   @Column({ type: "uuid", name: "order_id" })
   orderId: string;

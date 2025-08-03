@@ -44,6 +44,15 @@ export class UserCouponRepository {
     return entities.map((entity) => this.toDomain(entity));
   }
 
+  async findByIdempotencyKey(
+    idempotencyKey: string
+  ): Promise<UserCoupon | null> {
+    const entity = await this.userCouponRepository.findOne({
+      where: { issuedIdempotencyKey: idempotencyKey },
+    });
+    return entity ? this.toDomain(entity) : null;
+  }
+
   private fromDomain(userCoupon: UserCoupon): UserCouponTypeOrmEntity {
     const entity = new UserCouponTypeOrmEntity();
     entity.id = userCoupon.id;

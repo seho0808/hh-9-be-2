@@ -22,3 +22,11 @@ export class UserCouponNotFoundError extends CouponApplicationError {
     super(`사용자 쿠폰을 찾을 수 없습니다. ID: ${userCouponId}`);
   }
 }
+
+export class DuplicateIdempotencyKeyError extends CouponApplicationError {
+  readonly code = "DUPLICATE_IDEMPOTENCY_KEY";
+
+  constructor(idempotencyKey: string) {
+    super(`중복된 idempotencyKey입니다. 키: ${idempotencyKey}`);
+  }
+}

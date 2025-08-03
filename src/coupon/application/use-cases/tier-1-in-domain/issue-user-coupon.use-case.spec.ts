@@ -24,6 +24,7 @@ jest.mock("typeorm-transactional", () => ({
 
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
+import { DuplicateIdempotencyKeyError } from "@/coupon/application/coupon.application.exceptions";
 
 describe("IssueUserCouponUseCase", () => {
   let useCase: IssueUserCouponUseCase;
@@ -109,6 +110,27 @@ describe("IssueUserCouponUseCase", () => {
   });
 
   describe("쿠폰 발급 실패 케이스", () => {
+    it("중복된 idempotencyKey로 요청시 에러가 발생해야 한다", async () => {
+      const idempotencyKey = uuidv4();
+      userCouponRepository.findByIdempotencyKey.mockResolvedValue(
+        UserCoupon.create({
+          userId: uuidv4(),
+          couponId: uuidv4(),
+          issuedIdempotencyKey: idempotencyKey,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        })
+      );
+
+      await expect(
+        useCase.execute({
+          couponId: uuidv4(),
+          userId: uuidv4(),
+          couponCode: "TEST123",
+          idempotencyKey,
+        })
+      ).rejects.toThrow(DuplicateIdempotencyKeyError);
+    });
+
     it("존재하지 않는 쿠폰 ID로 요청시 에러가 발생해야 한다", async () => {
       const nonExistentCouponId = uuidv4();
       couponRepository.findById.mockResolvedValue(null);
