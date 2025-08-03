@@ -4,6 +4,12 @@ import {
   StockReservationReleaseOrderIdMismatchError,
 } from "../exceptions/product.exceptions";
 
+export enum StockReservationStatus {
+  RESERVED = "RESERVED",
+  CONFIRMED = "CONFIRMED",
+  RELEASED = "RELEASED",
+}
+
 export interface StockReservationProps {
   id: string;
   productId: string;
@@ -13,7 +19,7 @@ export interface StockReservationProps {
   createdAt: Date;
   updatedAt: Date;
   expiresAt: Date;
-  isActive: boolean;
+  status: StockReservationStatus;
 }
 
 export class StockReservation {
@@ -23,14 +29,14 @@ export class StockReservation {
   static create(
     props: Omit<
       StockReservationProps,
-      "id" | "createdAt" | "updatedAt" | "expiresAt" | "isActive"
+      "id" | "createdAt" | "updatedAt" | "expiresAt" | "status"
     >
   ): StockReservation {
     const now = new Date();
     return new StockReservation({
       ...props,
       id: uuidv4(),
-      isActive: true,
+      status: StockReservationStatus.RESERVED,
       expiresAt: new Date(now.getTime() + StockReservation.EXPIRATION_TIME),
       createdAt: now,
       updatedAt: now,
@@ -44,7 +50,7 @@ export class StockReservation {
         orderId
       );
     }
-    this.props.isActive = false;
+    this.props.status = StockReservationStatus.RELEASED;
     this.props.updatedAt = new Date();
   }
 
@@ -55,7 +61,7 @@ export class StockReservation {
         orderId
       );
     }
-    this.props.isActive = false;
+    this.props.status = StockReservationStatus.CONFIRMED;
     this.props.updatedAt = new Date();
   }
 
@@ -91,7 +97,7 @@ export class StockReservation {
     return this.props.expiresAt;
   }
 
-  get isActive(): boolean {
-    return this.props.isActive;
+  get status(): StockReservationStatus {
+    return this.props.status;
   }
 }

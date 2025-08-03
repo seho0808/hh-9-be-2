@@ -20,8 +20,7 @@ export const StockReservationFactory =
       orderId: options.orderId || createTestName("주문", timestamp, counter),
       quantity:
         options.quantity ?? TEST_FACTORY_DEFAULTS.STOCK_RESERVATION.QUANTITY,
-      isActive:
-        options.isActive ?? TEST_FACTORY_DEFAULTS.STOCK_RESERVATION.IS_ACTIVE,
+      status: options.status ?? TEST_FACTORY_DEFAULTS.STOCK_RESERVATION.STATUS,
       expiresAt:
         options.expiresAt ||
         new Date(
