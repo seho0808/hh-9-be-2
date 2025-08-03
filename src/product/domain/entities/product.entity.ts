@@ -54,13 +54,7 @@ export class Product {
   }
 
   releaseStock(amount: number): void {
-    if (this.props.reservedStock < amount) {
-      throw new InsufficientStockError(
-        this.props.id,
-        this.props.totalStock,
-        amount
-      );
-    }
+    if (this.props.reservedStock < amount) return;
     this.props.reservedStock -= amount;
     this.props.updatedAt = new Date();
   }
