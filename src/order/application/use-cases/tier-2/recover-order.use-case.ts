@@ -52,13 +52,15 @@ export class RecoverOrderUseCase {
       refId: orderId,
     });
 
-    await this.changeOrderStatusUseCase.execute({
-      orderId: order.id,
-      status: OrderStatus.FAILED,
-    });
+    const { order: changedOrder } = await this.changeOrderStatusUseCase.execute(
+      {
+        orderId: order.id,
+        status: OrderStatus.FAILED,
+      }
+    );
 
     return {
-      order,
+      order: changedOrder,
     };
   }
 }

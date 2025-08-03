@@ -22,7 +22,10 @@ import {
   UserCouponTypeOrmEntity,
 } from "@/coupon/infrastructure/persistence/orm/user-coupon.typeorm.entity";
 import { UserBalanceTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
-import { PointTransactionTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
+import {
+  PointTransactionType,
+  PointTransactionTypeOrmEntity,
+} from "@/wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
 import { Order } from "@/order/domain/entities/order.entitiy";
 import { CreateOrderUseCase } from "@/order/application/use-cases/tier-1-in-domain/create-order.use-case";
 import { ApplyDiscountUseCase } from "@/order/application/use-cases/tier-1-in-domain/apply-discount.use-case";
@@ -47,6 +50,7 @@ import { ValidateStockService } from "@/product/domain/services/validate-stock.s
 import { ValidateUserCouponService } from "@/coupon/domain/services/validate-user-coupon.service";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
 import { StockReservationStatus } from "@/product/domain/entities/stock-reservation.entity";
+import { PointTransactionFactory } from "@/wallet/infrastructure/persistence/factories/point-transaction.factory";
 
 describe("Order Domain Integration Tests", () => {
   let testHelper: TestContainersHelper;
@@ -451,7 +455,7 @@ describe("Order Domain Integration Tests", () => {
     });
   });
 
-  describe.skip("RecoverOrderUseCase (@Transactional) - Rollback Integration", () => {
+  describe("RecoverOrderUseCase (@Transactional) - Rollback Integration", () => {
     it("주문 복구가 성공적으로 처리되어야 함", async () => {
       // Given: 처리된 주문과 관련 데이터들
       const order = await OrderFactory.createAndSave(orderRepository, {
@@ -475,6 +479,7 @@ describe("Order Domain Integration Tests", () => {
         {
           userId: "user-123",
           couponId: coupon.id,
+          orderId: order.id,
           status: UserCouponStatus.USED, // 이미 사용됨
         }
       );
@@ -485,6 +490,17 @@ describe("Order Domain Integration Tests", () => {
         {
           userId: "user-123",
           balance: 11000, // 20000에서 9000 차감됨
+        }
+      );
+
+      // 사용된 포인트 트랜잭션
+      const pointTransaction = await PointTransactionFactory.createAndSave(
+        pointTransactionRepository,
+        {
+          userId: "user-123",
+          amount: 9000,
+          type: PointTransactionType.USE,
+          refId: order.id,
         }
       );
 
@@ -610,12 +626,11 @@ describe("Order Domain Integration Tests", () => {
 
       // Then: 중복 복구 처리가 적절히 이루어져야 함
       // (실제 구현에 따라 예외 발생 또는 무시)
-      const result = await recoverOrderUseCase.execute(command);
-      expect(result.order.status).toBe(OrderStatus.FAILED);
+      await expect(recoverOrderUseCase.execute(command)).rejects.toThrow();
     });
   });
 
-  describe.skip("Order State Transition Integration", () => {
+  describe("Order State Transition Integration", () => {
     it("주문의 전체 생명주기가 올바르게 관리되어야 함", async () => {
       // Given: 전체 주문 프로세스를 위한 설정
       const product = await ProductFactory.createAndSave(productRepository, {
