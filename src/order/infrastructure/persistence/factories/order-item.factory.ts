@@ -3,23 +3,19 @@ import {
   createEntityFactory,
   getBaseProps,
 } from "../../../../common/factories/base.factory";
-import {
-  TEST_FACTORY_DEFAULTS,
-  createTestOrderItemId,
-  createTestOrderId,
-} from "./constants";
+import { TEST_FACTORY_DEFAULTS } from "./constants";
+import { v4 as uuidv4 } from "uuid";
 
 export const OrderItemFactory = createEntityFactory<OrderItemTypeOrmEntity>(
-  (options, counter) => {
-    const timestamp = Date.now();
+  (options) => {
     const baseProps = getBaseProps();
 
     const orderItem = new OrderItemTypeOrmEntity();
     Object.assign(orderItem, {
       ...baseProps,
-      id: options.id || createTestOrderItemId(timestamp, counter),
-      orderId: options.orderId || createTestOrderId(timestamp, counter),
-      productId: options.productId || `product-${timestamp}-${counter}`,
+      id: options.id || uuidv4(),
+      orderId: options.orderId || uuidv4(),
+      productId: options.productId || uuidv4(),
       quantity: options.quantity ?? TEST_FACTORY_DEFAULTS.ORDER_ITEM.QUANTITY,
       unitPrice:
         options.unitPrice ?? TEST_FACTORY_DEFAULTS.ORDER_ITEM.UNIT_PRICE,

@@ -3,11 +3,11 @@ import {
   createEntityFactory,
   getBaseProps,
 } from "../../../../common/factories/base.factory";
-import { TEST_FACTORY_DEFAULTS, createTestName } from "./constants";
+import { TEST_FACTORY_DEFAULTS } from "./constants";
+import { v4 as uuidv4 } from "uuid";
 
 export const UserCouponFactory = createEntityFactory<UserCouponTypeOrmEntity>(
-  (options, counter) => {
-    const timestamp = Date.now();
+  (options) => {
     const baseProps = getBaseProps();
     const now = new Date();
     const expiresAt = new Date(
@@ -18,8 +18,8 @@ export const UserCouponFactory = createEntityFactory<UserCouponTypeOrmEntity>(
     const userCoupon = new UserCouponTypeOrmEntity();
     Object.assign(userCoupon, {
       ...baseProps,
-      couponId: options.couponId || createTestName("쿠폰", timestamp, counter),
-      userId: options.userId || createTestName("사용자", timestamp, counter),
+      couponId: options.couponId || uuidv4(),
+      userId: options.userId || uuidv4(),
       orderId: options.orderId ?? null,
       discountPrice: options.discountPrice ?? null,
       status: options.status ?? TEST_FACTORY_DEFAULTS.USER_COUPON.STATUS,

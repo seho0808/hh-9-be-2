@@ -1,8 +1,6 @@
 import { Repository } from "typeorm";
-import { v4 as uuidv4 } from "uuid";
 
 export interface BaseEntityProps {
-  id: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,7 +42,6 @@ export function createEntityFactory<T extends BaseEntityProps>(
       return Array.from({ length: count }, () =>
         factory.create({
           ...baseOptions,
-          id: baseOptions.id || uuidv4(),
         })
       );
     },
@@ -81,7 +78,6 @@ export function createEntityFactory<T extends BaseEntityProps>(
 export function getBaseProps(): BaseEntityProps {
   const now = new Date();
   return {
-    id: uuidv4(),
     createdAt: now,
     updatedAt: now,
   };

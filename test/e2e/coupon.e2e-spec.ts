@@ -330,8 +330,17 @@ describe("Coupon API E2E (with TestContainers)", () => {
       const authHeaders = await testHelper.getAuthHeaders(app);
       const userId = "user-123"; // TestContainersHelper에서 생성되는 사용자 ID
 
+      const coupon = await CouponFactory.createAndSave(couponRepository, {
+        id: "coupon-123",
+        name: "테스트 쿠폰",
+        couponCode: "TEST2024",
+        discountType: "FIXED",
+        discountValue: 10000,
+      });
+
       await UserCouponFactory.createManyAndSave(userCouponRepository, 3, {
         userId: userId,
+        couponId: coupon.id,
       });
 
       // When: 내 쿠폰 목록 조회
