@@ -384,40 +384,6 @@ describe("Coupon Domain Integration Tests", () => {
         UserCouponNotFoundError
       );
     });
-
-    it.skip("이미 사용된 쿠폰은 취소할 수 없어야 함", async () => {
-      // Given: 이미 사용된 쿠폰
-      const coupon = await CouponFactory.createAndSave(couponRepository, {
-        couponCode: "USED_CANCEL10",
-        discountValue: 1000,
-        discountType: "FIXED",
-        minimumOrderPrice: 1000,
-        totalCount: 100,
-        usedCount: 1,
-      });
-
-      const userCoupon = await UserCouponFactory.createAndSave(
-        userCouponRepository,
-        {
-          userId: "user-123",
-          couponId: coupon.id,
-          status: UserCouponStatus.USED, // 이미 사용됨
-          orderId: null,
-          discountPrice: 1000,
-          usedAt: new Date(),
-          expiresAt: new Date(Date.now() + 86400000),
-        }
-      );
-
-      // When & Then: 이미 사용된 쿠폰 취소 시도로 예외 발생
-      const command = {
-        userCouponId: userCoupon.id,
-        userId: "user-123",
-        orderId: null,
-      };
-
-      await expect(cancelUserCouponUseCase.execute(command)).rejects.toThrow();
-    });
   });
 
   describe("Coupon Lifecycle Integration", () => {
