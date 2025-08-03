@@ -45,6 +45,7 @@ import { ValidateStockService } from "./domain/services/validate-stock.service";
     StockReservationRepository,
   ],
   exports: [
+    GetStockReservationsByOrderIdUseCase,
     GetProductsPriceUseCase,
     GetProductsByIdsUseCase,
     ReserveStocksUseCase,
