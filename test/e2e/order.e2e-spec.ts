@@ -142,11 +142,19 @@ describe("Order API E2E (with TestContainers)", () => {
         idempotencyKey: "test-order-detail-key",
       });
 
+      const product = await ProductFactory.createAndSave(productRepository, {
+        id: "test-product-1",
+        name: "테스트 상품",
+        price: 15000,
+        totalStock: 100,
+        reservedStock: 0,
+      });
+
       const testOrderItem = await OrderItemFactory.createAndSave(
         orderItemRepository,
         {
           orderId: testOrder.id,
-          productId: "test-product-1",
+          productId: product.id,
           quantity: 1,
           unitPrice: 15000,
           totalPrice: 15000,
