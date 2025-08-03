@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
-import {} from "@/coupon/domain/exceptions/user-coupon.exception";
 import {
   CouponNotFoundError,
   DuplicateIdempotencyKeyError,

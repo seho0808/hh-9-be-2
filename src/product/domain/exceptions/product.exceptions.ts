@@ -37,14 +37,6 @@ export class InactiveProductError extends ProductDomainError {
   }
 }
 
-export class StockReservationNotFoundError extends ProductDomainError {
-  readonly code = "STOCK_RESERVATION_NOT_FOUND";
-
-  constructor(stockReservationId: string) {
-    super(`예약된 재고가 없습니다. ID: ${stockReservationId}`);
-  }
-}
-
 export class StockReservationAlreadyReleasedError extends ProductDomainError {
   readonly code = "STOCK_RESERVATION_ALREADY_RELEASED";
 
