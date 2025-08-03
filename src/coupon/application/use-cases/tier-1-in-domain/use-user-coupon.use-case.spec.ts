@@ -66,15 +66,12 @@ describe("UseUserCouponUseCase", () => {
           issuedIdempotencyKey: uuidv4(),
         });
 
+        userCouponRepository.findById.mockResolvedValue(userCoupon);
         couponRepository.findById.mockResolvedValue(coupon);
-        userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
-          userCoupon
-        );
 
         const orderId = uuidv4();
         const result = await useCase.execute({
-          couponId: coupon.id,
-          userId: userCoupon.userId,
+          userCouponId: userCoupon.id,
           orderId,
           orderPrice: 60000,
         });
@@ -112,14 +109,11 @@ describe("UseUserCouponUseCase", () => {
           issuedIdempotencyKey: uuidv4(),
         });
 
+        userCouponRepository.findById.mockResolvedValue(userCoupon);
         couponRepository.findById.mockResolvedValue(coupon);
-        userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
-          userCoupon
-        );
 
         const result = await useCase.execute({
-          couponId: coupon.id,
-          userId: userCoupon.userId,
+          userCouponId: userCoupon.id,
           orderId: uuidv4(),
           orderPrice: 100000, // 50% = 50000원이지만 최대 20000원으로 제한
         });
@@ -150,14 +144,11 @@ describe("UseUserCouponUseCase", () => {
           issuedIdempotencyKey: uuidv4(),
         });
 
+        userCouponRepository.findById.mockResolvedValue(userCoupon);
         couponRepository.findById.mockResolvedValue(coupon);
-        userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
-          userCoupon
-        );
 
         const result = await useCase.execute({
-          couponId: coupon.id,
-          userId: userCoupon.userId,
+          userCouponId: userCoupon.id,
           orderId: uuidv4(),
           orderPrice: 100000,
         });
@@ -188,14 +179,11 @@ describe("UseUserCouponUseCase", () => {
           issuedIdempotencyKey: uuidv4(),
         });
 
+        userCouponRepository.findById.mockResolvedValue(userCoupon);
         couponRepository.findById.mockResolvedValue(coupon);
-        userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
-          userCoupon
-        );
 
         const result = await useCase.execute({
-          couponId: coupon.id,
-          userId: userCoupon.userId,
+          userCouponId: userCoupon.id,
           orderId: uuidv4(),
           orderPrice: 1235, // 10% = 123.5원 → 123원 (소수점 버림)
         });
@@ -213,8 +201,7 @@ describe("UseUserCouponUseCase", () => {
 
       await expect(
         useCase.execute({
-          couponId: nonExistentCouponId,
-          userId: uuidv4(),
+          userCouponId: nonExistentCouponId,
           orderId: uuidv4(),
           orderPrice: 10000,
         })
@@ -243,15 +230,12 @@ describe("UseUserCouponUseCase", () => {
         issuedIdempotencyKey: uuidv4(),
       });
 
+      userCouponRepository.findById.mockResolvedValue(expiredUserCoupon);
       couponRepository.findById.mockResolvedValue(coupon);
-      userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
-        expiredUserCoupon
-      );
 
       await expect(
         useCase.execute({
-          couponId: coupon.id,
-          userId: expiredUserCoupon.userId,
+          userCouponId: expiredUserCoupon.id,
           orderId: uuidv4(),
           orderPrice: 60000,
         })
@@ -282,15 +266,12 @@ describe("UseUserCouponUseCase", () => {
 
       userCoupon.use("previous-order", 10000);
 
+      userCouponRepository.findById.mockResolvedValue(userCoupon);
       couponRepository.findById.mockResolvedValue(coupon);
-      userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
-        userCoupon
-      );
 
       await expect(
         useCase.execute({
-          couponId: coupon.id,
-          userId: userCoupon.userId,
+          userCouponId: userCoupon.id,
           orderId: uuidv4(),
           orderPrice: 60000,
         })
@@ -321,15 +302,12 @@ describe("UseUserCouponUseCase", () => {
 
       userCoupon.cancel();
 
+      userCouponRepository.findById.mockResolvedValue(userCoupon);
       couponRepository.findById.mockResolvedValue(coupon);
-      userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
-        userCoupon
-      );
 
       await expect(
         useCase.execute({
-          couponId: coupon.id,
-          userId: userCoupon.userId,
+          userCouponId: userCoupon.id,
           orderId: uuidv4(),
           orderPrice: 60000,
         })

@@ -8,7 +8,7 @@ import { Transactional } from "typeorm-transactional";
 
 export interface RecoverOrderCommand {
   order: Order;
-  couponId: string | null;
+  userCouponId: string | null;
   stockReservationIds: string[];
   orderId: string;
 }
@@ -28,7 +28,7 @@ export class RecoverOrderUseCase {
 
   @Transactional()
   async execute(command: RecoverOrderCommand) {
-    const { order, couponId, stockReservationIds, orderId } = command;
+    const { order, userCouponId, stockReservationIds, orderId } = command;
 
     await Promise.all(
       stockReservationIds.map((stockReservationId) =>
@@ -39,9 +39,9 @@ export class RecoverOrderUseCase {
       )
     );
 
-    if (couponId) {
+    if (userCouponId) {
       await this.recoverUserCouponUseCase.execute({
-        userCouponId: couponId,
+        userCouponId,
         orderId,
       });
     }
