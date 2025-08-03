@@ -1,3 +1,5 @@
+import { StockReservationStatus } from "@/product/domain/entities/stock-reservation.entity";
+
 export const TEST_FACTORY_DEFAULTS = {
   PRODUCT: {
     PRICE: 10000,
@@ -7,7 +9,7 @@ export const TEST_FACTORY_DEFAULTS = {
   },
   STOCK_RESERVATION: {
     QUANTITY: 1,
-    IS_ACTIVE: true,
+    STATUS: StockReservationStatus.RESERVED,
     EXPIRATION_TIME: 30000, // 30 seconds
   },
 } as const;

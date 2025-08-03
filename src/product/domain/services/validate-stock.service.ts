@@ -1,9 +1,13 @@
 import { Product } from "../entities/product.entity";
-import { StockReservation } from "../entities/stock-reservation.entity";
+import {
+  StockReservation,
+  StockReservationStatus,
+} from "../entities/stock-reservation.entity";
 import {
   InactiveProductError,
   InsufficientStockError,
   InvalidQuantityError,
+  StockReservationAlreadyReleasedError,
   StockReservationExpiredError,
   StockReservationNotActiveError,
 } from "../exceptions/product.exceptions";
@@ -14,7 +18,7 @@ export class ValidateStockService {
   }: {
     stockReservation: StockReservation;
   }): void {
-    if (!stockReservation.isActive) {
+    if (stockReservation.status !== StockReservationStatus.RESERVED) {
       throw new StockReservationNotActiveError(stockReservation.id);
     }
 
@@ -28,8 +32,8 @@ export class ValidateStockService {
   }: {
     stockReservation: StockReservation;
   }): void {
-    if (!stockReservation.isActive) {
-      throw new StockReservationNotActiveError(stockReservation.id);
+    if (stockReservation.status === StockReservationStatus.RELEASED) {
+      throw new StockReservationAlreadyReleasedError(stockReservation.id);
     }
   }
 

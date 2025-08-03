@@ -46,6 +46,7 @@ import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
 import { ValidateUserCouponService } from "@/coupon/domain/services/validate-user-coupon.service";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
+import { StockReservationStatus } from "@/product/domain/entities/stock-reservation.entity";
 
 describe("Order Domain Integration Tests", () => {
   let testHelper: TestContainersHelper;
@@ -316,7 +317,7 @@ describe("Order Domain Integration Tests", () => {
           userId: "user-123",
           orderId: order.id,
           quantity: 1,
-          isActive: true,
+          status: StockReservationStatus.RESERVED,
         }
       );
 
@@ -406,7 +407,7 @@ describe("Order Domain Integration Tests", () => {
           userId: "user-123",
           orderId: order.id,
           quantity: 1,
-          isActive: true,
+          status: StockReservationStatus.RESERVED,
         }
       );
 
@@ -505,7 +506,7 @@ describe("Order Domain Integration Tests", () => {
           userId: "user-123",
           orderId: order.id,
           quantity: 1,
-          isActive: false, // 이미 확정된 상태
+          status: StockReservationStatus.CONFIRMED, // 이미 확정된 상태
         }
       );
 
@@ -582,7 +583,7 @@ describe("Order Domain Integration Tests", () => {
           userId: "user-123",
           orderId: order.id,
           quantity: 1,
-          isActive: false, // 이미 처리된 상태
+          status: StockReservationStatus.RELEASED, // 이미 처리된 상태
         }
       );
 
@@ -662,7 +663,7 @@ describe("Order Domain Integration Tests", () => {
           userId: "user-123",
           orderId: createResult.order.id,
           quantity: 1,
-          isActive: true,
+          status: StockReservationStatus.RESERVED,
         }
       );
 
