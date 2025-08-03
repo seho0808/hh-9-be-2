@@ -1,11 +1,11 @@
 import { Test } from "@nestjs/testing";
 import { IssueUserCouponUseCase } from "./issue-user-coupon.use-case";
 import {
-  CouponNotFoundError,
   CouponExhaustedError,
   CouponExpiredError,
   InvalidCouponCodeError,
 } from "@/coupon/domain/exceptions/coupon.exceptions";
+import { CouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
 import {
   Coupon,
   CouponDiscountType,
@@ -24,7 +24,7 @@ jest.mock("typeorm-transactional", () => ({
 
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
-import { DuplicateIdempotencyKeyError } from "@/coupon/domain/exceptions/user-coupon.exception";
+import { DuplicateIdempotencyKeyError } from "@/coupon/application/coupon.application.exceptions";
 
 describe("IssueUserCouponUseCase", () => {
   let useCase: IssueUserCouponUseCase;

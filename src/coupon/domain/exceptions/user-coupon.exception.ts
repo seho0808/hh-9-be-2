@@ -24,14 +24,6 @@ export class UserCouponCancelledError extends CouponDomainError {
   }
 }
 
-export class UserCouponNotFoundError extends CouponDomainError {
-  readonly code = "USER_COUPON_NOT_FOUND";
-
-  constructor(userCouponId: string) {
-    super(`존재하지 않는 쿠폰입니다. ID: ${userCouponId}`);
-  }
-}
-
 export class UserCouponRecoverOrderIdMismatchError extends CouponDomainError {
   readonly code = "USER_COUPON_RECOVER_ORDER_ID_MISMATCH";
 
@@ -39,13 +31,5 @@ export class UserCouponRecoverOrderIdMismatchError extends CouponDomainError {
     super(
       `쿠폰 복구를 위한 주문 ID가 일치하지 않습니다. ID: ${userCouponId}, 주문 ID: ${orderId}`
     );
-  }
-}
-
-export class DuplicateIdempotencyKeyError extends CouponDomainError {
-  readonly code = "DUPLICATE_IDEMPOTENCY_KEY";
-
-  constructor(idempotencyKey: string) {
-    super(`중복된 idempotencyKey입니다. 키: ${idempotencyKey}`);
   }
 }

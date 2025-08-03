@@ -1,10 +1,10 @@
 import { UsePointsUseCase } from "./use-points.use-case";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
+import { InsufficientPointBalanceError } from "@/wallet/domain/exceptions/point.exceptions";
 import {
   DuplicateIdempotencyKeyError,
-  InsufficientPointBalanceError,
   UserBalanceNotFoundError,
-} from "@/wallet/domain/exceptions/point.exceptions";
+} from "@/wallet/application/wallet.application.exceptions";
 import { v4 as uuidv4 } from "uuid";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
 

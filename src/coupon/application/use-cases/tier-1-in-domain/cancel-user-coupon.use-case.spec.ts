@@ -1,7 +1,7 @@
 import { Test } from "@nestjs/testing";
 import { CancelUserCouponUseCase } from "./cancel-user-coupon.use-case";
-import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
-import { UserCouponNotFoundError } from "@/coupon/domain/exceptions/user-coupon.exception";
+import { CouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
+import { UserCouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
 import {
   Coupon,
   CouponDiscountType,

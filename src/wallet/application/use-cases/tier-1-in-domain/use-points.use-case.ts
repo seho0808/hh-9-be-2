@@ -2,9 +2,9 @@ import { Injectable } from "@nestjs/common";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
 import {
-  UserBalanceNotFoundError,
   DuplicateIdempotencyKeyError,
-} from "@/wallet/domain/exceptions/point.exceptions";
+  UserBalanceNotFoundError,
+} from "@/wallet/application/wallet.application.exceptions";
 import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
 import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";

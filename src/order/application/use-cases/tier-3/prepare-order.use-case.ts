@@ -4,7 +4,7 @@ import { CreateOrderUseCase } from "../tier-1-in-domain/create-order.use-case";
 import {
   InsufficientPointBalanceError,
   InvalidCouponError,
-} from "@/order/application/order.exceptions";
+} from "@/order/application/order.application.exceptions";
 import { ValidateCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/validate-user-coupon.use-case";
 import { ValidateUsePointsUseCase } from "@/wallet/application/use-cases/tier-1-in-domain/validate-use-points.use-case";
 import { ReserveStocksUseCase } from "@/product/application/use-cases/tier-2/reserve-stocks.use-case";

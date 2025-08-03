@@ -7,14 +7,6 @@ export abstract class PointDomainError extends Error {
   }
 }
 
-export class UserBalanceNotFoundError extends PointDomainError {
-  readonly code = "USER_BALANCE_NOT_FOUND";
-
-  constructor(userId: string) {
-    super(`유저 잔액을 찾을 수 없습니다. ID: ${userId}`);
-  }
-}
-
 export class InsufficientPointBalanceError extends PointDomainError {
   readonly code = "INSUFFICIENT_POINT_BALANCE";
 
@@ -45,26 +37,10 @@ export class InvalidUseAmountError extends PointDomainError {
   }
 }
 
-export class PointTransactionNotFoundError extends PointDomainError {
-  readonly code = "POINT_TRANSACTION_NOT_FOUND";
-
-  constructor(idempotencyKey: string) {
-    super(`사용 금액 트랜잭션을 찾을 수 없습니다. 키: ${idempotencyKey}`);
-  }
-}
-
 export class PointTransactionAlreadyRecoveredError extends PointDomainError {
   readonly code = "POINT_TRANSACTION_ALREADY_RECOVERED";
 
   constructor(idempotencyKey: string) {
     super(`이미 복구된 트랜잭션입니다. 키: ${idempotencyKey}`);
-  }
-}
-
-export class DuplicateIdempotencyKeyError extends PointDomainError {
-  readonly code = "DUPLICATE_IDEMPOTENCY_KEY";
-
-  constructor(idempotencyKey: string) {
-    super(`중복된 idempotencyKey입니다. 키: ${idempotencyKey}`);
   }
 }

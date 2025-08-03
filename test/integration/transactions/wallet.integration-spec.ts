@@ -16,10 +16,10 @@ import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-b
 import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
 import {
-  UserBalanceNotFoundError,
-  InsufficientPointBalanceError,
   DuplicateIdempotencyKeyError,
-} from "@/wallet/domain/exceptions/point.exceptions";
+  UserBalanceNotFoundError,
+} from "@/wallet/application/wallet.application.exceptions";
+import { InsufficientPointBalanceError } from "@/wallet/domain/exceptions/point.exceptions";
 
 describe("Wallet Domain Integration Tests", () => {
   let testHelper: TestContainersHelper;

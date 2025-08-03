@@ -1,7 +1,6 @@
 import { Test } from "@nestjs/testing";
 import { ReserveStockUseCase } from "./reserve-stock.use-case";
 import {
-  ProductNotFoundError,
   InactiveProductError,
   InsufficientStockError,
   InvalidQuantityError,
@@ -10,6 +9,7 @@ import {
   StockReservation,
   StockReservationStatus,
 } from "@/product/domain/entities/stock-reservation.entity";
+import { ProductNotFoundError } from "@/product/application/product.application.exceptions";
 import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";

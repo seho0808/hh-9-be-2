@@ -1,10 +1,10 @@
 import { ChargePointsUseCase } from "./charge-points.use-case";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
+import { InvalidChargeAmountError } from "@/wallet/domain/exceptions/point.exceptions";
 import {
   DuplicateIdempotencyKeyError,
-  InvalidChargeAmountError,
   UserBalanceNotFoundError,
-} from "@/wallet/domain/exceptions/point.exceptions";
+} from "@/wallet/application/wallet.application.exceptions";
 import { v4 as uuidv4 } from "uuid";
 
 jest.mock("@/wallet/infrastructure/persistence/use-balance.repository");

@@ -3,7 +3,7 @@ import { Product } from "@/product/domain/entities/product.entity";
 import {
   ProductNotFoundError,
   StockReservationNotFoundError,
-} from "@/product/domain/exceptions/product.exceptions";
+} from "@/product/application/product.application.exceptions";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
 import { Transactional } from "typeorm-transactional";

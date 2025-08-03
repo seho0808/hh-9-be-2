@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Product } from "@/product/domain/entities/product.entity";
 import { ProductRepository } from "@/product/infrastructure/persistence/product.repository";
-import { ProductNotFoundError } from "@/product/domain/exceptions/product.exceptions";
+import { ProductNotFoundError } from "@/product/application/product.application.exceptions";
 import { Transactional } from "typeorm-transactional";
 
 @Injectable()

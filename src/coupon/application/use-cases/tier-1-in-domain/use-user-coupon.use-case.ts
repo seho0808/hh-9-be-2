@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
-import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
+import { CouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
 import { Transactional } from "typeorm-transactional";
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";

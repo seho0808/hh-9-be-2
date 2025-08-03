@@ -1,6 +1,6 @@
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
 import { Injectable } from "@nestjs/common";
-import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
+import { CouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 
 export interface GetCouponByIdCommand {
