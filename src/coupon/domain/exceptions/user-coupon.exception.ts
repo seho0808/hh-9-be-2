@@ -41,3 +41,11 @@ export class UserCouponRecoverOrderIdMismatchError extends CouponDomainError {
     );
   }
 }
+
+export class DuplicateIdempotencyKeyError extends CouponDomainError {
+  readonly code = "DUPLICATE_IDEMPOTENCY_KEY";
+
+  constructor(idempotencyKey: string) {
+    super(`중복된 idempotencyKey입니다. 키: ${idempotencyKey}`);
+  }
+}

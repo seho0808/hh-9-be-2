@@ -16,7 +16,10 @@ import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.rep
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
 import { ValidateUserCouponService } from "@/coupon/domain/services/validate-user-coupon.service";
 import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
-import { UserCouponNotFoundError } from "@/coupon/domain/exceptions/user-coupon.exception";
+import {
+  UserCouponNotFoundError,
+  DuplicateIdempotencyKeyError,
+} from "@/coupon/domain/exceptions/user-coupon.exception";
 
 describe("Coupon Domain Integration Tests", () => {
   let testHelper: TestContainersHelper;
@@ -135,7 +138,7 @@ describe("Coupon Domain Integration Tests", () => {
       );
     });
 
-    it.skip("동일한 idempotencyKey로 중복 발급 시 중복이 방지되어야 함", async () => {
+    it("동일한 idempotencyKey로 중복 발급 시 중복이 방지되어야 함", async () => {
       // Given: 쿠폰과 첫 번째 발급
       const coupon = await CouponFactory.createAndSave(couponRepository, {
         couponCode: "DUPLICATE10",
@@ -155,7 +158,9 @@ describe("Coupon Domain Integration Tests", () => {
       const result1 = await issueUserCouponUseCase.execute(command);
 
       // Then: 중복 발급이 방지되어야 함
-      await expect(issueUserCouponUseCase.execute(command)).rejects.toThrow();
+      await expect(issueUserCouponUseCase.execute(command)).rejects.toThrow(
+        DuplicateIdempotencyKeyError
+      );
 
       // DB 검증 - 하나의 사용자 쿠폰만 생성되어야 함
       const userCoupons = await userCouponRepository.find({
