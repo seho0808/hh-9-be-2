@@ -15,10 +15,8 @@ import { RecoverPointsUseCase } from "@/wallet/application/use-cases/tier-1-in-d
 import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
 import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
-import {
-  UserBalanceNotFoundError,
-  InsufficientPointBalanceError,
-} from "@/wallet/domain/exceptions/point.exceptions";
+import { InsufficientPointBalanceError } from "@/wallet/domain/exceptions/point.exceptions";
+import { UserBalanceNotFoundError } from "@/wallet/application/wallet.application.exceptions";
 
 describe("Wallet Domain Integration Tests", () => {
   let testHelper: TestContainersHelper;

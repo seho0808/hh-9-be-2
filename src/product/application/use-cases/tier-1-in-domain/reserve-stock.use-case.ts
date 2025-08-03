@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { Product } from "@/product/domain/entities/product.entity";
-import { ProductNotFoundError } from "@/product/domain/exceptions/product.exceptions";
+import { ProductNotFoundError } from "@/product/application/product.application.exceptions";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { Transactional } from "typeorm-transactional";
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";

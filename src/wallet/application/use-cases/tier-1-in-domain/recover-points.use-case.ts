@@ -1,7 +1,10 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
-import { UserBalanceNotFoundError } from "@/wallet/domain/exceptions/point.exceptions";
+import {
+  PointTransactionNotFoundError,
+  UserBalanceNotFoundError,
+} from "@/wallet/application/wallet.application.exceptions";
 import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
 import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
@@ -38,6 +41,14 @@ export class RecoverPointsUseCase {
 
     const existingPointTransaction =
       await this.pointTransactionRepository.findByRefId(userId, refId);
+
+    const correctTransactionExists = existingPointTransaction.some(
+      (pt) => pt.type === "USE" && pt.refId === refId
+    );
+
+    if (!correctTransactionExists) {
+      throw new PointTransactionNotFoundError(refId);
+    }
 
     this.validatePointTransactionService.validatePointRecovery({
       refId,

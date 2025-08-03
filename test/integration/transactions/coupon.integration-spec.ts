@@ -15,8 +15,8 @@ import { UseUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-d
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
 import { ValidateUserCouponService } from "@/coupon/domain/services/validate-user-coupon.service";
-import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
-import { UserCouponNotFoundError } from "@/coupon/domain/exceptions/user-coupon.exception";
+import { CouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
+import { UserCouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
 
 describe("Coupon Domain Integration Tests", () => {
   let testHelper: TestContainersHelper;

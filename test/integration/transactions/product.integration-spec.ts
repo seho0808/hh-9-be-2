@@ -10,8 +10,8 @@ import { ReserveStockUseCase } from "@/product/application/use-cases/tier-1-in-d
 import { ReleaseStockUseCase } from "@/product/application/use-cases/tier-1-in-domain/release-stock.use-case";
 import { ConfirmStockUseCase } from "@/product/application/use-cases/tier-1-in-domain/confirm-stock.use-case";
 import { ReserveStocksUseCase } from "@/product/application/use-cases/tier-2/reserve-stocks.use-case";
-import { ProductNotFoundError } from "@/product/domain/exceptions/product.exceptions";
 import { InsufficientStockError } from "@/product/domain/exceptions/product.exceptions";
+import { ProductNotFoundError } from "@/product/application/product.application.exceptions";
 import { ProductRepository } from "@/product/infrastructure/persistence/product.repository";
 import { StockReservationRepository } from "@/product/infrastructure/persistence/stock-reservations.repository";
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";

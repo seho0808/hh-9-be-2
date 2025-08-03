@@ -1,7 +1,7 @@
 import { Test } from "@nestjs/testing";
 import { ChangeOrderStatusUseCase } from "./change-order-status.use-case";
 import { Order, OrderStatus } from "@/order/domain/entities/order.entitiy";
-import { OrderNotFoundError } from "@/order/domain/exceptions/order.exceptions";
+import { OrderNotFoundError } from "@/order/application/order.application.exceptions";
 import { v4 as uuidv4 } from "uuid";
 
 jest.mock("@/order/infrastructure/persistence/order.repository");
