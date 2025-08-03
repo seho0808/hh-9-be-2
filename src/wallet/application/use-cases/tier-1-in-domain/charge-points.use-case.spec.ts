@@ -1,6 +1,7 @@
 import { ChargePointsUseCase } from "./charge-points.use-case";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
 import {
+  DuplicateIdempotencyKeyError,
   InvalidChargeAmountError,
   UserBalanceNotFoundError,
 } from "@/wallet/domain/exceptions/point.exceptions";
@@ -15,6 +16,7 @@ jest.mock("typeorm-transactional", () => ({
 import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
 import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
 import { Test } from "@nestjs/testing";
+import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
 
 describe("ChargePointsUseCase", () => {
   let useCase: ChargePointsUseCase;
@@ -80,6 +82,28 @@ describe("ChargePointsUseCase", () => {
       });
     }
   );
+
+  it("중복된 idempotencyKey로 요청시 에러가 발생해야 한다", async () => {
+    const idempotencyKey = uuidv4();
+    pointTransactionRepository.findByIdempotencyKey.mockResolvedValue(
+      PointTransaction.create({
+        userId: mockUserId,
+        amount: 1000,
+        type: "CHARGE",
+        idempotencyKey,
+        refId: null,
+      })
+    );
+
+    await expect(
+      useCase.execute({
+        userId: mockUserId,
+        amount: 1000,
+        idempotencyKey,
+        refId: null,
+      })
+    ).rejects.toThrow(DuplicateIdempotencyKeyError);
+  });
 
   it("사용자 잔액을 찾을 수 없을 때 UserBalanceNotFoundError를 던져야한다", async () => {
     // given
