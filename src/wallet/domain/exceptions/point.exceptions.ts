@@ -60,3 +60,11 @@ export class PointTransactionAlreadyRecoveredError extends PointDomainError {
     super(`이미 복구된 트랜잭션입니다. 키: ${idempotencyKey}`);
   }
 }
+
+export class DuplicateIdempotencyKeyError extends PointDomainError {
+  readonly code = "DUPLICATE_IDEMPOTENCY_KEY";
+
+  constructor(idempotencyKey: string) {
+    super(`중복된 idempotencyKey입니다. 키: ${idempotencyKey}`);
+  }
+}

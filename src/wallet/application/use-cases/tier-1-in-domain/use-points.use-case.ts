@@ -1,7 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
-import { UserBalanceNotFoundError } from "@/wallet/domain/exceptions/point.exceptions";
+import {
+  UserBalanceNotFoundError,
+  DuplicateIdempotencyKeyError,
+} from "@/wallet/domain/exceptions/point.exceptions";
 import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
 import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
@@ -30,6 +33,14 @@ export class UsePointsUseCase {
     command: UsePointsUseCaseCommand
   ): Promise<UsePointsUseCaseResult> {
     const { userId, amount, refId, idempotencyKey } = command;
+
+    const existingTransaction =
+      await this.pointTransactionRepository.findByIdempotencyKey(
+        idempotencyKey
+      );
+    if (existingTransaction) {
+      throw new DuplicateIdempotencyKeyError(idempotencyKey);
+    }
 
     const userBalance = await this.userBalanceRepository.findByUserId(userId);
 
