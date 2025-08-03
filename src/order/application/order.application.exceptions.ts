@@ -22,3 +22,11 @@ export class InsufficientPointBalanceError extends OrderApplicationError {
     super(`잔고가 부족합니다. ID: ${userId}, 금액: ${amount}`);
   }
 }
+
+export class OrderNotFoundError extends OrderApplicationError {
+  readonly code = "ORDER_NOT_FOUND";
+
+  constructor(orderId: string) {
+    super(`주문을 찾을 수 없습니다. ID: ${orderId}`);
+  }
+}

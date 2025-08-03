@@ -24,14 +24,6 @@ export class UserCouponCancelledError extends CouponDomainError {
   }
 }
 
-export class UserCouponNotFoundError extends CouponDomainError {
-  readonly code = "USER_COUPON_NOT_FOUND";
-
-  constructor(userCouponId: string) {
-    super(`존재하지 않는 쿠폰입니다. ID: ${userCouponId}`);
-  }
-}
-
 export class UserCouponRecoverOrderIdMismatchError extends CouponDomainError {
   readonly code = "USER_COUPON_RECOVER_ORDER_ID_MISMATCH";
 
