@@ -324,7 +324,7 @@ describe("Order Domain Integration Tests", () => {
       // When: 주문을 처리 (쿠폰 + 포인트 사용)
       const command = {
         userId: "user-123",
-        couponId: coupon.id,
+        userCouponId: userCoupon.id,
         order: new Order({
           id: order.id,
           userId: order.userId,
@@ -414,7 +414,7 @@ describe("Order Domain Integration Tests", () => {
       // When: 주문 처리 시도 (잔액 부족으로 실패 예상)
       const command = {
         userId: "user-123",
-        couponId: null,
+        userCouponId: null,
         order: new Order({
           id: order.id,
           userId: order.userId,
@@ -526,7 +526,7 @@ describe("Order Domain Integration Tests", () => {
           updatedAt: order.updatedAt,
           OrderItems: [],
         }),
-        couponId: coupon.id,
+        userCouponId: userCoupon.id,
         stockReservationIds: [stockReservation.id],
         orderId: order.id,
       };
@@ -603,7 +603,7 @@ describe("Order Domain Integration Tests", () => {
           updatedAt: order.updatedAt,
           OrderItems: [],
         }),
-        couponId: null,
+        userCouponId: null,
         stockReservationIds: [stockReservation.id],
         orderId: order.id,
       };
@@ -670,7 +670,7 @@ describe("Order Domain Integration Tests", () => {
       // Step 2: 주문 처리
       const processCommand = {
         userId: "user-123",
-        couponId: null,
+        userCouponId: null,
         order: createResult.order,
         discountPrice: 0,
         discountedPrice: 5000,
@@ -684,7 +684,7 @@ describe("Order Domain Integration Tests", () => {
       // Step 3: 문제 발생으로 주문 복구
       const recoverCommand = {
         order: processResult.order,
-        couponId: null,
+        userCouponId: null,
         stockReservationIds: [stockReservation.id],
         orderId: createResult.order.id,
       };

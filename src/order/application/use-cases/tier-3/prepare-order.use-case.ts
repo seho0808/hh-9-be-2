@@ -11,7 +11,7 @@ import { ReserveStocksUseCase } from "@/product/application/use-cases/tier-2/res
 
 export interface PrepareOrderCommand {
   userId: string;
-  couponId: string | null;
+  userCouponId: string | null;
   items: { productId: string; unitPrice: number; quantity: number }[];
   idempotencyKey: string;
 }
@@ -30,7 +30,7 @@ export class PrepareOrderUseCase {
   ) {}
 
   async execute(command: PrepareOrderCommand) {
-    const { userId, couponId, items, idempotencyKey } = command;
+    const { userId, userCouponId, items, idempotencyKey } = command;
     let discountPrice: number = 0;
     let discountedPrice: number = 0;
     let stockReservationIds: string[] = [];
@@ -43,17 +43,16 @@ export class PrepareOrderUseCase {
     });
 
     // 쿠폰 확인
-    if (couponId) {
+    if (userCouponId) {
       const validateResult = await this.validateCouponUseCase.execute({
-        couponId,
-        userId,
+        userCouponId,
         orderPrice: order.totalPrice,
       });
       discountPrice = validateResult.discountPrice;
       discountedPrice = validateResult.discountedPrice;
 
       if (!validateResult.isValid) {
-        throw new InvalidCouponError(couponId);
+        throw new InvalidCouponError(userCouponId);
       }
     }
 

@@ -61,7 +61,7 @@ export class CreateOrderDto {
   })
   @IsOptional()
   @IsString()
-  couponId?: string;
+  userCouponId?: string;
 
   @ApiProperty({
     description: "중복 요청 방지 ID",

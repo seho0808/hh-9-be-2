@@ -214,8 +214,7 @@ describe("Coupon Domain Integration Tests", () => {
 
       // When: 쿠폰을 사용
       const command = {
-        couponId: coupon.id,
-        userId: "user-123",
+        userCouponId: userCoupon.id,
         orderId: null, // orderId를 null로 설정하여 외래키 제약 우회
         orderPrice: 5000,
         idempotencyKey: "use-coupon-key-1",
@@ -253,8 +252,7 @@ describe("Coupon Domain Integration Tests", () => {
 
       // When: 쿠폰을 사용
       const command = {
-        couponId: coupon.id,
-        userId: "user-123",
+        userCouponId: userCoupon.id,
         orderId: null, // orderId를 null로 설정
         orderPrice: 20000, // 20,000원 주문
         idempotencyKey: "use-percent-coupon-key-1",
@@ -294,8 +292,7 @@ describe("Coupon Domain Integration Tests", () => {
 
       // When & Then: 이미 사용된 쿠폰으로 예외 발생
       const command = {
-        couponId: coupon.id,
-        userId: "user-123",
+        userCouponId: userCoupon.id,
         orderId: null,
         orderPrice: 5000,
         idempotencyKey: "use-used-coupon-key",
@@ -325,8 +322,7 @@ describe("Coupon Domain Integration Tests", () => {
 
       // When & Then: 만료된 쿠폰으로 예외 발생
       const command = {
-        couponId: coupon.id,
-        userId: "user-123",
+        userCouponId: userCoupon.id,
         orderId: "order-789",
         orderPrice: 5000,
         idempotencyKey: "use-expired-coupon-key",
@@ -412,8 +408,7 @@ describe("Coupon Domain Integration Tests", () => {
 
       // When: 쿠폰 사용
       const useCommand = {
-        couponId: coupon.id,
-        userId: "user-123",
+        userCouponId: issueResult.userCoupon.id,
         orderId: null,
         orderPrice: 5000,
         idempotencyKey: "lifecycle-use-key",
