@@ -39,10 +39,10 @@ export class RecoverPointsUseCase {
       throw new UserBalanceNotFoundError(userId);
     }
 
-    const existingPointTransaction =
+    const existingPointTransactions =
       await this.pointTransactionRepository.findByRefId(userId, refId);
 
-    const correctTransactionExists = existingPointTransaction.some(
+    const correctTransactionExists = existingPointTransactions.some(
       (pt) => pt.type === "USE" && pt.refId === refId
     );
 
@@ -52,7 +52,7 @@ export class RecoverPointsUseCase {
 
     this.validatePointTransactionService.validatePointRecovery({
       refId,
-      existingPointTransaction,
+      existingPointTransactions,
     });
 
     userBalance.addBalance(amount);
