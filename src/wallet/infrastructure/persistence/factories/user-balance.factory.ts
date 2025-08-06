@@ -16,6 +16,7 @@ export const UserBalanceFactory = createEntityFactory<UserBalanceTypeOrmEntity>(
       id: options.id || uuidv4(),
       userId: options.userId || uuidv4(),
       balance: options.balance ?? TEST_FACTORY_DEFAULTS.USER_BALANCE.BALANCE,
+      version: options.version ?? 0,
       ...options,
     });
 

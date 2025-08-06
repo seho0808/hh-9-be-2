@@ -22,6 +22,9 @@ export class UserBalanceTypeOrmEntity {
   @Column({ type: "int", name: "balance" })
   balance: number;
 
+  @Column({ type: "int", name: "version", default: 0 })
+  version: number;
+
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;
 
