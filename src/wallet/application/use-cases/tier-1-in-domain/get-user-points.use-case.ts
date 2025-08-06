@@ -19,7 +19,8 @@ export class GetUserPointsUseCase {
   ): Promise<GetUserPointsUseCaseResult> {
     const { userId } = command;
 
-    const userBalance = await this.userBalanceRepository.findByUserId(userId);
+    const { userBalance } =
+      await this.userBalanceRepository.findByUserId(userId);
 
     if (!userBalance) {
       const newUserBalance = UserBalance.create({

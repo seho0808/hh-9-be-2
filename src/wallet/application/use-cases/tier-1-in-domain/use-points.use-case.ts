@@ -8,6 +8,8 @@ import {
 import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
 import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
+import { RetryOnOptimisticLock } from "@/common/decorators/retry-on-optimistic-lock.decorator";
+import { IsolationLevel, Transactional } from "typeorm-transactional";
 
 export interface UsePointsUseCaseCommand {
   userId: string;
@@ -29,6 +31,8 @@ export class UsePointsUseCase {
     private readonly validatePointTransactionService: ValidatePointTransactionService
   ) {}
 
+  @RetryOnOptimisticLock(5, 50)
+  @Transactional({ isolationLevel: IsolationLevel.READ_COMMITTED })
   async execute(
     command: UsePointsUseCaseCommand
   ): Promise<UsePointsUseCaseResult> {
@@ -42,7 +46,8 @@ export class UsePointsUseCase {
       throw new DuplicateIdempotencyKeyError(idempotencyKey);
     }
 
-    const userBalance = await this.userBalanceRepository.findByUserId(userId);
+    const { userBalance, metadata } =
+      await this.userBalanceRepository.findByUserId(userId);
 
     if (!userBalance) {
       throw new UserBalanceNotFoundError(userId);
@@ -63,7 +68,10 @@ export class UsePointsUseCase {
     });
 
     await Promise.all([
-      this.userBalanceRepository.save(userBalance),
+      this.userBalanceRepository.saveWithOptimisticLock(
+        userBalance,
+        metadata.version
+      ),
       this.pointTransactionRepository.save(pointTransaction),
     ]);
 
