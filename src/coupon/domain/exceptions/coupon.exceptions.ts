@@ -70,3 +70,11 @@ export class CannotCancelExhaustedCouponError extends CouponDomainError {
     super(`쿠폰을 취소할 수 없습니다. ID: ${couponId}`);
   }
 }
+
+export class UserCouponAlreadyIssuedError extends CouponDomainError {
+  readonly code = "USER_COUPON_ALREADY_ISSUED";
+
+  constructor(userCouponId: string) {
+    super(`이미 발급된 쿠폰입니다. ID: ${userCouponId}`);
+  }
+}

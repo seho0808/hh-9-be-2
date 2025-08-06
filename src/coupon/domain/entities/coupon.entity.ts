@@ -7,7 +7,9 @@ import {
   InvalidCouponCodeError,
   InvalidCouponDateRangeError,
   InvalidCouponDiscountError,
+  UserCouponAlreadyIssuedError,
 } from "../exceptions/coupon.exceptions";
+import { UserCoupon } from "./user-coupon.entity";
 
 export enum CouponDiscountType {
   FIXED = "FIXED", // 고정 금액 할인
@@ -64,7 +66,11 @@ export class Coupon {
     });
   }
 
-  issue(couponCode: string): void {
+  issue(couponCode: string, existingUserCoupon: UserCoupon | null): void {
+    if (existingUserCoupon) {
+      throw new UserCouponAlreadyIssuedError(existingUserCoupon.id);
+    }
+
     if (this.props.couponCode !== couponCode) {
       throw new InvalidCouponCodeError(couponCode);
     }

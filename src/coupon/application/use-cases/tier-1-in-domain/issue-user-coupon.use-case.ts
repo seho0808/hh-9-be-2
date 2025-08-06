@@ -35,18 +35,20 @@ export class IssueUserCouponUseCase {
   ): Promise<IssueUserCouponResult> {
     const { couponId, userId, couponCode, idempotencyKey } = command;
 
-    const existingUserCoupon =
+    const idempotencyKeyObj =
       await this.userCouponRepository.findByIdempotencyKey(idempotencyKey);
-    if (existingUserCoupon) {
+    if (idempotencyKeyObj) {
       throw new DuplicateIdempotencyKeyError(idempotencyKey);
     }
 
+    const existingUserCoupon =
+      await this.userCouponRepository.findByCouponIdAndUserId(couponId, userId);
     const coupon = await this.couponRepository.findById(couponId);
     if (!coupon) {
       throw new CouponNotFoundError(couponId);
     }
 
-    coupon.issue(couponCode);
+    coupon.issue(couponCode, existingUserCoupon);
     const userCoupon = UserCoupon.create({
       couponId: coupon.id,
       userId,

@@ -4,6 +4,7 @@ import {
   CouponExhaustedError,
   CouponExpiredError,
   InvalidCouponCodeError,
+  UserCouponAlreadyIssuedError,
 } from "@/coupon/domain/exceptions/coupon.exceptions";
 import { CouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
 import {
@@ -218,7 +219,7 @@ describe("IssueUserCouponUseCase", () => {
       });
 
       // 수량 제한에 도달하도록 발급
-      coupon.issue("LIMITED123");
+      coupon.issue("LIMITED123", null);
 
       couponRepository.findById.mockResolvedValue(coupon);
 
@@ -230,6 +231,40 @@ describe("IssueUserCouponUseCase", () => {
           idempotencyKey: uuidv4(),
         })
       ).rejects.toThrow(CouponExhaustedError);
+    });
+
+    it("이미 발급된 쿠폰으로 요청시 에러가 발생해야 한다", async () => {
+      const coupon = Coupon.create({
+        name: "이미 발급된 쿠폰",
+        description: "이미 발급된 쿠폰",
+        couponCode: "ALREADY_ISSUED123",
+        discountType: CouponDiscountType.FIXED,
+        discountValue: 10000,
+        minimumOrderPrice: 50000,
+        maxDiscountPrice: null,
+        totalCount: 100,
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expiresInDays: 7,
+      });
+
+      couponRepository.findById.mockResolvedValue(coupon);
+      userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
+        UserCoupon.create({
+          userId: uuidv4(),
+          couponId: coupon.id,
+          issuedIdempotencyKey: uuidv4(),
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        })
+      );
+      await expect(
+        useCase.execute({
+          couponId: coupon.id,
+          userId: uuidv4(),
+          couponCode: "ALREADY_ISSUED123",
+          idempotencyKey: uuidv4(),
+        })
+      ).rejects.toThrow(UserCouponAlreadyIssuedError);
     });
   });
 });
