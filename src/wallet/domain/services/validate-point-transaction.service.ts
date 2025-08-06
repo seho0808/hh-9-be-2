@@ -8,12 +8,12 @@ import {
 export class ValidatePointTransactionService {
   validatePointRecovery({
     refId,
-    existingPointTransaction,
+    existingPointTransactions,
   }: {
     refId: string;
-    existingPointTransaction: PointTransaction[];
+    existingPointTransactions: PointTransaction[];
   }): void {
-    const isAlreadyRecovered = existingPointTransaction.some(
+    const isAlreadyRecovered = existingPointTransactions.some(
       (pt) => pt.type === "RECOVER" && pt.refId === refId
     );
 

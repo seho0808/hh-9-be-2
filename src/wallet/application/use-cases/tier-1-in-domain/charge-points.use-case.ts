@@ -7,6 +7,8 @@ import {
 } from "@/wallet/application/wallet.application.exceptions";
 import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
 import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
+import { RetryOnOptimisticLock } from "@/common/decorators/retry-on-optimistic-lock.decorator";
+import { IsolationLevel, Transactional } from "typeorm-transactional";
 
 export interface ChargePointsUseCaseCommand {
   userId: string;
@@ -27,6 +29,8 @@ export class ChargePointsUseCase {
     private readonly pointTransactionRepository: PointTransactionRepository
   ) {}
 
+  @RetryOnOptimisticLock(5, 50)
+  @Transactional({ isolationLevel: IsolationLevel.READ_COMMITTED })
   async execute(
     command: ChargePointsUseCaseCommand
   ): Promise<ChargePointsUseCaseResult> {
@@ -37,10 +41,13 @@ export class ChargePointsUseCase {
         idempotencyKey
       );
     if (existingTransaction) {
-      throw new DuplicateIdempotencyKeyError(idempotencyKey);
+      const { userBalance } =
+        await this.userBalanceRepository.findByUserId(userId);
+      return { userBalance, pointTransaction: existingTransaction };
     }
 
-    const userBalance = await this.userBalanceRepository.findByUserId(userId);
+    const { userBalance, metadata } =
+      await this.userBalanceRepository.findByUserId(userId);
 
     if (!userBalance) {
       throw new UserBalanceNotFoundError(userId);
@@ -56,7 +63,10 @@ export class ChargePointsUseCase {
     });
 
     await Promise.all([
-      this.userBalanceRepository.save(userBalance),
+      this.userBalanceRepository.saveWithOptimisticLock(
+        userBalance,
+        metadata.version
+      ),
       this.pointTransactionRepository.save(pointTransaction),
     ]);
 

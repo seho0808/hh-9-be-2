@@ -235,7 +235,7 @@ export class TestContainersHelper {
       await dataSource.query("SET FOREIGN_KEY_CHECKS = 0");
       for (const table of tables) {
         try {
-          await dataSource.query(`TRUNCATE TABLE ${table}`);
+          await dataSource.query(`DELETE FROM ${table}`);
         } catch (error) {
           console.warn(`Failed to truncate table ${table}:`, error.message);
         }
