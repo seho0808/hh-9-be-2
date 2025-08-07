@@ -7,7 +7,7 @@ import { UseUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/u
 import { GetAllUserCouponsUseCase } from "./application/use-cases/tier-1-in-domain/get-all-user-couponse.use-case";
 import { GetCouponByIdUseCase } from "./application/use-cases/tier-1-in-domain/get-coupon-by-id.use-case";
 import { IssueUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/issue-user-coupon.use-case";
-import { ValidateCouponUseCase } from "./application/use-cases/tier-1-in-domain/validate-user-coupon.use-case";
+import { ValidateUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/validate-user-coupon.use-case";
 import { CancelUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/cancel-user-coupon.use-case";
 import { UserCouponRepository } from "./infrastructure/persistence/user-coupon.repository";
 import { CouponRepository } from "./infrastructure/persistence/coupon.repository";
@@ -29,7 +29,7 @@ import { ValidateUserCouponService } from "./domain/services/validate-user-coupo
     GetCouponByIdUseCase,
     IssueUserCouponUseCase,
     UseUserCouponUseCase,
-    ValidateCouponUseCase,
+    ValidateUserCouponUseCase,
     CancelUserCouponUseCase,
     RecoverUserCouponUseCase,
     ValidateUserCouponService,
@@ -37,7 +37,7 @@ import { ValidateUserCouponService } from "./domain/services/validate-user-coupo
     CouponRepository,
   ],
   exports: [
-    ValidateCouponUseCase,
+    ValidateUserCouponUseCase,
     UseUserCouponUseCase,
     RecoverUserCouponUseCase,
   ],

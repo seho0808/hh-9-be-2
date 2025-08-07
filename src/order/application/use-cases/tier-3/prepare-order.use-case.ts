@@ -5,7 +5,7 @@ import {
   InsufficientPointBalanceError,
   InvalidCouponError,
 } from "@/order/application/order.application.exceptions";
-import { ValidateCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/validate-user-coupon.use-case";
+import { ValidateUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/validate-user-coupon.use-case";
 import { ValidateUsePointsUseCase } from "@/wallet/application/use-cases/tier-1-in-domain/validate-use-points.use-case";
 import { ReserveStocksUseCase } from "@/product/application/use-cases/tier-2/reserve-stocks.use-case";
 
@@ -24,7 +24,7 @@ export interface PrepareOrderResult {
 export class PrepareOrderUseCase {
   constructor(
     private readonly createOrderUseCase: CreateOrderUseCase,
-    private readonly validateCouponUseCase: ValidateCouponUseCase,
+    private readonly validateUserCouponUseCase: ValidateUserCouponUseCase,
     private readonly validateUsePointsUseCase: ValidateUsePointsUseCase,
     private readonly reserveStocksUseCase: ReserveStocksUseCase
   ) {}
@@ -44,7 +44,7 @@ export class PrepareOrderUseCase {
 
     // 쿠폰 확인
     if (userCouponId) {
-      const validateResult = await this.validateCouponUseCase.execute({
+      const validateResult = await this.validateUserCouponUseCase.execute({
         userCouponId,
         orderPrice: order.totalPrice,
       });

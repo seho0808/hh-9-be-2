@@ -16,7 +16,7 @@ export interface ValidateCouponResult {
 }
 
 @Injectable()
-export class ValidateCouponUseCase {
+export class ValidateUserCouponUseCase {
   constructor(
     private readonly couponRepository: CouponRepository,
     private readonly userCouponRepository: UserCouponRepository,
