@@ -5,7 +5,8 @@ import { UseUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-d
 import { UsePointsUseCase } from "@/wallet/application/use-cases/tier-1-in-domain/use-points.use-case";
 import { ConfirmStockUseCase } from "@/product/application/use-cases/tier-1-in-domain/confirm-stock.use-case";
 import { ChangeOrderStatusUseCase } from "../tier-1-in-domain/change-order-status.use-case";
-import { Transactional } from "typeorm-transactional";
+import { IsolationLevel, Transactional } from "typeorm-transactional";
+import { RetryOnOptimisticLock } from "@/common/decorators/retry-on-optimistic-lock.decorator";
 
 export interface ProcessOrderCommand {
   userId: string;
@@ -31,7 +32,8 @@ export class ProcessOrderUseCase {
     private readonly changeOrderStatusUseCase: ChangeOrderStatusUseCase
   ) {}
 
-  @Transactional()
+  @RetryOnOptimisticLock(5, 50)
+  @Transactional({ isolationLevel: IsolationLevel.READ_COMMITTED })
   async execute(command: ProcessOrderCommand) {
     const {
       userId,

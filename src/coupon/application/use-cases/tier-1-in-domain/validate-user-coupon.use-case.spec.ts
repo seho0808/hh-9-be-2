@@ -1,5 +1,5 @@
 import { Test } from "@nestjs/testing";
-import { ValidateCouponUseCase } from "./validate-user-coupon.use-case";
+import { ValidateUserCouponUseCase } from "./validate-user-coupon.use-case";
 import { CouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
 import {
   Coupon,
@@ -18,22 +18,22 @@ jest.mock("typeorm-transactional", () => ({
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
 
-describe("ValidateCouponUseCase", () => {
-  let useCase: ValidateCouponUseCase;
+describe("ValidateUserCouponUseCase", () => {
+  let useCase: ValidateUserCouponUseCase;
   let couponRepository: jest.Mocked<CouponRepository>;
   let userCouponRepository: jest.Mocked<UserCouponRepository>;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
-        ValidateCouponUseCase,
+        ValidateUserCouponUseCase,
         ValidateUserCouponService,
         CouponRepository,
         UserCouponRepository,
       ],
     }).compile();
 
-    useCase = module.get<ValidateCouponUseCase>(ValidateCouponUseCase);
+    useCase = module.get<ValidateUserCouponUseCase>(ValidateUserCouponUseCase);
     couponRepository =
       module.get<jest.Mocked<CouponRepository>>(CouponRepository);
     userCouponRepository =

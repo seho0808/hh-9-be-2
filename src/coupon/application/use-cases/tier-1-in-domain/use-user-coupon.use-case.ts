@@ -1,7 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
-import { CouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
+import {
+  CouponNotFoundError,
+  UserCouponNotFoundError,
+} from "@/coupon/application/coupon.application.exceptions";
 import { Transactional } from "typeorm-transactional";
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
@@ -33,7 +36,7 @@ export class UseUserCouponUseCase {
     const userCoupon =
       await this.userCouponRepository.findByIdWithLock(userCouponId);
     if (!userCoupon) {
-      throw new CouponNotFoundError(userCouponId);
+      throw new UserCouponNotFoundError(userCouponId);
     }
 
     const coupon = await this.couponRepository.findByIdWithLock(

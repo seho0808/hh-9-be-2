@@ -32,3 +32,11 @@ export class StockReservationNotFoundError extends ProductApplicationError {
     super(`재고 예약을 찾을 수 없습니다. ID: ${stockReservationId}`);
   }
 }
+
+export class StockReservationOrProductNotFoundError extends ProductApplicationError {
+  readonly code = "STOCK_RESERVATION_OR_PRODUCT_NOT_FOUND";
+
+  constructor(stockReservationId: string) {
+    super(`재고 예약 또는 상품을 찾을 수 없습니다. ID: ${stockReservationId}`);
+  }
+}

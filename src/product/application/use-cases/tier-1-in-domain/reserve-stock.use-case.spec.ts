@@ -82,7 +82,7 @@ describe("ReserveStockUseCase", () => {
           isActive: true,
         });
 
-        productRepository.findById.mockResolvedValue(mockProduct);
+        productRepository.findByIdWithLock.mockResolvedValue(mockProduct);
 
         const result = await useCase.execute({
           orderId: uuidv4(),
@@ -117,7 +117,7 @@ describe("ReserveStockUseCase", () => {
         isActive: true,
       });
 
-      productRepository.findById.mockResolvedValue(mockProduct);
+      productRepository.findByIdWithLock.mockResolvedValue(mockProduct);
 
       await expect(
         useCase.execute({
@@ -131,7 +131,7 @@ describe("ReserveStockUseCase", () => {
   });
 
   it("존재하지 않는 상품 ID로 요청시 에러가 발생해야 한다", async () => {
-    productRepository.findById.mockResolvedValue(null);
+    productRepository.findByIdWithLock.mockResolvedValue(null);
 
     await expect(
       useCase.execute({
@@ -153,7 +153,7 @@ describe("ReserveStockUseCase", () => {
       isActive: false,
     });
 
-    productRepository.findById.mockResolvedValue(mockProduct);
+    productRepository.findByIdWithLock.mockResolvedValue(mockProduct);
 
     await expect(
       useCase.execute({
@@ -175,7 +175,7 @@ describe("ReserveStockUseCase", () => {
       isActive: true,
     });
 
-    productRepository.findById.mockResolvedValue(mockProduct);
+    productRepository.findByIdWithLock.mockResolvedValue(mockProduct);
 
     await expect(
       useCase.execute({

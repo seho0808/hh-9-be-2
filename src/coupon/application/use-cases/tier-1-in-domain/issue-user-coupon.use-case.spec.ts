@@ -64,7 +64,11 @@ describe("IssueUserCouponUseCase", () => {
         expiresInDays: 7,
       });
 
-      couponRepository.findById.mockResolvedValue(coupon);
+      userCouponRepository.findByIdempotencyKey.mockResolvedValue(null);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
+      userCouponRepository.findByCouponIdAndUserIdWithLock.mockResolvedValue(
+        null
+      );
 
       const userId = uuidv4();
       const result = await useCase.execute({
@@ -97,7 +101,11 @@ describe("IssueUserCouponUseCase", () => {
         expiresInDays: 7,
       });
 
-      couponRepository.findById.mockResolvedValue(coupon);
+      userCouponRepository.findByIdempotencyKey.mockResolvedValue(null);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
+      userCouponRepository.findByCouponIdAndUserIdWithLock.mockResolvedValue(
+        null
+      );
 
       const result = await useCase.execute({
         couponId: coupon.id,
@@ -161,7 +169,11 @@ describe("IssueUserCouponUseCase", () => {
         expiresInDays: 7,
       });
 
-      couponRepository.findById.mockResolvedValue(coupon);
+      userCouponRepository.findByIdempotencyKey.mockResolvedValue(null);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
+      userCouponRepository.findByCouponIdAndUserIdWithLock.mockResolvedValue(
+        null
+      );
 
       await expect(
         useCase.execute({
@@ -191,7 +203,11 @@ describe("IssueUserCouponUseCase", () => {
         expiresInDays: 7,
       });
 
-      couponRepository.findById.mockResolvedValue(coupon);
+      userCouponRepository.findByIdempotencyKey.mockResolvedValue(null);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
+      userCouponRepository.findByCouponIdAndUserIdWithLock.mockResolvedValue(
+        null
+      );
 
       await expect(
         useCase.execute({
@@ -221,7 +237,11 @@ describe("IssueUserCouponUseCase", () => {
       // 수량 제한에 도달하도록 발급
       coupon.issue("LIMITED123", null);
 
-      couponRepository.findById.mockResolvedValue(coupon);
+      userCouponRepository.findByIdempotencyKey.mockResolvedValue(null);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
+      userCouponRepository.findByCouponIdAndUserIdWithLock.mockResolvedValue(
+        null
+      );
 
       await expect(
         useCase.execute({
@@ -248,19 +268,23 @@ describe("IssueUserCouponUseCase", () => {
         expiresInDays: 7,
       });
 
-      couponRepository.findById.mockResolvedValue(coupon);
-      userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
-        UserCoupon.create({
-          userId: uuidv4(),
-          couponId: coupon.id,
-          issuedIdempotencyKey: uuidv4(),
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        })
+      const userId = uuidv4();
+      const existingUserCoupon = UserCoupon.create({
+        userId,
+        couponId: coupon.id,
+        issuedIdempotencyKey: uuidv4(),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      });
+
+      userCouponRepository.findByIdempotencyKey.mockResolvedValue(null);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
+      userCouponRepository.findByCouponIdAndUserIdWithLock.mockResolvedValue(
+        existingUserCoupon
       );
       await expect(
         useCase.execute({
           couponId: coupon.id,
-          userId: uuidv4(),
+          userId, // Use the same userId as the existing user coupon
           couponCode: "ALREADY_ISSUED123",
           idempotencyKey: uuidv4(),
         })

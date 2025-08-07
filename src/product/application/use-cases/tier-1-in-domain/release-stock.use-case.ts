@@ -1,9 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { Product } from "@/product/domain/entities/product.entity";
-import {
-  ProductNotFoundError,
-  StockReservationNotFoundError,
-} from "@/product/application/product.application.exceptions";
+import { StockReservationOrProductNotFoundError } from "@/product/application/product.application.exceptions";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
 import { Transactional } from "typeorm-transactional";
@@ -34,17 +31,13 @@ export class ReleaseStockUseCase {
       await this.productRepository.findByStockReservationId(stockReservationId);
 
     if (!product) {
-      throw new ProductNotFoundError(stockReservationId);
+      throw new StockReservationOrProductNotFoundError(stockReservationId);
     }
 
     const stockReservation =
       await this.stockReservationRepository.findByIdWithLock(
         stockReservationId
       );
-
-    if (!stockReservation) {
-      throw new StockReservationNotFoundError(stockReservationId);
-    }
 
     this.validateStockService.validateReleaseStock({
       stockReservation,
