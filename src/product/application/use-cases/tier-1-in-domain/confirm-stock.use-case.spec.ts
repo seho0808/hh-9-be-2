@@ -8,7 +8,7 @@ import {
   StockReservation,
   StockReservationStatus,
 } from "@/product/domain/entities/stock-reservation.entity";
-import { StockReservationNotFoundError } from "@/product/application/product.application.exceptions";
+import { StockReservationOrProductNotFoundError } from "@/product/application/product.application.exceptions";
 import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
@@ -62,8 +62,10 @@ describe("ConfirmStockUseCase", () => {
       orderId: uuidv4(),
     });
 
-    stockReservationRepository.findById.mockResolvedValue(mockStockReservation);
-    productRepository.findById.mockResolvedValue(mockProduct);
+    stockReservationRepository.findByIdWithLock.mockResolvedValue(
+      mockStockReservation
+    );
+    productRepository.findByStockReservationId.mockResolvedValue(mockProduct);
 
     const result = await useCase.execute({
       stockReservationId: mockStockReservation.id,
@@ -105,8 +107,10 @@ describe("ConfirmStockUseCase", () => {
       isActive: false,
     });
 
-    productRepository.findById.mockResolvedValue(mockProduct);
-    stockReservationRepository.findById.mockResolvedValue(mockStockReservation);
+    productRepository.findByStockReservationId.mockResolvedValue(mockProduct);
+    stockReservationRepository.findByIdWithLock.mockResolvedValue(
+      mockStockReservation
+    );
 
     await expect(
       useCase.execute({
@@ -141,8 +145,10 @@ describe("ConfirmStockUseCase", () => {
       isActive: true,
     });
 
-    stockReservationRepository.findById.mockResolvedValue(mockStockReservation);
-    productRepository.findById.mockResolvedValue(mockProduct);
+    stockReservationRepository.findByIdWithLock.mockResolvedValue(
+      mockStockReservation
+    );
+    productRepository.findByStockReservationId.mockResolvedValue(mockProduct);
 
     await expect(
       useCase.execute({

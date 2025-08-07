@@ -5,7 +5,7 @@ import {
   StockReservation,
   StockReservationStatus,
 } from "@/product/domain/entities/stock-reservation.entity";
-import { StockReservationNotFoundError } from "@/product/application/product.application.exceptions";
+import { StockReservationOrProductNotFoundError } from "@/product/application/product.application.exceptions";
 import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
 
@@ -84,10 +84,12 @@ describe("ReleaseStockUseCase", () => {
           orderId: uuidv4(),
         });
 
-        stockReservationRepository.findById.mockResolvedValue(
+        stockReservationRepository.findByIdWithLock.mockResolvedValue(
           mockStockReservation
         );
-        productRepository.findById.mockResolvedValue(mockProduct);
+        productRepository.findByStockReservationId.mockResolvedValue(
+          mockProduct
+        );
 
         const result = await useCase.execute({
           stockReservationId: "reservation-1",
@@ -134,8 +136,10 @@ describe("ReleaseStockUseCase", () => {
       isActive: true,
     });
 
-    stockReservationRepository.findById.mockResolvedValue(inactiveReservation);
-    productRepository.findById.mockResolvedValue(mockProduct);
+    stockReservationRepository.findByIdWithLock.mockResolvedValue(
+      inactiveReservation
+    );
+    productRepository.findByStockReservationId.mockResolvedValue(mockProduct);
 
     inactiveReservation.releaseStock(inactiveReservation.orderId);
 
