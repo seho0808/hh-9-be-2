@@ -46,11 +46,17 @@ export class RecoverOrderUseCase {
       });
     }
 
-    await this.recoverPointsUseCase.execute({
-      userId: order.userId,
-      amount: order.finalPrice,
-      refId: orderId,
-    });
+    try {
+      await this.recoverPointsUseCase.execute({
+        userId: order.userId,
+        amount: order.finalPrice,
+        refId: orderId,
+      });
+    } catch (error) {
+      if (error.code !== "POINT_TRANSACTION_NOT_FOUND") {
+        throw error;
+      }
+    }
 
     const { order: changedOrder } = await this.changeOrderStatusUseCase.execute(
       {
