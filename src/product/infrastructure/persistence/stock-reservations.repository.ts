@@ -27,6 +27,14 @@ export class StockReservationRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
+  async findByIdWithLock(id: string): Promise<StockReservation | null> {
+    const entity = await this.stockReservationRepository.findOne({
+      where: { id },
+      lock: { mode: "pessimistic_write" },
+    });
+    return entity ? this.toDomain(entity) : null;
+  }
+
   async findByOrderId(orderId: string): Promise<StockReservation[]> {
     const entities = await this.stockReservationRepository.find({
       where: { orderId },

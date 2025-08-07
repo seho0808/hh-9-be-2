@@ -16,6 +16,14 @@ export class ProductRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
+  async findByIdWithLock(id: string): Promise<Product | null> {
+    const entity = await this.productRepository.findOne({
+      where: { id },
+      lock: { mode: "pessimistic_write" },
+    });
+    return entity ? this.toDomain(entity) : null;
+  }
+
   async findByIds(ids: string[]): Promise<Product[]> {
     const entities = await this.productRepository.find({
       where: { id: In(ids) },
