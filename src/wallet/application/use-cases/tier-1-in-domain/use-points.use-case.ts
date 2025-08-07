@@ -46,12 +46,13 @@ export class UsePointsUseCase {
       throw new DuplicateIdempotencyKeyError(idempotencyKey);
     }
 
-    const { userBalance, metadata } =
-      await this.userBalanceRepository.findByUserId(userId);
+    const data = await this.userBalanceRepository.findByUserId(userId);
 
-    if (!userBalance) {
+    if (!data) {
       throw new UserBalanceNotFoundError(userId);
     }
+
+    const { userBalance, metadata } = data;
 
     this.validatePointTransactionService.validateUsePoints({
       amount,
