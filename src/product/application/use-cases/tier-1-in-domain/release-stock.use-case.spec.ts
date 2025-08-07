@@ -107,14 +107,14 @@ describe("ReleaseStockUseCase", () => {
   );
 
   it("존재하지 않는 재고 예약 ID로 요청시 에러가 발생해야 한다", async () => {
-    stockReservationRepository.findById.mockResolvedValue(null);
+    stockReservationRepository.findByIdWithLock.mockResolvedValue(null);
 
     await expect(
       useCase.execute({
         stockReservationId: "non-existent",
         orderId: "non-existent",
       })
-    ).rejects.toThrow(StockReservationNotFoundError);
+    ).rejects.toThrow(StockReservationOrProductNotFoundError);
   });
 
   it("이미 비활성화된 재고 예약으로 요청시 에러가 발생해야 한다", async () => {
