@@ -41,12 +41,17 @@ export class IssueUserCouponUseCase {
       throw new DuplicateIdempotencyKeyError(idempotencyKey);
     }
 
-    const existingUserCoupon =
-      await this.userCouponRepository.findByCouponIdAndUserId(couponId, userId);
-    const coupon = await this.couponRepository.findById(couponId);
+    // 데드락 방지를 위해 coupon => userCoupon 순으로 타 유스케이스와 조회 순서 동일
+    const coupon = await this.couponRepository.findByIdWithLock(couponId);
     if (!coupon) {
       throw new CouponNotFoundError(couponId);
     }
+
+    const existingUserCoupon =
+      await this.userCouponRepository.findByCouponIdAndUserIdWithLock(
+        couponId,
+        userId
+      );
 
     coupon.issue(couponCode, existingUserCoupon);
     const userCoupon = UserCoupon.create({
