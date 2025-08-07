@@ -20,8 +20,8 @@ export class ProductValidationException extends ProductApplicationError {
 export class ProductNotFoundError extends ProductApplicationError {
   readonly code = "PRODUCT_NOT_FOUND";
 
-  constructor(productId: string) {
-    super(`상품을 찾을 수 없습니다. ID: ${productId}`);
+  constructor(productOrStockReservationId: string) {
+    super(`상품을 찾을 수 없습니다. ID: ${productOrStockReservationId}`);
   }
 }
 

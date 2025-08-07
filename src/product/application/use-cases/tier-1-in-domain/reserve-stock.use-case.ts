@@ -29,7 +29,7 @@ export class ReserveStockUseCase {
   }> {
     const { productId, userId, quantity, orderId } = command;
 
-    const product = await this.productRepository.findById(productId);
+    const product = await this.productRepository.findByIdWithLock(productId);
     if (!product) {
       throw new ProductNotFoundError(productId);
     }
@@ -47,8 +47,10 @@ export class ReserveStockUseCase {
       orderId,
     });
 
-    await this.stockReservationRepository.save(stockReservation);
-    await this.productRepository.save(product);
+    await Promise.all([
+      this.stockReservationRepository.save(stockReservation),
+      this.productRepository.save(product),
+    ]);
 
     return {
       stockReservation,

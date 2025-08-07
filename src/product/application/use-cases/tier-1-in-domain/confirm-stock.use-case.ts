@@ -30,19 +30,20 @@ export class ConfirmStockUseCase {
   }> {
     const { stockReservationId, orderId } = command;
 
+    const product =
+      await this.productRepository.findByStockReservationId(stockReservationId);
+
+    if (!product) {
+      throw new ProductNotFoundError(stockReservationId);
+    }
+
     const stockReservation =
-      await this.stockReservationRepository.findById(stockReservationId);
+      await this.stockReservationRepository.findByIdWithLock(
+        stockReservationId
+      );
 
     if (!stockReservation) {
       throw new StockReservationNotFoundError(stockReservationId);
-    }
-
-    const product = await this.productRepository.findById(
-      stockReservation.productId
-    );
-
-    if (!product) {
-      throw new ProductNotFoundError(product.id);
     }
 
     this.validateStockService.validateConfirmStock({
@@ -52,8 +53,10 @@ export class ConfirmStockUseCase {
     product.confirmStock(stockReservation.quantity);
     stockReservation.confirmStock(orderId);
 
-    await this.stockReservationRepository.save(stockReservation);
-    await this.productRepository.save(product);
+    await Promise.all([
+      this.stockReservationRepository.save(stockReservation),
+      this.productRepository.save(product),
+    ]);
 
     return {
       stockReservation,

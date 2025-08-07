@@ -30,19 +30,20 @@ export class ReleaseStockUseCase {
   }> {
     const { stockReservationId, orderId } = command;
 
+    const product =
+      await this.productRepository.findByStockReservationId(stockReservationId);
+
+    if (!product) {
+      throw new ProductNotFoundError(stockReservationId);
+    }
+
     const stockReservation =
-      await this.stockReservationRepository.findById(stockReservationId);
+      await this.stockReservationRepository.findByIdWithLock(
+        stockReservationId
+      );
 
     if (!stockReservation) {
       throw new StockReservationNotFoundError(stockReservationId);
-    }
-
-    const product = await this.productRepository.findById(
-      stockReservation.productId
-    );
-
-    if (!product) {
-      throw new ProductNotFoundError(stockReservation.productId);
     }
 
     this.validateStockService.validateReleaseStock({
@@ -52,8 +53,10 @@ export class ReleaseStockUseCase {
     product.releaseStock(stockReservation.quantity);
     stockReservation.releaseStock(orderId);
 
-    await this.stockReservationRepository.save(stockReservation);
-    await this.productRepository.save(product);
+    await Promise.all([
+      this.stockReservationRepository.save(stockReservation),
+      this.productRepository.save(product),
+    ]);
 
     return { stockReservation, product };
   }
