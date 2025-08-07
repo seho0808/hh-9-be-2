@@ -30,6 +30,13 @@ export class ReleaseStockUseCase {
   }> {
     const { stockReservationId, orderId } = command;
 
+    const product =
+      await this.productRepository.findByStockReservationId(stockReservationId);
+
+    if (!product) {
+      throw new ProductNotFoundError(stockReservationId);
+    }
+
     const stockReservation =
       await this.stockReservationRepository.findByIdWithLock(
         stockReservationId
@@ -37,14 +44,6 @@ export class ReleaseStockUseCase {
 
     if (!stockReservation) {
       throw new StockReservationNotFoundError(stockReservationId);
-    }
-
-    const product = await this.productRepository.findByIdWithLock(
-      stockReservation.productId
-    );
-
-    if (!product) {
-      throw new ProductNotFoundError(stockReservation.productId);
     }
 
     this.validateStockService.validateReleaseStock({

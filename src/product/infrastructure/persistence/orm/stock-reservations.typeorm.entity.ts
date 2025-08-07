@@ -18,6 +18,7 @@ export class StockReservationTypeOrmEntity {
   id: string;
 
   @Column({ type: "uuid", name: "product_id" })
+  @Index("idx_stock_reservations_product_id")
   productId: string;
 
   @Column({ type: "uuid", name: "user_id" })
