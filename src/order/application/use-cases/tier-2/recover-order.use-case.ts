@@ -5,6 +5,7 @@ import { ReleaseStockUseCase } from "@/product/application/use-cases/tier-1-in-d
 import { RecoverPointsUseCase } from "@/wallet/application/use-cases/tier-1-in-domain/recover-points.use-case";
 import { ChangeOrderStatusUseCase } from "../tier-1-in-domain/change-order-status.use-case";
 import { Transactional } from "typeorm-transactional";
+import { RetryOnOptimisticLock } from "@/common/decorators/retry-on-optimistic-lock.decorator";
 
 export interface RecoverOrderCommand {
   order: Order;
@@ -26,6 +27,7 @@ export class RecoverOrderUseCase {
     private readonly changeOrderStatusUseCase: ChangeOrderStatusUseCase
   ) {}
 
+  @RetryOnOptimisticLock(5, 50)
   @Transactional()
   async execute(command: RecoverOrderCommand) {
     const { order, userCouponId, stockReservationIds, orderId } = command;
