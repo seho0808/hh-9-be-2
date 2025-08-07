@@ -24,12 +24,13 @@ export class ValidateUsePointsUseCase {
   ): Promise<ValidateUsePointsUseCaseResult> {
     const { userId, amount } = command;
 
-    const { userBalance } =
-      await this.userBalanceRepository.findByUserId(userId);
+    const data = await this.userBalanceRepository.findByUserId(userId);
 
-    if (!userBalance) {
+    if (!data) {
       throw new UserBalanceNotFoundError(userId);
     }
+
+    const { userBalance } = data;
 
     const isValid = this.validatePointTransactionService.validateUsePoints({
       amount,

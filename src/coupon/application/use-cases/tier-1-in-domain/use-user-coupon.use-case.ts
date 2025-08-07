@@ -30,12 +30,15 @@ export class UseUserCouponUseCase {
   async execute(command: UseUserCouponCommand): Promise<UseUserCouponResult> {
     const { userCouponId, orderId, orderPrice } = command;
 
-    const userCoupon = await this.userCouponRepository.findById(userCouponId);
+    const userCoupon =
+      await this.userCouponRepository.findByIdWithLock(userCouponId);
     if (!userCoupon) {
       throw new CouponNotFoundError(userCouponId);
     }
 
-    const coupon = await this.couponRepository.findById(userCoupon.couponId);
+    const coupon = await this.couponRepository.findByIdWithLock(
+      userCoupon.couponId
+    );
 
     const { discountPrice, discountedPrice } = coupon.use(orderPrice);
     userCoupon.use(orderId, discountPrice);

@@ -41,17 +41,16 @@ export class ChargePointsUseCase {
         idempotencyKey
       );
     if (existingTransaction) {
-      const { userBalance } =
-        await this.userBalanceRepository.findByUserId(userId);
-      return { userBalance, pointTransaction: existingTransaction };
+      throw new DuplicateIdempotencyKeyError(idempotencyKey);
     }
 
-    const { userBalance, metadata } =
-      await this.userBalanceRepository.findByUserId(userId);
+    const data = await this.userBalanceRepository.findByUserId(userId);
 
-    if (!userBalance) {
+    if (!data) {
       throw new UserBalanceNotFoundError(userId);
     }
+
+    const { userBalance, metadata } = data;
 
     userBalance.addBalance(amount);
     const pointTransaction = PointTransaction.create({

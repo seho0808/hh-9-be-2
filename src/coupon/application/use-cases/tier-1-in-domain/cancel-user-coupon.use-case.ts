@@ -31,12 +31,15 @@ export class CancelUserCouponUseCase {
   ): Promise<CancelUserCouponResult> {
     const { userCouponId } = command;
 
-    const userCoupon = await this.userCouponRepository.findById(userCouponId);
+    const userCoupon =
+      await this.userCouponRepository.findByIdWithLock(userCouponId);
     if (!userCoupon) {
       throw new UserCouponNotFoundError(userCouponId);
     }
 
-    const coupon = await this.couponRepository.findById(userCoupon.couponId);
+    const coupon = await this.couponRepository.findByIdWithLock(
+      userCoupon.couponId
+    );
     if (!coupon) {
       throw new CouponNotFoundError(userCoupon.couponId);
     }

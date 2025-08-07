@@ -19,11 +19,10 @@ export class CreateUserBalanceUseCase {
   ): Promise<CreateUserBalanceUseCaseResult> {
     const { userId } = command;
 
-    const { userBalance } =
-      await this.userBalanceRepository.findByUserId(userId);
+    const data = await this.userBalanceRepository.findByUserId(userId);
 
-    if (userBalance) {
-      return { userBalance };
+    if (data) {
+      return { userBalance: data.userBalance };
     }
 
     const newUserBalance = UserBalance.create({

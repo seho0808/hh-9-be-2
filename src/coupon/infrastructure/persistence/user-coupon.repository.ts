@@ -27,12 +27,31 @@ export class UserCouponRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
+  async findByIdWithLock(id: string): Promise<UserCoupon | null> {
+    const entity = await this.userCouponRepository.findOne({
+      where: { id },
+      lock: { mode: "pessimistic_write" },
+    });
+    return entity ? this.toDomain(entity) : null;
+  }
+
   async findByCouponIdAndUserId(
     couponId: string,
     userId: string
   ): Promise<UserCoupon | null> {
     const entity = await this.userCouponRepository.findOne({
       where: { couponId, userId },
+    });
+    return entity ? this.toDomain(entity) : null;
+  }
+
+  async findByCouponIdAndUserIdWithLock(
+    couponId: string,
+    userId: string
+  ): Promise<UserCoupon | null> {
+    const entity = await this.userCouponRepository.findOne({
+      where: { couponId, userId },
+      lock: { mode: "pessimistic_write" },
     });
     return entity ? this.toDomain(entity) : null;
   }

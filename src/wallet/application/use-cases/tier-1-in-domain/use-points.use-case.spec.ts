@@ -12,6 +12,13 @@ jest.mock("@/wallet/infrastructure/persistence/use-balance.repository");
 jest.mock("@/wallet/infrastructure/persistence/point-transaction.repository");
 jest.mock("typeorm-transactional", () => ({
   Transactional: () => () => ({}),
+  IsolationLevel: {
+    ReadCommitted: Symbol("ReadCommitted"),
+  },
+}));
+
+jest.mock("@/common/decorators/retry-on-optimistic-lock.decorator", () => ({
+  RetryOnOptimisticLock: jest.fn(() => () => {}),
 }));
 
 import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
@@ -70,7 +77,12 @@ describe("UsePointsUseCase", () => {
           balance: currentBalance,
         });
 
-        userBalanceRepository.findByUserId.mockResolvedValue(existingBalance);
+        userBalanceRepository.findByUserId.mockResolvedValue({
+          userBalance: existingBalance,
+          metadata: {
+            version: 1,
+          },
+        });
 
         // when
         const result = await useCase.execute({
@@ -144,7 +156,12 @@ describe("UsePointsUseCase", () => {
           balance: currentBalance,
         });
 
-        userBalanceRepository.findByUserId.mockResolvedValue(existingBalance);
+        userBalanceRepository.findByUserId.mockResolvedValue({
+          userBalance: existingBalance,
+          metadata: {
+            version: 1,
+          },
+        });
 
         // when & then
         await expect(

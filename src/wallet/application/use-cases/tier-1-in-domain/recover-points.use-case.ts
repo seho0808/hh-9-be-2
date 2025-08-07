@@ -37,12 +37,13 @@ export class RecoverPointsUseCase {
   ): Promise<RecoverPointsUseCaseResult> {
     const { userId, amount, refId } = command;
 
-    const { userBalance, metadata } =
-      await this.userBalanceRepository.findByUserId(userId);
+    const data = await this.userBalanceRepository.findByUserId(userId);
 
-    if (!userBalance) {
+    if (!data) {
       throw new UserBalanceNotFoundError(userId);
     }
+
+    const { userBalance, metadata } = data;
 
     const existingPointTransactions =
       await this.pointTransactionRepository.findByRefId(userId, refId);

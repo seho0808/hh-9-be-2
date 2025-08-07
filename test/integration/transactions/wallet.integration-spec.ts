@@ -291,7 +291,6 @@ describe("Wallet Domain Integration Tests", () => {
         userId: "user-123",
         amount: 3000,
         refId: "recover-key-1", // USE 트랜잭션과 같은 refId 사용
-        idempotencyKey: "recover-key-1",
       };
 
       const result = await recoverPointsUseCase.execute(command);
