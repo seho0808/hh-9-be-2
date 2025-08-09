@@ -1,10 +1,15 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
-import { UserBalanceNotFoundError } from "@/wallet/domain/exceptions/point.exceptions";
+import {
+  PointTransactionNotFoundError,
+  UserBalanceNotFoundError,
+} from "@/wallet/application/wallet.application.exceptions";
 import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
 import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
+import { RetryOnOptimisticLock } from "@/common/decorators/retry-on-optimistic-lock.decorator";
+import { IsolationLevel, Transactional } from "typeorm-transactional";
 
 export interface RecoverPointsUseCaseCommand {
   userId: string;
@@ -25,23 +30,35 @@ export class RecoverPointsUseCase {
     private readonly validatePointTransactionService: ValidatePointTransactionService
   ) {}
 
+  @RetryOnOptimisticLock(5, 50)
+  @Transactional({ isolationLevel: IsolationLevel.READ_COMMITTED })
   async execute(
     command: RecoverPointsUseCaseCommand
   ): Promise<RecoverPointsUseCaseResult> {
     const { userId, amount, refId } = command;
 
-    const userBalance = await this.userBalanceRepository.findByUserId(userId);
+    const data = await this.userBalanceRepository.findByUserId(userId);
 
-    if (!userBalance) {
+    if (!data) {
       throw new UserBalanceNotFoundError(userId);
     }
 
-    const existingPointTransaction =
+    const { userBalance, metadata } = data;
+
+    const existingPointTransactions =
       await this.pointTransactionRepository.findByRefId(userId, refId);
+
+    const correctTransactionExists = existingPointTransactions.some(
+      (pt) => pt.type === "USE" && pt.refId === refId
+    );
+
+    if (!correctTransactionExists) {
+      throw new PointTransactionNotFoundError(refId);
+    }
 
     this.validatePointTransactionService.validatePointRecovery({
       refId,
-      existingPointTransaction,
+      existingPointTransactions,
     });
 
     userBalance.addBalance(amount);
@@ -54,7 +71,10 @@ export class RecoverPointsUseCase {
     });
 
     await Promise.all([
-      this.userBalanceRepository.save(userBalance),
+      this.userBalanceRepository.saveWithOptimisticLock(
+        userBalance,
+        metadata.version
+      ),
       this.pointTransactionRepository.save(pointTransaction),
     ]);
 

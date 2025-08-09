@@ -1,10 +1,11 @@
 import { Test } from "@nestjs/testing";
 import { ReleaseStockUseCase } from "./release-stock.use-case";
+import { StockReservationAlreadyReleasedError } from "@/product/domain/exceptions/product.exceptions";
 import {
-  StockReservationNotFoundError,
-  StockReservationNotActiveError,
-} from "@/product/domain/exceptions/product.exceptions";
-import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
+  StockReservation,
+  StockReservationStatus,
+} from "@/product/domain/entities/stock-reservation.entity";
+import { StockReservationOrProductNotFoundError } from "@/product/application/product.application.exceptions";
 import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
 
@@ -83,17 +84,21 @@ describe("ReleaseStockUseCase", () => {
           orderId: uuidv4(),
         });
 
-        stockReservationRepository.findById.mockResolvedValue(
+        stockReservationRepository.findByIdWithLock.mockResolvedValue(
           mockStockReservation
         );
-        productRepository.findById.mockResolvedValue(mockProduct);
+        productRepository.findByStockReservationId.mockResolvedValue(
+          mockProduct
+        );
 
         const result = await useCase.execute({
           stockReservationId: "reservation-1",
           orderId: mockStockReservation.orderId,
         });
 
-        expect(mockStockReservation.isActive).toBe(false);
+        expect(mockStockReservation.status).toBe(
+          StockReservationStatus.RELEASED
+        );
         expect(mockProduct.getAvailableStock()).toBe(expectedAvailableStock);
         expect(result).toEqual({
           stockReservation: mockStockReservation,
@@ -104,14 +109,14 @@ describe("ReleaseStockUseCase", () => {
   );
 
   it("존재하지 않는 재고 예약 ID로 요청시 에러가 발생해야 한다", async () => {
-    stockReservationRepository.findById.mockResolvedValue(null);
+    stockReservationRepository.findByIdWithLock.mockResolvedValue(null);
 
     await expect(
       useCase.execute({
         stockReservationId: "non-existent",
         orderId: "non-existent",
       })
-    ).rejects.toThrow(StockReservationNotFoundError);
+    ).rejects.toThrow(StockReservationOrProductNotFoundError);
   });
 
   it("이미 비활성화된 재고 예약으로 요청시 에러가 발생해야 한다", async () => {
@@ -131,8 +136,10 @@ describe("ReleaseStockUseCase", () => {
       isActive: true,
     });
 
-    stockReservationRepository.findById.mockResolvedValue(inactiveReservation);
-    productRepository.findById.mockResolvedValue(mockProduct);
+    stockReservationRepository.findByIdWithLock.mockResolvedValue(
+      inactiveReservation
+    );
+    productRepository.findByStockReservationId.mockResolvedValue(mockProduct);
 
     inactiveReservation.releaseStock(inactiveReservation.orderId);
 
@@ -141,6 +148,6 @@ describe("ReleaseStockUseCase", () => {
         stockReservationId: "inactive-reservation",
         orderId: "inactive-reservation",
       })
-    ).rejects.toThrow(StockReservationNotActiveError);
+    ).rejects.toThrow(StockReservationAlreadyReleasedError);
   });
 });

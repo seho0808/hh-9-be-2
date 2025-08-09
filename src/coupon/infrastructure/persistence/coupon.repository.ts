@@ -19,6 +19,14 @@ export class CouponRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
+  async findByIdWithLock(id: string): Promise<Coupon | null> {
+    const entity = await this.couponRepository.findOne({
+      where: { id },
+      lock: { mode: "pessimistic_write" },
+    });
+    return entity ? this.toDomain(entity) : null;
+  }
+
   async findAll(): Promise<Coupon[]> {
     const entities = await this.couponRepository.find();
     return entities.map((entity) => this.toDomain(entity));

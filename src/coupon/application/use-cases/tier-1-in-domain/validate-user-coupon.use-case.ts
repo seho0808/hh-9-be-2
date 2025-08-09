@@ -1,12 +1,11 @@
 import { Injectable } from "@nestjs/common";
-import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
+import { CouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
 import { ValidateUserCouponService } from "@/coupon/domain/services/validate-user-coupon.service";
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
 
 export interface ValidateCouponCommand {
-  couponId: string;
-  userId: string;
+  userCouponId: string;
   orderPrice: number;
 }
 
@@ -17,7 +16,7 @@ export interface ValidateCouponResult {
 }
 
 @Injectable()
-export class ValidateCouponUseCase {
+export class ValidateUserCouponUseCase {
   constructor(
     private readonly couponRepository: CouponRepository,
     private readonly userCouponRepository: UserCouponRepository,
@@ -25,17 +24,17 @@ export class ValidateCouponUseCase {
   ) {}
 
   async execute(command: ValidateCouponCommand): Promise<ValidateCouponResult> {
-    const { couponId, userId, orderPrice } = command;
+    const { userCouponId, orderPrice } = command;
 
-    const coupon = await this.couponRepository.findById(couponId);
-    if (!coupon) {
-      throw new CouponNotFoundError(couponId);
+    const userCoupon = await this.userCouponRepository.findById(userCouponId);
+    if (!userCoupon) {
+      throw new CouponNotFoundError(userCouponId);
     }
 
-    const userCoupon = await this.userCouponRepository.findByCouponIdAndUserId(
-      couponId,
-      userId
-    );
+    const coupon = await this.couponRepository.findById(userCoupon.couponId);
+    if (!coupon) {
+      throw new CouponNotFoundError(userCoupon.couponId);
+    }
 
     const isValid = this.validateUserCouponService.validateUserCoupon({
       coupon,

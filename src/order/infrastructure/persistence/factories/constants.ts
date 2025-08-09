@@ -11,24 +11,3 @@ export const TEST_FACTORY_DEFAULTS = {
     TOTAL_PRICE: 10000,
   },
 } as const;
-
-export const createTestOrderId = (
-  timestamp: number,
-  counter: number
-): string => {
-  return `order-${timestamp}-${counter}`;
-};
-
-export const createTestOrderItemId = (
-  timestamp: number,
-  counter: number
-): string => {
-  return `order-item-${timestamp}-${counter}`;
-};
-
-export const createTestIdempotencyKey = (
-  timestamp: number,
-  counter: number
-): string => {
-  return `idempotency-${timestamp}-${counter}`;
-};

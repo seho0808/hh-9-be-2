@@ -1,20 +1,16 @@
 import { Catch, HttpStatus } from "@nestjs/common";
-import {
-  OrderDomainError,
-  OrderNotFoundError,
-} from "@/order/domain/exceptions/order.exceptions";
+import { OrderDomainError } from "@/order/domain/exceptions/order.exceptions";
 import {
   OrderApplicationError,
   InvalidCouponError,
   InsufficientPointBalanceError,
-} from "@/order/application/order.exceptions";
-import { ErrorCode } from "@/common/types/error-codes.enum";
+  OrderNotFoundError,
+} from "@/order/application/order.application.exceptions";
+import { ErrorCode } from "@/common/constants/error-codes.enum";
 import {
   BaseExceptionFilter,
   ErrorMapping,
 } from "@/common/filters/base-exception.filter";
-
-type OrderException = OrderDomainError | OrderApplicationError;
 
 /**
  * 주문 도메인 예외 처리 필터
@@ -22,17 +18,21 @@ type OrderException = OrderDomainError | OrderApplicationError;
  * - 각 예외별로 적절한 상태 코드와 메시지 제공
  */
 @Catch(OrderDomainError, OrderApplicationError)
-export class OrderExceptionFilter extends BaseExceptionFilter<OrderException> {
+export class OrderExceptionFilter extends BaseExceptionFilter<
+  OrderDomainError | OrderApplicationError
+> {
   /**
    * 주문 예외를 HTTP 응답으로 매핑
    */
-  protected mapErrorToResponse(exception: OrderException): ErrorMapping {
+  protected mapErrorToResponse(
+    exception: OrderDomainError | OrderApplicationError
+  ): ErrorMapping {
     switch (exception.constructor) {
       case OrderNotFoundError:
         return {
           status: HttpStatus.NOT_FOUND,
           message: "주문을 찾을 수 없습니다",
-          errorCode: ErrorCode.Order.Domain.NOT_FOUND,
+          errorCode: ErrorCode.Order.Application.NOT_FOUND,
         };
 
       case InvalidCouponError:

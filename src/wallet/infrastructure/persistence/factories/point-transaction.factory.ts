@@ -3,18 +3,18 @@ import {
   createEntityFactory,
   getBaseProps,
 } from "@/common/factories/base.factory";
-import { TEST_FACTORY_DEFAULTS, createTestTransactionId } from "./constants";
+import { TEST_FACTORY_DEFAULTS } from "./constants";
+import { v4 as uuidv4 } from "uuid";
 
 export const PointTransactionFactory =
-  createEntityFactory<PointTransactionTypeOrmEntity>((options, counter) => {
-    const timestamp = Date.now();
+  createEntityFactory<PointTransactionTypeOrmEntity>((options) => {
     const baseProps = getBaseProps();
 
     const transaction = new PointTransactionTypeOrmEntity();
     Object.assign(transaction, {
       ...baseProps,
-      id: options.id || createTestTransactionId(timestamp, counter),
-      userId: options.userId || `user-${timestamp}-${counter}`,
+      id: options.id || uuidv4(),
+      userId: options.userId || uuidv4(),
       amount: options.amount ?? TEST_FACTORY_DEFAULTS.POINT_TRANSACTION.AMOUNT,
       type: options.type ?? TEST_FACTORY_DEFAULTS.POINT_TRANSACTION.TYPE,
       ...options,

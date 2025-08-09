@@ -3,19 +3,20 @@ import {
   createEntityFactory,
   getBaseProps,
 } from "@/common/factories/base.factory";
-import { TEST_FACTORY_DEFAULTS, createTestBalanceId } from "./constants";
+import { TEST_FACTORY_DEFAULTS } from "./constants";
+import { v4 as uuidv4 } from "uuid";
 
 export const UserBalanceFactory = createEntityFactory<UserBalanceTypeOrmEntity>(
-  (options, counter) => {
-    const timestamp = Date.now();
+  (options) => {
     const baseProps = getBaseProps();
 
     const userBalance = new UserBalanceTypeOrmEntity();
     Object.assign(userBalance, {
       ...baseProps,
-      id: options.id || createTestBalanceId(timestamp, counter),
-      userId: options.userId || `user-${timestamp}-${counter}`,
+      id: options.id || uuidv4(),
+      userId: options.userId || uuidv4(),
       balance: options.balance ?? TEST_FACTORY_DEFAULTS.USER_BALANCE.BALANCE,
+      version: options.version ?? 0,
       ...options,
     });
 

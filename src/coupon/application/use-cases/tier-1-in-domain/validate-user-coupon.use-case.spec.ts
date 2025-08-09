@@ -1,6 +1,6 @@
 import { Test } from "@nestjs/testing";
-import { ValidateCouponUseCase } from "./validate-user-coupon.use-case";
-import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
+import { ValidateUserCouponUseCase } from "./validate-user-coupon.use-case";
+import { CouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
 import {
   Coupon,
   CouponDiscountType,
@@ -18,22 +18,22 @@ jest.mock("typeorm-transactional", () => ({
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
 
-describe("ValidateCouponUseCase", () => {
-  let useCase: ValidateCouponUseCase;
+describe("ValidateUserCouponUseCase", () => {
+  let useCase: ValidateUserCouponUseCase;
   let couponRepository: jest.Mocked<CouponRepository>;
   let userCouponRepository: jest.Mocked<UserCouponRepository>;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
-        ValidateCouponUseCase,
+        ValidateUserCouponUseCase,
         ValidateUserCouponService,
         CouponRepository,
         UserCouponRepository,
       ],
     }).compile();
 
-    useCase = module.get<ValidateCouponUseCase>(ValidateCouponUseCase);
+    useCase = module.get<ValidateUserCouponUseCase>(ValidateUserCouponUseCase);
     couponRepository =
       module.get<jest.Mocked<CouponRepository>>(CouponRepository);
     userCouponRepository =
@@ -63,14 +63,11 @@ describe("ValidateCouponUseCase", () => {
         issuedIdempotencyKey: uuidv4(),
       });
 
+      userCouponRepository.findById.mockResolvedValue(userCoupon);
       couponRepository.findById.mockResolvedValue(coupon);
-      userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
-        userCoupon
-      );
 
       const result = await useCase.execute({
-        couponId: coupon.id,
-        userId: userCoupon.userId,
+        userCouponId: userCoupon.id,
         orderPrice: 60000,
       });
 
@@ -101,14 +98,11 @@ describe("ValidateCouponUseCase", () => {
         issuedIdempotencyKey: uuidv4(),
       });
 
+      userCouponRepository.findById.mockResolvedValue(userCoupon);
       couponRepository.findById.mockResolvedValue(coupon);
-      userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
-        userCoupon
-      );
 
       const result = await useCase.execute({
-        couponId: coupon.id,
-        userId: userCoupon.userId,
+        userCouponId: userCoupon.id,
         orderPrice: 40000,
       });
 
@@ -141,14 +135,11 @@ describe("ValidateCouponUseCase", () => {
         issuedIdempotencyKey: uuidv4(),
       });
 
+      userCouponRepository.findById.mockResolvedValue(userCoupon);
       couponRepository.findById.mockResolvedValue(coupon);
-      userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
-        userCoupon
-      );
 
       const result = await useCase.execute({
-        couponId: coupon.id,
-        userId: userCoupon.userId,
+        userCouponId: userCoupon.id,
         orderPrice: 100000, // 50% = 50000원이지만 최대 20000원으로 제한
       });
 
@@ -179,14 +170,11 @@ describe("ValidateCouponUseCase", () => {
         issuedIdempotencyKey: uuidv4(),
       });
 
+      userCouponRepository.findById.mockResolvedValue(userCoupon);
       couponRepository.findById.mockResolvedValue(coupon);
-      userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
-        userCoupon
-      );
 
       const result = await useCase.execute({
-        couponId: coupon.id,
-        userId: userCoupon.userId,
+        userCouponId: userCoupon.id,
         orderPrice: 100000,
       });
 
@@ -219,14 +207,11 @@ describe("ValidateCouponUseCase", () => {
         issuedIdempotencyKey: uuidv4(),
       });
 
+      userCouponRepository.findById.mockResolvedValue(expiredUserCoupon);
       couponRepository.findById.mockResolvedValue(coupon);
-      userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
-        expiredUserCoupon
-      );
 
       const result = await useCase.execute({
-        couponId: coupon.id,
-        userId: expiredUserCoupon.userId,
+        userCouponId: expiredUserCoupon.id,
         orderPrice: 60000,
       });
 
@@ -259,14 +244,11 @@ describe("ValidateCouponUseCase", () => {
 
       usedUserCoupon.use("order-1", 10000); // 쿠폰 사용 처리
 
+      userCouponRepository.findById.mockResolvedValue(usedUserCoupon);
       couponRepository.findById.mockResolvedValue(coupon);
-      userCouponRepository.findByCouponIdAndUserId.mockResolvedValue(
-        usedUserCoupon
-      );
 
       const result = await useCase.execute({
-        couponId: coupon.id,
-        userId: usedUserCoupon.userId,
+        userCouponId: usedUserCoupon.id,
         orderPrice: 60000,
       });
 
@@ -283,8 +265,7 @@ describe("ValidateCouponUseCase", () => {
 
       await expect(
         useCase.execute({
-          couponId: nonExistentCouponId,
-          userId: uuidv4(),
+          userCouponId: nonExistentCouponId,
           orderPrice: 10000,
         })
       ).rejects.toThrow(CouponNotFoundError);

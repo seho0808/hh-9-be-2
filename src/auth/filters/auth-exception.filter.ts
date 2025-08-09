@@ -3,11 +3,8 @@ import {
   HttpStatus,
   ConflictException,
   UnauthorizedException,
-  ArgumentsHost,
 } from "@nestjs/common";
-import { Response, Request } from "express";
-import { StandardErrorResponseDto } from "@/common/dto/standard-error-response.dto";
-import { ErrorCode } from "@/common/types/error-codes.enum";
+import { ErrorCode } from "@/common/constants/error-codes.enum";
 import {
   BaseExceptionFilter,
   ErrorMapping,

@@ -1,9 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { Product } from "@/product/domain/entities/product.entity";
-import {
-  ProductNotFoundError,
-  StockReservationNotFoundError,
-} from "@/product/domain/exceptions/product.exceptions";
+import { StockReservationOrProductNotFoundError } from "@/product/application/product.application.exceptions";
 import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
 import { Transactional } from "typeorm-transactional";
@@ -30,20 +27,17 @@ export class ConfirmStockUseCase {
   }> {
     const { stockReservationId, orderId } = command;
 
-    const stockReservation =
-      await this.stockReservationRepository.findById(stockReservationId);
-
-    if (!stockReservation) {
-      throw new StockReservationNotFoundError(stockReservationId);
-    }
-
-    const product = await this.productRepository.findById(
-      stockReservation.productId
-    );
+    const product =
+      await this.productRepository.findByStockReservationId(stockReservationId);
 
     if (!product) {
-      throw new ProductNotFoundError(product.id);
+      throw new StockReservationOrProductNotFoundError(stockReservationId);
     }
+
+    const stockReservation =
+      await this.stockReservationRepository.findByIdWithLock(
+        stockReservationId
+      );
 
     this.validateStockService.validateConfirmStock({
       stockReservation,
@@ -52,8 +46,10 @@ export class ConfirmStockUseCase {
     product.confirmStock(stockReservation.quantity);
     stockReservation.confirmStock(orderId);
 
-    await this.stockReservationRepository.save(stockReservation);
-    await this.productRepository.save(product);
+    await Promise.all([
+      this.stockReservationRepository.save(stockReservation),
+      this.productRepository.save(product),
+    ]);
 
     return {
       stockReservation,

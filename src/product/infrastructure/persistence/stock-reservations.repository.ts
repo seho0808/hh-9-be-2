@@ -1,7 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
+import {
+  StockReservation,
+  StockReservationStatus,
+} from "@/product/domain/entities/stock-reservation.entity";
 import { StockReservationTypeOrmEntity } from "./orm/stock-reservations.typeorm.entity";
 
 @Injectable()
@@ -20,6 +23,14 @@ export class StockReservationRepository {
   async findById(id: string): Promise<StockReservation | null> {
     const entity = await this.stockReservationRepository.findOne({
       where: { id },
+    });
+    return entity ? this.toDomain(entity) : null;
+  }
+
+  async findByIdWithLock(id: string): Promise<StockReservation | null> {
+    const entity = await this.stockReservationRepository.findOne({
+      where: { id },
+      lock: { mode: "pessimistic_write" },
     });
     return entity ? this.toDomain(entity) : null;
   }
@@ -43,7 +54,7 @@ export class StockReservationRepository {
     entity.createdAt = stockReservation.createdAt;
     entity.updatedAt = stockReservation.updatedAt;
     entity.expiresAt = stockReservation.expiresAt;
-    entity.isActive = stockReservation.isActive;
+    entity.status = stockReservation.status;
     return entity;
   }
 
@@ -57,7 +68,7 @@ export class StockReservationRepository {
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       expiresAt: entity.expiresAt,
-      isActive: entity.isActive,
+      status: entity.status as StockReservationStatus,
     });
   }
 }

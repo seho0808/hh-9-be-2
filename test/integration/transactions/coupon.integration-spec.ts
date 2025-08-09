@@ -15,8 +15,11 @@ import { UseUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-d
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
 import { ValidateUserCouponService } from "@/coupon/domain/services/validate-user-coupon.service";
-import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
-import { UserCouponNotFoundError } from "@/coupon/domain/exceptions/user-coupon.exception";
+import {
+  CouponNotFoundError,
+  UserCouponNotFoundError,
+  DuplicateIdempotencyKeyError,
+} from "@/coupon/application/coupon.application.exceptions";
 
 describe("Coupon Domain Integration Tests", () => {
   let testHelper: TestContainersHelper;
@@ -135,7 +138,7 @@ describe("Coupon Domain Integration Tests", () => {
       );
     });
 
-    it.skip("동일한 idempotencyKey로 중복 발급 시 중복이 방지되어야 함", async () => {
+    it("동일한 idempotencyKey로 중복 발급 시 중복이 방지되어야 함", async () => {
       // Given: 쿠폰과 첫 번째 발급
       const coupon = await CouponFactory.createAndSave(couponRepository, {
         couponCode: "DUPLICATE10",
@@ -155,7 +158,9 @@ describe("Coupon Domain Integration Tests", () => {
       const result1 = await issueUserCouponUseCase.execute(command);
 
       // Then: 중복 발급이 방지되어야 함
-      await expect(issueUserCouponUseCase.execute(command)).rejects.toThrow();
+      await expect(issueUserCouponUseCase.execute(command)).rejects.toThrow(
+        DuplicateIdempotencyKeyError
+      );
 
       // DB 검증 - 하나의 사용자 쿠폰만 생성되어야 함
       const userCoupons = await userCouponRepository.find({
@@ -209,8 +214,7 @@ describe("Coupon Domain Integration Tests", () => {
 
       // When: 쿠폰을 사용
       const command = {
-        couponId: coupon.id,
-        userId: "user-123",
+        userCouponId: userCoupon.id,
         orderId: null, // orderId를 null로 설정하여 외래키 제약 우회
         orderPrice: 5000,
         idempotencyKey: "use-coupon-key-1",
@@ -248,8 +252,7 @@ describe("Coupon Domain Integration Tests", () => {
 
       // When: 쿠폰을 사용
       const command = {
-        couponId: coupon.id,
-        userId: "user-123",
+        userCouponId: userCoupon.id,
         orderId: null, // orderId를 null로 설정
         orderPrice: 20000, // 20,000원 주문
         idempotencyKey: "use-percent-coupon-key-1",
@@ -289,8 +292,7 @@ describe("Coupon Domain Integration Tests", () => {
 
       // When & Then: 이미 사용된 쿠폰으로 예외 발생
       const command = {
-        couponId: coupon.id,
-        userId: "user-123",
+        userCouponId: userCoupon.id,
         orderId: null,
         orderPrice: 5000,
         idempotencyKey: "use-used-coupon-key",
@@ -320,8 +322,7 @@ describe("Coupon Domain Integration Tests", () => {
 
       // When & Then: 만료된 쿠폰으로 예외 발생
       const command = {
-        couponId: coupon.id,
-        userId: "user-123",
+        userCouponId: userCoupon.id,
         orderId: "order-789",
         orderPrice: 5000,
         idempotencyKey: "use-expired-coupon-key",
@@ -379,40 +380,6 @@ describe("Coupon Domain Integration Tests", () => {
         UserCouponNotFoundError
       );
     });
-
-    it.skip("이미 사용된 쿠폰은 취소할 수 없어야 함", async () => {
-      // Given: 이미 사용된 쿠폰
-      const coupon = await CouponFactory.createAndSave(couponRepository, {
-        couponCode: "USED_CANCEL10",
-        discountValue: 1000,
-        discountType: "FIXED",
-        minimumOrderPrice: 1000,
-        totalCount: 100,
-        usedCount: 1,
-      });
-
-      const userCoupon = await UserCouponFactory.createAndSave(
-        userCouponRepository,
-        {
-          userId: "user-123",
-          couponId: coupon.id,
-          status: UserCouponStatus.USED, // 이미 사용됨
-          orderId: null,
-          discountPrice: 1000,
-          usedAt: new Date(),
-          expiresAt: new Date(Date.now() + 86400000),
-        }
-      );
-
-      // When & Then: 이미 사용된 쿠폰 취소 시도로 예외 발생
-      const command = {
-        userCouponId: userCoupon.id,
-        userId: "user-123",
-        orderId: null,
-      };
-
-      await expect(cancelUserCouponUseCase.execute(command)).rejects.toThrow();
-    });
   });
 
   describe("Coupon Lifecycle Integration", () => {
@@ -441,8 +408,7 @@ describe("Coupon Domain Integration Tests", () => {
 
       // When: 쿠폰 사용
       const useCommand = {
-        couponId: coupon.id,
-        userId: "user-123",
+        userCouponId: issueResult.userCoupon.id,
         orderId: null,
         orderPrice: 5000,
         idempotencyKey: "lifecycle-use-key",

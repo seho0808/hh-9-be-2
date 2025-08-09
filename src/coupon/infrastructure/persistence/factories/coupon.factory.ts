@@ -9,6 +9,7 @@ import {
   createTestDescription,
   createTestCouponCode,
 } from "./constants";
+import { v4 as uuidv4 } from "uuid";
 
 export const CouponFactory = createEntityFactory<CouponTypeOrmEntity>(
   (options, counter) => {
@@ -23,6 +24,7 @@ export const CouponFactory = createEntityFactory<CouponTypeOrmEntity>(
     const coupon = new CouponTypeOrmEntity();
     Object.assign(coupon, {
       ...baseProps,
+      id: options.id || uuidv4(),
       name: options.name || createTestName("쿠폰", timestamp, counter),
       description:
         options.description ||

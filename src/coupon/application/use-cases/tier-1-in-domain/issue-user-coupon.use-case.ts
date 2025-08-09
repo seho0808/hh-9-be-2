@@ -1,7 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
-import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
+import {
+  CouponNotFoundError,
+  DuplicateIdempotencyKeyError,
+} from "@/coupon/application/coupon.application.exceptions";
 import { Transactional } from "typeorm-transactional";
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
@@ -31,12 +34,25 @@ export class IssueUserCouponUseCase {
   ): Promise<IssueUserCouponResult> {
     const { couponId, userId, couponCode, idempotencyKey } = command;
 
-    const coupon = await this.couponRepository.findById(couponId);
+    const idempotencyKeyObj =
+      await this.userCouponRepository.findByIdempotencyKey(idempotencyKey);
+    if (idempotencyKeyObj) {
+      throw new DuplicateIdempotencyKeyError(idempotencyKey);
+    }
+
+    // 데드락 방지를 위해 coupon => userCoupon 순으로 타 유스케이스와 조회 순서 동일
+    const coupon = await this.couponRepository.findByIdWithLock(couponId);
     if (!coupon) {
       throw new CouponNotFoundError(couponId);
     }
 
-    coupon.issue(couponCode);
+    const existingUserCoupon =
+      await this.userCouponRepository.findByCouponIdAndUserIdWithLock(
+        couponId,
+        userId
+      );
+
+    coupon.issue(couponCode, existingUserCoupon);
     const userCoupon = UserCoupon.create({
       couponId: coupon.id,
       userId,

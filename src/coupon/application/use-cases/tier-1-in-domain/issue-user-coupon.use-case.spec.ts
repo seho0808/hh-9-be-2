@@ -1,11 +1,12 @@
 import { Test } from "@nestjs/testing";
 import { IssueUserCouponUseCase } from "./issue-user-coupon.use-case";
 import {
-  CouponNotFoundError,
   CouponExhaustedError,
   CouponExpiredError,
   InvalidCouponCodeError,
+  UserCouponAlreadyIssuedError,
 } from "@/coupon/domain/exceptions/coupon.exceptions";
+import { CouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
 import {
   Coupon,
   CouponDiscountType,
@@ -24,6 +25,7 @@ jest.mock("typeorm-transactional", () => ({
 
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
+import { DuplicateIdempotencyKeyError } from "@/coupon/application/coupon.application.exceptions";
 
 describe("IssueUserCouponUseCase", () => {
   let useCase: IssueUserCouponUseCase;
@@ -62,7 +64,11 @@ describe("IssueUserCouponUseCase", () => {
         expiresInDays: 7,
       });
 
-      couponRepository.findById.mockResolvedValue(coupon);
+      userCouponRepository.findByIdempotencyKey.mockResolvedValue(null);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
+      userCouponRepository.findByCouponIdAndUserIdWithLock.mockResolvedValue(
+        null
+      );
 
       const userId = uuidv4();
       const result = await useCase.execute({
@@ -95,7 +101,11 @@ describe("IssueUserCouponUseCase", () => {
         expiresInDays: 7,
       });
 
-      couponRepository.findById.mockResolvedValue(coupon);
+      userCouponRepository.findByIdempotencyKey.mockResolvedValue(null);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
+      userCouponRepository.findByCouponIdAndUserIdWithLock.mockResolvedValue(
+        null
+      );
 
       const result = await useCase.execute({
         couponId: coupon.id,
@@ -109,6 +119,27 @@ describe("IssueUserCouponUseCase", () => {
   });
 
   describe("쿠폰 발급 실패 케이스", () => {
+    it("중복된 idempotencyKey로 요청시 에러가 발생해야 한다", async () => {
+      const idempotencyKey = uuidv4();
+      userCouponRepository.findByIdempotencyKey.mockResolvedValue(
+        UserCoupon.create({
+          userId: uuidv4(),
+          couponId: uuidv4(),
+          issuedIdempotencyKey: idempotencyKey,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        })
+      );
+
+      await expect(
+        useCase.execute({
+          couponId: uuidv4(),
+          userId: uuidv4(),
+          couponCode: "TEST123",
+          idempotencyKey,
+        })
+      ).rejects.toThrow(DuplicateIdempotencyKeyError);
+    });
+
     it("존재하지 않는 쿠폰 ID로 요청시 에러가 발생해야 한다", async () => {
       const nonExistentCouponId = uuidv4();
       couponRepository.findById.mockResolvedValue(null);
@@ -138,7 +169,11 @@ describe("IssueUserCouponUseCase", () => {
         expiresInDays: 7,
       });
 
-      couponRepository.findById.mockResolvedValue(coupon);
+      userCouponRepository.findByIdempotencyKey.mockResolvedValue(null);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
+      userCouponRepository.findByCouponIdAndUserIdWithLock.mockResolvedValue(
+        null
+      );
 
       await expect(
         useCase.execute({
@@ -168,7 +203,11 @@ describe("IssueUserCouponUseCase", () => {
         expiresInDays: 7,
       });
 
-      couponRepository.findById.mockResolvedValue(coupon);
+      userCouponRepository.findByIdempotencyKey.mockResolvedValue(null);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
+      userCouponRepository.findByCouponIdAndUserIdWithLock.mockResolvedValue(
+        null
+      );
 
       await expect(
         useCase.execute({
@@ -196,9 +235,13 @@ describe("IssueUserCouponUseCase", () => {
       });
 
       // 수량 제한에 도달하도록 발급
-      coupon.issue("LIMITED123");
+      coupon.issue("LIMITED123", null);
 
-      couponRepository.findById.mockResolvedValue(coupon);
+      userCouponRepository.findByIdempotencyKey.mockResolvedValue(null);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
+      userCouponRepository.findByCouponIdAndUserIdWithLock.mockResolvedValue(
+        null
+      );
 
       await expect(
         useCase.execute({
@@ -208,6 +251,44 @@ describe("IssueUserCouponUseCase", () => {
           idempotencyKey: uuidv4(),
         })
       ).rejects.toThrow(CouponExhaustedError);
+    });
+
+    it("이미 발급된 쿠폰으로 요청시 에러가 발생해야 한다", async () => {
+      const coupon = Coupon.create({
+        name: "이미 발급된 쿠폰",
+        description: "이미 발급된 쿠폰",
+        couponCode: "ALREADY_ISSUED123",
+        discountType: CouponDiscountType.FIXED,
+        discountValue: 10000,
+        minimumOrderPrice: 50000,
+        maxDiscountPrice: null,
+        totalCount: 100,
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expiresInDays: 7,
+      });
+
+      const userId = uuidv4();
+      const existingUserCoupon = UserCoupon.create({
+        userId,
+        couponId: coupon.id,
+        issuedIdempotencyKey: uuidv4(),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      });
+
+      userCouponRepository.findByIdempotencyKey.mockResolvedValue(null);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
+      userCouponRepository.findByCouponIdAndUserIdWithLock.mockResolvedValue(
+        existingUserCoupon
+      );
+      await expect(
+        useCase.execute({
+          couponId: coupon.id,
+          userId, // Use the same userId as the existing user coupon
+          couponCode: "ALREADY_ISSUED123",
+          idempotencyKey: uuidv4(),
+        })
+      ).rejects.toThrow(UserCouponAlreadyIssuedError);
     });
   });
 });

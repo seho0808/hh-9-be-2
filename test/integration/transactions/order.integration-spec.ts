@@ -22,7 +22,10 @@ import {
   UserCouponTypeOrmEntity,
 } from "@/coupon/infrastructure/persistence/orm/user-coupon.typeorm.entity";
 import { UserBalanceTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
-import { PointTransactionTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
+import {
+  PointTransactionType,
+  PointTransactionTypeOrmEntity,
+} from "@/wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
 import { Order } from "@/order/domain/entities/order.entitiy";
 import { CreateOrderUseCase } from "@/order/application/use-cases/tier-1-in-domain/create-order.use-case";
 import { ApplyDiscountUseCase } from "@/order/application/use-cases/tier-1-in-domain/apply-discount.use-case";
@@ -46,6 +49,8 @@ import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
 import { ValidateUserCouponService } from "@/coupon/domain/services/validate-user-coupon.service";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
+import { StockReservationStatus } from "@/product/domain/entities/stock-reservation.entity";
+import { PointTransactionFactory } from "@/wallet/infrastructure/persistence/factories/point-transaction.factory";
 
 describe("Order Domain Integration Tests", () => {
   let testHelper: TestContainersHelper;
@@ -316,14 +321,14 @@ describe("Order Domain Integration Tests", () => {
           userId: "user-123",
           orderId: order.id,
           quantity: 1,
-          isActive: true,
+          status: StockReservationStatus.RESERVED,
         }
       );
 
       // When: 주문을 처리 (쿠폰 + 포인트 사용)
       const command = {
         userId: "user-123",
-        couponId: coupon.id,
+        userCouponId: userCoupon.id,
         order: new Order({
           id: order.id,
           userId: order.userId,
@@ -406,14 +411,14 @@ describe("Order Domain Integration Tests", () => {
           userId: "user-123",
           orderId: order.id,
           quantity: 1,
-          isActive: true,
+          status: StockReservationStatus.RESERVED,
         }
       );
 
       // When: 주문 처리 시도 (잔액 부족으로 실패 예상)
       const command = {
         userId: "user-123",
-        couponId: null,
+        userCouponId: null,
         order: new Order({
           id: order.id,
           userId: order.userId,
@@ -450,7 +455,7 @@ describe("Order Domain Integration Tests", () => {
     });
   });
 
-  describe.skip("RecoverOrderUseCase (@Transactional) - Rollback Integration", () => {
+  describe("RecoverOrderUseCase (@Transactional) - Rollback Integration", () => {
     it("주문 복구가 성공적으로 처리되어야 함", async () => {
       // Given: 처리된 주문과 관련 데이터들
       const order = await OrderFactory.createAndSave(orderRepository, {
@@ -474,6 +479,7 @@ describe("Order Domain Integration Tests", () => {
         {
           userId: "user-123",
           couponId: coupon.id,
+          orderId: order.id,
           status: UserCouponStatus.USED, // 이미 사용됨
         }
       );
@@ -484,6 +490,17 @@ describe("Order Domain Integration Tests", () => {
         {
           userId: "user-123",
           balance: 11000, // 20000에서 9000 차감됨
+        }
+      );
+
+      // 사용된 포인트 트랜잭션
+      const pointTransaction = await PointTransactionFactory.createAndSave(
+        pointTransactionRepository,
+        {
+          userId: "user-123",
+          amount: 9000,
+          type: PointTransactionType.USE,
+          refId: order.id,
         }
       );
 
@@ -505,7 +522,7 @@ describe("Order Domain Integration Tests", () => {
           userId: "user-123",
           orderId: order.id,
           quantity: 1,
-          isActive: false, // 이미 확정된 상태
+          status: StockReservationStatus.CONFIRMED, // 이미 확정된 상태
         }
       );
 
@@ -525,7 +542,7 @@ describe("Order Domain Integration Tests", () => {
           updatedAt: order.updatedAt,
           OrderItems: [],
         }),
-        couponId: coupon.id,
+        userCouponId: userCoupon.id,
         stockReservationIds: [stockReservation.id],
         orderId: order.id,
       };
@@ -582,7 +599,7 @@ describe("Order Domain Integration Tests", () => {
           userId: "user-123",
           orderId: order.id,
           quantity: 1,
-          isActive: false, // 이미 처리된 상태
+          status: StockReservationStatus.RELEASED, // 이미 처리된 상태
         }
       );
 
@@ -602,19 +619,18 @@ describe("Order Domain Integration Tests", () => {
           updatedAt: order.updatedAt,
           OrderItems: [],
         }),
-        couponId: null,
+        userCouponId: null,
         stockReservationIds: [stockReservation.id],
         orderId: order.id,
       };
 
       // Then: 중복 복구 처리가 적절히 이루어져야 함
       // (실제 구현에 따라 예외 발생 또는 무시)
-      const result = await recoverOrderUseCase.execute(command);
-      expect(result.order.status).toBe(OrderStatus.FAILED);
+      await expect(recoverOrderUseCase.execute(command)).rejects.toThrow();
     });
   });
 
-  describe.skip("Order State Transition Integration", () => {
+  describe("Order State Transition Integration", () => {
     it("주문의 전체 생명주기가 올바르게 관리되어야 함", async () => {
       // Given: 전체 주문 프로세스를 위한 설정
       const product = await ProductFactory.createAndSave(productRepository, {
@@ -662,14 +678,14 @@ describe("Order Domain Integration Tests", () => {
           userId: "user-123",
           orderId: createResult.order.id,
           quantity: 1,
-          isActive: true,
+          status: StockReservationStatus.RESERVED,
         }
       );
 
       // Step 2: 주문 처리
       const processCommand = {
         userId: "user-123",
-        couponId: null,
+        userCouponId: null,
         order: createResult.order,
         discountPrice: 0,
         discountedPrice: 5000,
@@ -683,7 +699,7 @@ describe("Order Domain Integration Tests", () => {
       // Step 3: 문제 발생으로 주문 복구
       const recoverCommand = {
         order: processResult.order,
-        couponId: null,
+        userCouponId: null,
         stockReservationIds: [stockReservation.id],
         orderId: createResult.order.id,
       };

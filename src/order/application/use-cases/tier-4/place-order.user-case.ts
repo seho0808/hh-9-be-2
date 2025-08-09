@@ -7,7 +7,7 @@ import { GetProductsPriceUseCase } from "@/product/application/use-cases/tier-1-
 
 export interface PlaceOrderCommand {
   userId: string;
-  couponId: string | null;
+  userCouponId: string | null;
   idempotencyKey: string;
   itemsWithoutPrices: { productId: string; quantity: number }[];
 }
@@ -26,14 +26,15 @@ export class PlaceOrderUseCase {
   ) {}
 
   async execute(command: PlaceOrderCommand): Promise<PlaceOrderResult> {
-    const { userId, couponId, idempotencyKey, itemsWithoutPrices } = command;
+    const { userId, userCouponId, idempotencyKey, itemsWithoutPrices } =
+      command;
 
     const items = await this.getItemsWithPrices(itemsWithoutPrices);
 
     const { order, discountPrice, discountedPrice, stockReservationIds } =
       await this.prepareOrderUseCase.execute({
         userId,
-        couponId,
+        userCouponId,
         items,
         idempotencyKey,
       });
@@ -41,7 +42,7 @@ export class PlaceOrderUseCase {
     try {
       const { order: successOrder } = await this.processOrderUseCase.execute({
         userId,
-        couponId,
+        userCouponId,
         order,
         discountPrice,
         discountedPrice,
@@ -55,7 +56,7 @@ export class PlaceOrderUseCase {
     } catch (error) {
       await this.recoverOrderUseCase.execute({
         order,
-        couponId,
+        userCouponId,
         stockReservationIds,
         orderId: order.id,
       });

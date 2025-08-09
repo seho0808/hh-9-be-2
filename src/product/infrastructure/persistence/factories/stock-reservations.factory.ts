@@ -3,25 +3,23 @@ import {
   createEntityFactory,
   getBaseProps,
 } from "../../../../common/factories/base.factory";
-import { TEST_FACTORY_DEFAULTS, createTestName } from "./constants";
+import { TEST_FACTORY_DEFAULTS } from "./constants";
+import { v4 as uuidv4 } from "uuid";
 
 export const StockReservationFactory =
-  createEntityFactory<StockReservationTypeOrmEntity>((options, counter) => {
-    const timestamp = Date.now();
+  createEntityFactory<StockReservationTypeOrmEntity>((options) => {
     const baseProps = getBaseProps();
     const now = new Date();
 
     const reservation = new StockReservationTypeOrmEntity();
     Object.assign(reservation, {
       ...baseProps,
-      productId:
-        options.productId || createTestName("상품", timestamp, counter),
-      userId: options.userId || createTestName("사용자", timestamp, counter),
-      orderId: options.orderId || createTestName("주문", timestamp, counter),
+      productId: options.productId || uuidv4(),
+      userId: options.userId || uuidv4(),
+      orderId: options.orderId || uuidv4(),
       quantity:
         options.quantity ?? TEST_FACTORY_DEFAULTS.STOCK_RESERVATION.QUANTITY,
-      isActive:
-        options.isActive ?? TEST_FACTORY_DEFAULTS.STOCK_RESERVATION.IS_ACTIVE,
+      status: options.status ?? TEST_FACTORY_DEFAULTS.STOCK_RESERVATION.STATUS,
       expiresAt:
         options.expiresAt ||
         new Date(

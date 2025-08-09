@@ -5,10 +5,11 @@ import { ReleaseStockUseCase } from "@/product/application/use-cases/tier-1-in-d
 import { RecoverPointsUseCase } from "@/wallet/application/use-cases/tier-1-in-domain/recover-points.use-case";
 import { ChangeOrderStatusUseCase } from "../tier-1-in-domain/change-order-status.use-case";
 import { Transactional } from "typeorm-transactional";
+import { RetryOnOptimisticLock } from "@/common/decorators/retry-on-optimistic-lock.decorator";
 
 export interface RecoverOrderCommand {
   order: Order;
-  couponId: string | null;
+  userCouponId: string | null;
   stockReservationIds: string[];
   orderId: string;
 }
@@ -26,9 +27,10 @@ export class RecoverOrderUseCase {
     private readonly changeOrderStatusUseCase: ChangeOrderStatusUseCase
   ) {}
 
+  @RetryOnOptimisticLock(5, 50)
   @Transactional()
   async execute(command: RecoverOrderCommand) {
-    const { order, couponId, stockReservationIds, orderId } = command;
+    const { order, userCouponId, stockReservationIds, orderId } = command;
 
     await Promise.all(
       stockReservationIds.map((stockReservationId) =>
@@ -39,26 +41,34 @@ export class RecoverOrderUseCase {
       )
     );
 
-    if (couponId) {
+    if (userCouponId) {
       await this.recoverUserCouponUseCase.execute({
-        userCouponId: couponId,
+        userCouponId,
         orderId,
       });
     }
 
-    await this.recoverPointsUseCase.execute({
-      userId: order.userId,
-      amount: order.finalPrice,
-      refId: orderId,
-    });
+    try {
+      await this.recoverPointsUseCase.execute({
+        userId: order.userId,
+        amount: order.finalPrice,
+        refId: orderId,
+      });
+    } catch (error) {
+      if (error.code !== "POINT_TRANSACTION_NOT_FOUND") {
+        throw error;
+      }
+    }
 
-    await this.changeOrderStatusUseCase.execute({
-      orderId: order.id,
-      status: OrderStatus.FAILED,
-    });
+    const { order: changedOrder } = await this.changeOrderStatusUseCase.execute(
+      {
+        orderId: order.id,
+        status: OrderStatus.FAILED,
+      }
+    );
 
     return {
-      order,
+      order: changedOrder,
     };
   }
 }

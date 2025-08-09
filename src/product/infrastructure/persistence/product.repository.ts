@@ -16,6 +16,28 @@ export class ProductRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
+  async findByIdWithLock(id: string): Promise<Product | null> {
+    const entity = await this.productRepository.findOne({
+      where: { id },
+      lock: { mode: "pessimistic_write" },
+    });
+    return entity ? this.toDomain(entity) : null;
+  }
+
+  async findByStockReservationId(
+    stockReservationId: string
+  ): Promise<Product | null> {
+    const entity = await this.productRepository
+      .createQueryBuilder("p")
+      .where(
+        "p.id = (SELECT sr.product_id FROM stock_reservations sr WHERE sr.id = :rid)",
+        { rid: stockReservationId }
+      )
+      .setLock("pessimistic_write")
+      .getOne();
+    return entity ? this.toDomain(entity) : null;
+  }
+
   async findByIds(ids: string[]): Promise<Product[]> {
     const entities = await this.productRepository.find({
       where: { id: In(ids) },

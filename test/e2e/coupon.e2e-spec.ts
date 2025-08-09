@@ -244,7 +244,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
 
       // Then: 유효하지 않은 쿠폰 코드 에러가 반환되어야 함
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain("쿠폰 코드가 유효하지 않습니다");
+      expect(response.body.message).toContain("유효하지 않은 쿠폰 코드입니다");
     });
 
     it("재고가 소진된 쿠폰을 발급할 때 에러가 발생해야 함", async () => {
@@ -265,7 +265,9 @@ describe("Coupon API E2E (with TestContainers)", () => {
 
       // Then: 쿠폰 재고 소진 에러가 반환되어야 함
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain("쿠폰 재고가 소진되었습니다");
+      expect(response.body.message).toContain(
+        "쿠폰 재고가 모두 소진되었습니다"
+      );
     });
 
     it("만료된 쿠폰을 발급할 때 에러가 발생해야 함", async () => {
@@ -288,7 +290,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
 
       // Then: 쿠폰 만료 에러가 반환되어야 함
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain("쿠폰이 만료되었습니다");
+      expect(response.body.message).toContain("만료된 쿠폰입니다");
     });
 
     it("존재하지 않는 쿠폰으로 발급할 때 404 에러가 발생해야 함", async () => {
@@ -328,8 +330,17 @@ describe("Coupon API E2E (with TestContainers)", () => {
       const authHeaders = await testHelper.getAuthHeaders(app);
       const userId = "user-123"; // TestContainersHelper에서 생성되는 사용자 ID
 
+      const coupon = await CouponFactory.createAndSave(couponRepository, {
+        id: "coupon-123",
+        name: "테스트 쿠폰",
+        couponCode: "TEST2024",
+        discountType: "FIXED",
+        discountValue: 10000,
+      });
+
       await UserCouponFactory.createManyAndSave(userCouponRepository, 3, {
         userId: userId,
+        couponId: coupon.id,
       });
 
       // When: 내 쿠폰 목록 조회

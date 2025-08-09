@@ -1,12 +1,15 @@
 import { Test } from "@nestjs/testing";
 import { ReserveStockUseCase } from "./reserve-stock.use-case";
 import {
-  ProductNotFoundError,
   InactiveProductError,
   InsufficientStockError,
   InvalidQuantityError,
 } from "@/product/domain/exceptions/product.exceptions";
-import { StockReservation } from "@/product/domain/entities/stock-reservation.entity";
+import {
+  StockReservation,
+  StockReservationStatus,
+} from "@/product/domain/entities/stock-reservation.entity";
+import { ProductNotFoundError } from "@/product/application/product.application.exceptions";
 import { Product } from "@/product/domain/entities/product.entity";
 import { v4 as uuidv4 } from "uuid";
 import { ValidateStockService } from "@/product/domain/services/validate-stock.service";
@@ -79,7 +82,7 @@ describe("ReserveStockUseCase", () => {
           isActive: true,
         });
 
-        productRepository.findById.mockResolvedValue(mockProduct);
+        productRepository.findByIdWithLock.mockResolvedValue(mockProduct);
 
         const result = await useCase.execute({
           orderId: uuidv4(),
@@ -93,7 +96,9 @@ describe("ReserveStockUseCase", () => {
         expect(result.stockReservation.quantity).toBe(reservationQuantity);
         expect(result.stockReservation.userId).toBe(userId);
         expect(result.stockReservation.productId).toBe(mockProduct.id);
-        expect(result.stockReservation.isActive).toBe(true);
+        expect(result.stockReservation.status).toBe(
+          StockReservationStatus.RESERVED
+        );
       });
     }
   );
@@ -112,7 +117,7 @@ describe("ReserveStockUseCase", () => {
         isActive: true,
       });
 
-      productRepository.findById.mockResolvedValue(mockProduct);
+      productRepository.findByIdWithLock.mockResolvedValue(mockProduct);
 
       await expect(
         useCase.execute({
@@ -126,7 +131,7 @@ describe("ReserveStockUseCase", () => {
   });
 
   it("존재하지 않는 상품 ID로 요청시 에러가 발생해야 한다", async () => {
-    productRepository.findById.mockResolvedValue(null);
+    productRepository.findByIdWithLock.mockResolvedValue(null);
 
     await expect(
       useCase.execute({
@@ -148,7 +153,7 @@ describe("ReserveStockUseCase", () => {
       isActive: false,
     });
 
-    productRepository.findById.mockResolvedValue(mockProduct);
+    productRepository.findByIdWithLock.mockResolvedValue(mockProduct);
 
     await expect(
       useCase.execute({
@@ -170,7 +175,7 @@ describe("ReserveStockUseCase", () => {
       isActive: true,
     });
 
-    productRepository.findById.mockResolvedValue(mockProduct);
+    productRepository.findByIdWithLock.mockResolvedValue(mockProduct);
 
     await expect(
       useCase.execute({

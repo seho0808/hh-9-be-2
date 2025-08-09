@@ -1,9 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
-import { UserBalanceNotFoundError } from "@/wallet/domain/exceptions/point.exceptions";
+import {
+  UserBalanceNotFoundError,
+  DuplicateIdempotencyKeyError,
+} from "@/wallet/application/wallet.application.exceptions";
 import { PointTransactionRepository } from "@/wallet/infrastructure/persistence/point-transaction.repository";
 import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
+import { RetryOnOptimisticLock } from "@/common/decorators/retry-on-optimistic-lock.decorator";
+import { IsolationLevel, Transactional } from "typeorm-transactional";
 
 export interface ChargePointsUseCaseCommand {
   userId: string;
@@ -24,16 +29,28 @@ export class ChargePointsUseCase {
     private readonly pointTransactionRepository: PointTransactionRepository
   ) {}
 
+  @RetryOnOptimisticLock(5, 50)
+  @Transactional({ isolationLevel: IsolationLevel.READ_COMMITTED })
   async execute(
     command: ChargePointsUseCaseCommand
   ): Promise<ChargePointsUseCaseResult> {
     const { userId, amount, idempotencyKey, refId } = command;
 
-    const userBalance = await this.userBalanceRepository.findByUserId(userId);
+    const existingTransaction =
+      await this.pointTransactionRepository.findByIdempotencyKey(
+        idempotencyKey
+      );
+    if (existingTransaction) {
+      throw new DuplicateIdempotencyKeyError(idempotencyKey);
+    }
 
-    if (!userBalance) {
+    const data = await this.userBalanceRepository.findByUserId(userId);
+
+    if (!data) {
       throw new UserBalanceNotFoundError(userId);
     }
+
+    const { userBalance, metadata } = data;
 
     userBalance.addBalance(amount);
     const pointTransaction = PointTransaction.create({
@@ -45,7 +62,10 @@ export class ChargePointsUseCase {
     });
 
     await Promise.all([
-      this.userBalanceRepository.save(userBalance),
+      this.userBalanceRepository.saveWithOptimisticLock(
+        userBalance,
+        metadata.version
+      ),
       this.pointTransactionRepository.save(pointTransaction),
     ]);
 

@@ -1,7 +1,7 @@
 import { Test } from "@nestjs/testing";
 import { CancelUserCouponUseCase } from "./cancel-user-coupon.use-case";
-import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
-import { UserCouponNotFoundError } from "@/coupon/domain/exceptions/user-coupon.exception";
+import { CouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
+import { UserCouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
 import {
   Coupon,
   CouponDiscountType,
@@ -65,8 +65,8 @@ describe("CancelUserCouponUseCase", () => {
         issuedIdempotencyKey: uuidv4(),
       });
 
-      userCouponRepository.findById.mockResolvedValue(userCoupon);
-      couponRepository.findById.mockResolvedValue(coupon);
+      userCouponRepository.findByIdWithLock.mockResolvedValue(userCoupon);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
 
       const result = await useCase.execute({
         userCouponId: userCoupon.id,
@@ -105,8 +105,8 @@ describe("CancelUserCouponUseCase", () => {
 
       const initialUsedCount = coupon.usedCount;
 
-      userCouponRepository.findById.mockResolvedValue(userCoupon);
-      couponRepository.findById.mockResolvedValue(coupon);
+      userCouponRepository.findByIdWithLock.mockResolvedValue(userCoupon);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
 
       const result = await useCase.execute({
         userCouponId: userCoupon.id,
@@ -139,8 +139,8 @@ describe("CancelUserCouponUseCase", () => {
         issuedIdempotencyKey: uuidv4(),
       });
 
-      userCouponRepository.findById.mockResolvedValue(userCoupon);
-      couponRepository.findById.mockResolvedValue(coupon);
+      userCouponRepository.findByIdWithLock.mockResolvedValue(userCoupon);
+      couponRepository.findByIdWithLock.mockResolvedValue(coupon);
 
       await useCase.execute({
         userCouponId: userCoupon.id,
@@ -175,8 +175,8 @@ describe("CancelUserCouponUseCase", () => {
         issuedIdempotencyKey: uuidv4(),
       });
 
-      userCouponRepository.findById.mockResolvedValue(userCoupon);
-      couponRepository.findById.mockResolvedValue(null);
+      userCouponRepository.findByIdWithLock.mockResolvedValue(userCoupon);
+      couponRepository.findByIdWithLock.mockResolvedValue(null);
 
       await expect(
         useCase.execute({

@@ -1,37 +1,44 @@
 import { Catch, HttpStatus } from "@nestjs/common";
 import {
   ProductDomainError,
-  ProductNotFoundError,
   InsufficientStockError,
   InactiveProductError,
   InvalidQuantityError,
-  StockReservationNotFoundError,
   StockReservationNotActiveError,
   StockReservationExpiredError,
 } from "@/product/domain/exceptions/product.exceptions";
-import { ErrorCode } from "@/common/types/error-codes.enum";
+import { ErrorCode } from "@/common/constants/error-codes.enum";
 import {
   BaseExceptionFilter,
   ErrorMapping,
 } from "@/common/filters/base-exception.filter";
+import {
+  ProductNotFoundError,
+  StockReservationNotFoundError,
+  ProductApplicationError,
+} from "@/product/application/product.application.exceptions";
 
 /**
  * 상품 도메인 예외 처리 필터
  * - 상품 및 재고 관련 모든 예외를 HTTP 응답으로 변환
  * - 각 예외별로 적절한 상태 코드와 메시지 제공
  */
-@Catch(ProductDomainError)
-export class ProductExceptionFilter extends BaseExceptionFilter<ProductDomainError> {
+@Catch(ProductDomainError, ProductApplicationError)
+export class ProductExceptionFilter extends BaseExceptionFilter<
+  ProductDomainError | ProductApplicationError
+> {
   /**
    * 상품 도메인 예외를 HTTP 응답으로 매핑
    */
-  protected mapErrorToResponse(exception: ProductDomainError): ErrorMapping {
+  protected mapErrorToResponse(
+    exception: ProductDomainError | ProductApplicationError
+  ): ErrorMapping {
     switch (exception.constructor) {
       case ProductNotFoundError:
         return {
           status: HttpStatus.NOT_FOUND,
           message: "상품을 찾을 수 없습니다",
-          errorCode: ErrorCode.Product.Domain.NOT_FOUND,
+          errorCode: ErrorCode.Product.Application.NOT_FOUND,
         };
 
       case InsufficientStockError:
@@ -59,7 +66,7 @@ export class ProductExceptionFilter extends BaseExceptionFilter<ProductDomainErr
         return {
           status: HttpStatus.NOT_FOUND,
           message: "예약된 재고를 찾을 수 없습니다",
-          errorCode: ErrorCode.Product.Domain.STOCK_RESERVATION_NOT_FOUND,
+          errorCode: ErrorCode.Product.Application.STOCK_RESERVATION_NOT_FOUND,
         };
 
       case StockReservationNotActiveError:

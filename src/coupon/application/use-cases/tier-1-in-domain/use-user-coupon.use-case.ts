@@ -1,14 +1,16 @@
 import { Injectable } from "@nestjs/common";
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
-import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
+import {
+  CouponNotFoundError,
+  UserCouponNotFoundError,
+} from "@/coupon/application/coupon.application.exceptions";
 import { Transactional } from "typeorm-transactional";
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
 
 export interface UseUserCouponCommand {
-  couponId: string;
-  userId: string;
+  userCouponId: string;
   orderId: string;
   orderPrice: number;
 }
@@ -29,16 +31,16 @@ export class UseUserCouponUseCase {
 
   @Transactional()
   async execute(command: UseUserCouponCommand): Promise<UseUserCouponResult> {
-    const { couponId, userId, orderId, orderPrice } = command;
+    const { userCouponId, orderId, orderPrice } = command;
 
-    const coupon = await this.couponRepository.findById(couponId);
-    if (!coupon) {
-      throw new CouponNotFoundError(couponId);
+    const userCoupon =
+      await this.userCouponRepository.findByIdWithLock(userCouponId);
+    if (!userCoupon) {
+      throw new UserCouponNotFoundError(userCouponId);
     }
 
-    const userCoupon = await this.userCouponRepository.findByCouponIdAndUserId(
-      couponId,
-      userId
+    const coupon = await this.couponRepository.findByIdWithLock(
+      userCoupon.couponId
     );
 
     const { discountPrice, discountedPrice } = coupon.use(orderPrice);

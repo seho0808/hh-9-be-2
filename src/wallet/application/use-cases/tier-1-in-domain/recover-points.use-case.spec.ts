@@ -1,18 +1,24 @@
 import { RecoverPointsUseCase } from "./recover-points.use-case";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
 import { PointTransaction } from "@/wallet/domain/entities/point-transaction.entity";
+import { PointTransactionAlreadyRecoveredError } from "@/wallet/domain/exceptions/point.exceptions";
 import {
-  PointTransactionAlreadyRecoveredError,
   PointTransactionNotFoundError,
   UserBalanceNotFoundError,
-} from "@/wallet/domain/exceptions/point.exceptions";
-import { v4 as uuidv4 } from "uuid";
+} from "@/wallet/application/wallet.application.exceptions";
 import { ValidatePointTransactionService } from "@/wallet/domain/services/validate-point-transaction.service";
 
 jest.mock("@/wallet/infrastructure/persistence/use-balance.repository");
 jest.mock("@/wallet/infrastructure/persistence/point-transaction.repository");
 jest.mock("typeorm-transactional", () => ({
   Transactional: () => () => ({}),
+  IsolationLevel: {
+    ReadCommitted: Symbol("ReadCommitted"),
+  },
+}));
+
+jest.mock("@/common/decorators/retry-on-optimistic-lock.decorator", () => ({
+  RetryOnOptimisticLock: jest.fn(() => () => {}),
 }));
 
 import { UserBalanceRepository } from "@/wallet/infrastructure/persistence/use-balance.repository";
@@ -69,7 +75,12 @@ describe("RecoverPointsUseCase", () => {
           balance: currentBalance,
         });
 
-        userBalanceRepository.findByUserId.mockResolvedValue(existingBalance);
+        userBalanceRepository.findByUserId.mockResolvedValue({
+          userBalance: existingBalance,
+          metadata: {
+            version: 1,
+          },
+        });
         pointTransactionRepository.findByRefId.mockResolvedValue([
           PointTransaction.create({
             userId: mockUserId,
@@ -112,12 +123,15 @@ describe("RecoverPointsUseCase", () => {
 
   it("기존 트랜잭션 중 사용 트랜잭션을 찾을 수 없을 때 PointTransactionNotFoundError를 던져야한다", async () => {
     // given
-    userBalanceRepository.findByUserId.mockResolvedValue(
-      UserBalance.create({
+    userBalanceRepository.findByUserId.mockResolvedValue({
+      userBalance: UserBalance.create({
         userId: mockUserId,
         balance: 10000,
-      })
-    );
+      }),
+      metadata: {
+        version: 1,
+      },
+    });
     pointTransactionRepository.findByRefId.mockResolvedValue([]);
 
     // when & then
@@ -132,12 +146,15 @@ describe("RecoverPointsUseCase", () => {
 
   it("기존 트랜잭션 중 복구 트랜잭션을 찾을 수 있을 때 PointTransactionAlreadyRecoveredError를 던져야한다", async () => {
     // given
-    userBalanceRepository.findByUserId.mockResolvedValue(
-      UserBalance.create({
+    userBalanceRepository.findByUserId.mockResolvedValue({
+      userBalance: UserBalance.create({
         userId: mockUserId,
         balance: 10000,
-      })
-    );
+      }),
+      metadata: {
+        version: 1,
+      },
+    });
     pointTransactionRepository.findByRefId.mockResolvedValue([
       PointTransaction.create({
         userId: mockUserId,

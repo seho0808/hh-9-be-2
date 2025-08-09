@@ -27,6 +27,14 @@ export class UserCouponRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
+  async findByIdWithLock(id: string): Promise<UserCoupon | null> {
+    const entity = await this.userCouponRepository.findOne({
+      where: { id },
+      lock: { mode: "pessimistic_write" },
+    });
+    return entity ? this.toDomain(entity) : null;
+  }
+
   async findByCouponIdAndUserId(
     couponId: string,
     userId: string
@@ -37,11 +45,31 @@ export class UserCouponRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
+  async findByCouponIdAndUserIdWithLock(
+    couponId: string,
+    userId: string
+  ): Promise<UserCoupon | null> {
+    const entity = await this.userCouponRepository.findOne({
+      where: { couponId, userId },
+      lock: { mode: "pessimistic_write" },
+    });
+    return entity ? this.toDomain(entity) : null;
+  }
+
   async findByUserId(userId: string): Promise<UserCoupon[]> {
     const entities = await this.userCouponRepository.find({
       where: { userId },
     });
     return entities.map((entity) => this.toDomain(entity));
+  }
+
+  async findByIdempotencyKey(
+    idempotencyKey: string
+  ): Promise<UserCoupon | null> {
+    const entity = await this.userCouponRepository.findOne({
+      where: { issuedIdempotencyKey: idempotencyKey },
+    });
+    return entity ? this.toDomain(entity) : null;
   }
 
   private fromDomain(userCoupon: UserCoupon): UserCouponTypeOrmEntity {

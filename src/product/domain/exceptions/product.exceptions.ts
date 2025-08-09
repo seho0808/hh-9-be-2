@@ -7,14 +7,6 @@ export abstract class ProductDomainError extends Error {
   }
 }
 
-export class ProductNotFoundError extends ProductDomainError {
-  readonly code = "PRODUCT_NOT_FOUND";
-
-  constructor(productId: string) {
-    super(`상품을 찾을 수 없습니다. ID: ${productId}`);
-  }
-}
-
 export class InsufficientStockError extends ProductDomainError {
   readonly code = "INSUFFICIENT_STOCK";
 
@@ -45,11 +37,11 @@ export class InactiveProductError extends ProductDomainError {
   }
 }
 
-export class StockReservationNotFoundError extends ProductDomainError {
-  readonly code = "STOCK_RESERVATION_NOT_FOUND";
+export class StockReservationAlreadyReleasedError extends ProductDomainError {
+  readonly code = "STOCK_RESERVATION_ALREADY_RELEASED";
 
   constructor(stockReservationId: string) {
-    super(`예약된 재고가 없습니다. ID: ${stockReservationId}`);
+    super(`이미 취소된 재고 예약입니다. ID: ${stockReservationId}`);
   }
 }
 

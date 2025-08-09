@@ -1,29 +1,21 @@
 import { PointTransaction } from "../entities/point-transaction.entity";
 import { UserBalance } from "../entities/user-balance.entity";
 import {
-  InsufficientPointBalanceError,
   PointTransactionAlreadyRecoveredError,
-  PointTransactionNotFoundError,
-} from "../exceptions/point.exceptions";
+  InsufficientPointBalanceError,
+} from "@/wallet/domain/exceptions/point.exceptions";
 
 export class ValidatePointTransactionService {
   validatePointRecovery({
     refId,
-    existingPointTransaction,
+    existingPointTransactions,
   }: {
     refId: string;
-    existingPointTransaction: PointTransaction[];
+    existingPointTransactions: PointTransaction[];
   }): void {
-    const correctTransactionExists = existingPointTransaction.some(
-      (pt) => pt.type === "USE" && pt.refId === refId
-    );
-    const isAlreadyRecovered = existingPointTransaction.some(
+    const isAlreadyRecovered = existingPointTransactions.some(
       (pt) => pt.type === "RECOVER" && pt.refId === refId
     );
-
-    if (!correctTransactionExists) {
-      throw new PointTransactionNotFoundError(refId);
-    }
 
     if (isAlreadyRecovered) {
       throw new PointTransactionAlreadyRecoveredError(refId);

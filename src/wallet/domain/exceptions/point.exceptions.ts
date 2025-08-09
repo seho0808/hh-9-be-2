@@ -7,14 +7,6 @@ export abstract class PointDomainError extends Error {
   }
 }
 
-export class UserBalanceNotFoundError extends PointDomainError {
-  readonly code = "USER_BALANCE_NOT_FOUND";
-
-  constructor(userId: string) {
-    super(`유저 잔액을 찾을 수 없습니다. ID: ${userId}`);
-  }
-}
-
 export class InsufficientPointBalanceError extends PointDomainError {
   readonly code = "INSUFFICIENT_POINT_BALANCE";
 
@@ -42,14 +34,6 @@ export class InvalidUseAmountError extends PointDomainError {
     super(
       `유효하지 않은 사용 금액입니다. 최소/최대 잔액 범위를 확인해주세요. 사용 금액: ${amount}`
     );
-  }
-}
-
-export class PointTransactionNotFoundError extends PointDomainError {
-  readonly code = "POINT_TRANSACTION_NOT_FOUND";
-
-  constructor(idempotencyKey: string) {
-    super(`사용 금액 트랜잭션을 찾을 수 없습니다. 키: ${idempotencyKey}`);
   }
 }
 

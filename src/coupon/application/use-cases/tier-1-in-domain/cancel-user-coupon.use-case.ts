@@ -1,8 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
-import { UserCouponNotFoundError } from "@/coupon/domain/exceptions/user-coupon.exception";
-import { CouponNotFoundError } from "@/coupon/domain/exceptions/coupon.exceptions";
+import {
+  UserCouponNotFoundError,
+  CouponNotFoundError,
+} from "@/coupon/application/coupon.application.exceptions";
 import { Transactional } from "typeorm-transactional";
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
@@ -29,12 +31,15 @@ export class CancelUserCouponUseCase {
   ): Promise<CancelUserCouponResult> {
     const { userCouponId } = command;
 
-    const userCoupon = await this.userCouponRepository.findById(userCouponId);
+    const userCoupon =
+      await this.userCouponRepository.findByIdWithLock(userCouponId);
     if (!userCoupon) {
       throw new UserCouponNotFoundError(userCouponId);
     }
 
-    const coupon = await this.couponRepository.findById(userCoupon.couponId);
+    const coupon = await this.couponRepository.findByIdWithLock(
+      userCoupon.couponId
+    );
     if (!coupon) {
       throw new CouponNotFoundError(userCoupon.couponId);
     }

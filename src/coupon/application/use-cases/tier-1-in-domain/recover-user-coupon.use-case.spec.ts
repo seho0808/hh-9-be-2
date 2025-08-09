@@ -1,9 +1,7 @@
 import { Test } from "@nestjs/testing";
 import { RecoverUserCouponUseCase } from "./recover-user-coupon.use-case";
-import {
-  UserCouponNotFoundError,
-  UserCouponRecoverOrderIdMismatchError,
-} from "@/coupon/domain/exceptions/user-coupon.exception";
+import { UserCouponNotFoundError } from "@/coupon/application/coupon.application.exceptions";
+import { UserCouponRecoverOrderIdMismatchError } from "@/coupon/domain/exceptions/user-coupon.exception";
 import {
   UserCoupon,
   UserCouponStatus,
@@ -46,7 +44,7 @@ describe("RecoverUserCouponUseCase", () => {
       // 쿠폰을 사용된 상태로 만들기
       userCoupon.use(orderId, discountPrice);
 
-      userCouponRepository.findById.mockResolvedValue(userCoupon);
+      userCouponRepository.findByIdWithLock.mockResolvedValue(userCoupon);
 
       const result = await useCase.execute({
         userCouponId: userCoupon.id,
@@ -69,7 +67,7 @@ describe("RecoverUserCouponUseCase", () => {
 
       const originalStatus = userCoupon.status;
 
-      userCouponRepository.findById.mockResolvedValue(userCoupon);
+      userCouponRepository.findByIdWithLock.mockResolvedValue(userCoupon);
 
       const result = await useCase.execute({
         userCouponId: userCoupon.id,
@@ -93,7 +91,7 @@ describe("RecoverUserCouponUseCase", () => {
       userCoupon.cancel();
       const originalStatus = userCoupon.status;
 
-      userCouponRepository.findById.mockResolvedValue(userCoupon);
+      userCouponRepository.findByIdWithLock.mockResolvedValue(userCoupon);
 
       const result = await useCase.execute({
         userCouponId: userCoupon.id,
@@ -133,7 +131,7 @@ describe("RecoverUserCouponUseCase", () => {
       // 쿠폰을 사용된 상태로 만들기
       userCoupon.use(orderId, discountPrice);
 
-      userCouponRepository.findById.mockResolvedValue(userCoupon);
+      userCouponRepository.findByIdWithLock.mockResolvedValue(userCoupon);
 
       await expect(
         useCase.execute({
@@ -157,7 +155,7 @@ describe("RecoverUserCouponUseCase", () => {
       // 쿠폰을 사용된 상태로 만들기
       userCoupon.use(orderId, discountPrice);
 
-      userCouponRepository.findById.mockResolvedValue(userCoupon);
+      userCouponRepository.findByIdWithLock.mockResolvedValue(userCoupon);
 
       // 첫 번째 복구
       const firstResult = await useCase.execute({

@@ -9,14 +9,6 @@ export abstract class CouponDomainError extends Error {
   }
 }
 
-export class CouponNotFoundError extends CouponDomainError {
-  readonly code = "COUPON_NOT_FOUND";
-
-  constructor(couponId: string) {
-    super(`쿠폰을 찾을 수 없습니다. ID: ${couponId}`);
-  }
-}
-
 export class InvalidCouponCodeError extends CouponDomainError {
   readonly code = "INVALID_COUPON_CODE";
 
@@ -76,5 +68,13 @@ export class CannotCancelExhaustedCouponError extends CouponDomainError {
 
   constructor(couponId: string) {
     super(`쿠폰을 취소할 수 없습니다. ID: ${couponId}`);
+  }
+}
+
+export class UserCouponAlreadyIssuedError extends CouponDomainError {
+  readonly code = "USER_COUPON_ALREADY_ISSUED";
+
+  constructor(userCouponId: string) {
+    super(`이미 발급된 쿠폰입니다. ID: ${userCouponId}`);
   }
 }

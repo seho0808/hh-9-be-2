@@ -9,7 +9,7 @@ import { GetAllProductsUseCase } from "./application/use-cases/tier-1-in-domain/
 import { ReserveStockUseCase } from "./application/use-cases/tier-1-in-domain/reserve-stock.use-case";
 import { ReleaseStockUseCase } from "./application/use-cases/tier-1-in-domain/release-stock.use-case";
 import { ConfirmStockUseCase } from "./application/use-cases/tier-1-in-domain/confirm-stock.use-case";
-import { GetStockReservationsByKeyUseCase } from "./application/use-cases/tier-1-in-domain/get-stock-reservations-by-key.use-case";
+import { GetStockReservationsByOrderIdUseCase } from "./application/use-cases/tier-1-in-domain/get-stock-reservations-by-order-id.use-case";
 import { AuthModule } from "../auth/auth.module";
 import { StockReservationTypeOrmEntity } from "./infrastructure/persistence/orm/stock-reservations.typeorm.entity";
 import { StockReservationRepository } from "./infrastructure/persistence/stock-reservations.repository";
@@ -38,13 +38,14 @@ import { ValidateStockService } from "./domain/services/validate-stock.service";
     ReserveStocksUseCase,
     ReleaseStockUseCase,
     ConfirmStockUseCase,
-    GetStockReservationsByKeyUseCase,
+    GetStockReservationsByOrderIdUseCase,
     GetPopularProductsWithDetailUseCase,
     ValidateStockService,
     ProductRepository,
     StockReservationRepository,
   ],
   exports: [
+    GetStockReservationsByOrderIdUseCase,
     GetProductsPriceUseCase,
     GetProductsByIdsUseCase,
     ReserveStocksUseCase,
