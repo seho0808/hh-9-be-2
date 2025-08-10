@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { MySqlContainer, StartedMySqlContainer } from "@testcontainers/mysql";
+import { RedisContainer, StartedRedisContainer } from "@testcontainers/redis";
 import { AppModule } from "../src/app.module";
 import { UserTypeOrmEntity } from "../src/user/infrastructure/persistence/orm/user.typeorm.entity";
 import { ProductTypeOrmEntity } from "../src/product/infrastructure/persistence/orm/product.typeorm.entity";
@@ -25,10 +26,12 @@ export interface TestContainerConfig {
   database?: string;
   username?: string;
   password?: string;
+  redisVersion?: string;
 }
 
 export class TestContainersHelper {
   private mysqlContainer: StartedMySqlContainer | null = null;
+  private redisContainer: StartedRedisContainer | null = null;
   private app: INestApplication | null = null;
   private dataSource: DataSource | null = null;
 
@@ -65,6 +68,29 @@ export class TestContainersHelper {
     };
   }
 
+  private async setupRedisContainer(config: TestContainerConfig = {}): Promise<{
+    container: StartedRedisContainer;
+    workerId: string;
+  }> {
+    const workerId = process.env.JEST_WORKER_ID || "1";
+    const { redisVersion = "redis:7-alpine" } = config;
+
+    console.log(`🚀 [Worker ${workerId}] Starting Redis setup...`);
+
+    this.redisContainer = await new RedisContainer(redisVersion)
+      .withExposedPorts(6379)
+      .start();
+
+    console.log(
+      `🔴 [Worker ${workerId}] Redis Container started on port ${this.redisContainer.getPort()}`
+    );
+
+    return {
+      container: this.redisContainer,
+      workerId,
+    };
+  }
+
   private async createDataSource(
     container: StartedMySqlContainer
   ): Promise<DataSource> {
@@ -95,6 +121,30 @@ export class TestContainersHelper {
     addTransactionalDataSource(dataSource);
 
     return dataSource;
+  }
+
+  async setupDatabaseAndRedis(config: TestContainerConfig = {}): Promise<{
+    dataSource: DataSource;
+    mysqlContainer: StartedMySqlContainer;
+    redisContainer: StartedRedisContainer;
+  }> {
+    initializeTransactionalContext();
+
+    const { container: mysqlContainer, workerId } =
+      await this.setupMySQLContainer(config);
+    const { container: redisContainer } =
+      await this.setupRedisContainer(config);
+
+    // Create minimal DataSource for integration tests
+    this.dataSource = await this.createDataSource(mysqlContainer);
+
+    console.log(`✅ [Worker ${workerId}] Database and Redis initialized`);
+
+    return {
+      dataSource: this.dataSource,
+      mysqlContainer,
+      redisContainer,
+    };
   }
 
   async setupWithMySQL(config: TestContainerConfig = {}): Promise<{
@@ -214,6 +264,12 @@ export class TestContainersHelper {
         await this.mysqlContainer.stop();
         this.mysqlContainer = null;
         console.log(`🐳 [Worker ${workerId}] MySQL Container stopped`);
+      }
+
+      if (this.redisContainer) {
+        await this.redisContainer.stop();
+        this.redisContainer = null;
+        console.log(`🔴 [Worker ${workerId}] Redis Container stopped`);
       }
     } catch (error) {
       console.error(`❌ [Worker ${workerId}] Cleanup error:`, error);
