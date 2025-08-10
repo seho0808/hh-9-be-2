@@ -132,7 +132,6 @@ describe("Coupon SpinLock Concurrency Tests", () => {
             userId: `user-${i}`,
             couponCode: "SPINLOCK_LIMITED5",
             idempotencyKey: `spinlock-limited-issue-${i}`,
-            lockStrategy: "spinlock",
           })
           .catch((error) => ({ error }))
       );
@@ -181,7 +180,6 @@ describe("Coupon SpinLock Concurrency Tests", () => {
             userId: targetUserId,
             couponCode: "SPINLOCK_SAMEUSER10",
             idempotencyKey: `spinlock-same-user-issue-${i}`, // 각각 다른 idempotencyKey
-            lockStrategy: "spinlock",
           })
           .catch((error) => ({ error }))
       );
@@ -229,7 +227,6 @@ describe("Coupon SpinLock Concurrency Tests", () => {
             userId: `user-${i}`,
             couponCode: "SPINLOCK_HIGH_LOAD",
             idempotencyKey: `high-load-issue-${i}`,
-            lockStrategy: "spinlock",
           })
           .catch((error) => ({ error, userId: `user-${i}` }))
       );
@@ -297,7 +294,6 @@ describe("Coupon SpinLock Concurrency Tests", () => {
                 userId: `user-${i}`,
                 couponCode: "SPINLOCK_TIMEOUT_TEST",
                 idempotencyKey: `timeout-test-${i}`,
-                lockStrategy: "spinlock",
               })
               .catch((error) => ({ error, userId: `user-${i}` }))
         );
