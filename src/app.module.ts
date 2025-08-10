@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ScheduleModule } from "@nestjs/schedule";
-import { DatabaseModule } from "./database/database.module";
+import { DatabaseModule } from "./common/infrastructure/config/database.module";
+import { RedisModule } from "./common/infrastructure/config/redis.module";
 import { AuthModule } from "./auth/auth.module";
 import { UserModule } from "./user/user.module";
 import { ProductModule } from "./product/product.module";
@@ -11,6 +12,7 @@ import { OrderModule } from "./order/order.module";
 @Module({
   imports: [
     ScheduleModule.forRoot(),
+    RedisModule,
     // DatabaseModule,
     AuthModule,
     UserModule,
