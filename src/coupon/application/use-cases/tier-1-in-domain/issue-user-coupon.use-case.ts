@@ -14,6 +14,7 @@ export interface IssueUserCouponCommand {
   userId: string;
   couponCode: string;
   idempotencyKey: string;
+  lockStrategy: "db-lock" | "no-lock";
 }
 
 export interface IssueUserCouponResult {
@@ -32,7 +33,8 @@ export class IssueUserCouponUseCase {
   async execute(
     command: IssueUserCouponCommand
   ): Promise<IssueUserCouponResult> {
-    const { couponId, userId, couponCode, idempotencyKey } = command;
+    const { couponId, userId, couponCode, idempotencyKey, lockStrategy } =
+      command;
 
     const idempotencyKeyObj =
       await this.userCouponRepository.findByIdempotencyKey(idempotencyKey);
@@ -40,17 +42,24 @@ export class IssueUserCouponUseCase {
       throw new DuplicateIdempotencyKeyError(idempotencyKey);
     }
 
-    // 데드락 방지를 위해 coupon => userCoupon 순으로 타 유스케이스와 조회 순서 동일
-    const coupon = await this.couponRepository.findByIdWithLock(couponId);
+    const coupon =
+      lockStrategy === "db-lock"
+        ? await this.couponRepository.findByIdWithLock(couponId)
+        : await this.couponRepository.findById(couponId);
     if (!coupon) {
       throw new CouponNotFoundError(couponId);
     }
 
     const existingUserCoupon =
-      await this.userCouponRepository.findByCouponIdAndUserIdWithLock(
-        couponId,
-        userId
-      );
+      lockStrategy === "db-lock"
+        ? await this.userCouponRepository.findByCouponIdAndUserIdWithLock(
+            couponId,
+            userId
+          )
+        : await this.userCouponRepository.findByCouponIdAndUserId(
+            couponId,
+            userId
+          );
 
     coupon.issue(couponCode, existingUserCoupon);
     const userCoupon = UserCoupon.create({
