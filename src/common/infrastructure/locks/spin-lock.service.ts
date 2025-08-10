@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import Redlock from "redlock";
+import Redlock, { ExecutionError } from "redlock";
 import { RedisConfig } from "../config/redis.config";
 import { LockService, LockOptions } from "./lock.interfaces";
 import { SpinLockTimeoutError } from "../infrastructure.exceptions";
@@ -29,7 +29,10 @@ export class SpinLockService implements LockService {
     try {
       return await this.redlock.using([lockKey], ttl, fn);
     } catch (error) {
-      throw new SpinLockTimeoutError(lockKey, error.message);
+      if (error instanceof ExecutionError) {
+        throw new SpinLockTimeoutError(lockKey, error.message);
+      }
+      throw error;
     }
   }
 }
