@@ -16,3 +16,11 @@ export class OptimisticLockError extends InfrastructureError {
     );
   }
 }
+
+export class SpinLockTimeoutError extends InfrastructureError {
+  readonly code = "SPIN_LOCK_TIMEOUT";
+
+  constructor(lockKey: string, error: string) {
+    super(`스핀락 타임아웃 (키: ${lockKey}): ${error}`);
+  }
+}
