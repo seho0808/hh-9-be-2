@@ -13,7 +13,7 @@ import {
   ApiBearerAuth,
 } from "@nestjs/swagger";
 import { UserResponseDto } from "@/user/presentation/http/dto/user.dto";
-import { ApiResponseDto } from "@/common/dto/response.dto";
+import { ApiResponseDto } from "@/common/presentation/dto/response.dto";
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
 import {
   CurrentUser,

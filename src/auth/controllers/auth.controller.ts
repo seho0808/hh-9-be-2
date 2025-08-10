@@ -10,7 +10,7 @@ import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { AuthService } from "../services/auth.service";
 import { LoginDto, LoginResponseDto } from "../dto/login.dto";
 import { RegisterDto, RegisterResponseDto } from "../dto/register.dto";
-import { ApiResponseDto } from "@/common/dto/response.dto";
+import { ApiResponseDto } from "@/common/presentation/dto/response.dto";
 import { AuthExceptionFilter } from "../filters/auth-exception.filter";
 
 @ApiTags("인증")

@@ -21,7 +21,7 @@ import {
 import {
   ApiResponseDto,
   PaginatedResponseDto,
-} from "@/common/dto/response.dto";
+} from "@/common/presentation/dto/response.dto";
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
 import { ProductExceptionFilter } from "./filters/product-exception.filter";
 import { GetAllProductsUseCase } from "@/product/application/use-cases/tier-1-in-domain/get-all-products.use-case";

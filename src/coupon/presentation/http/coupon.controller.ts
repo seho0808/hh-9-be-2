@@ -19,7 +19,7 @@ import {
   UserCouponResponseDto,
   ClaimCouponDto,
 } from "./dto/coupon.dto";
-import { ApiResponseDto } from "@/common/dto/response.dto";
+import { ApiResponseDto } from "@/common/presentation/dto/response.dto";
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
 import {
   CurrentUser,

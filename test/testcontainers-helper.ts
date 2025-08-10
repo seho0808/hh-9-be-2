@@ -145,7 +145,9 @@ export class TestContainersHelper {
     // GlobalExceptionFilter 설정 (main.ts와 동일)
     this.app.useGlobalFilters(
       new (
-        await import("../src/common/filters/global-exception.filter")
+        await import(
+          "../src/common/presentation/filters/global-exception.filter"
+        )
       ).GlobalExceptionFilter()
     );
 
