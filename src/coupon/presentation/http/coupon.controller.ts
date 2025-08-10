@@ -6,6 +6,7 @@ import {
   Body,
   UseGuards,
   UseFilters,
+  Headers,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -13,13 +14,14 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
+  ApiHeader,
 } from "@nestjs/swagger";
 import {
   CouponResponseDto,
   UserCouponResponseDto,
   ClaimCouponDto,
 } from "./dto/coupon.dto";
-import { ApiResponseDto } from "@/common/dto/response.dto";
+import { ApiResponseDto } from "@/common/presentation/dto/response.dto";
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
 import {
   CurrentUser,
@@ -29,6 +31,7 @@ import { CouponExceptionFilter } from "./filters/coupon-exception.filter";
 import { v4 as uuidv4 } from "uuid";
 import { GetAllCouponsUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-all-coupons.use-case";
 import { IssueUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/issue-user-coupon.use-case";
+import { IssueUserCouponWithSpinLockUseCase } from "@/coupon/application/use-cases/tier-2/issue-user-coupon-with-spin-lock.use-case";
 import { GetCouponByIdUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-coupon-by-id.use-case";
 
 @ApiTags("쿠폰")
@@ -40,7 +43,8 @@ export class CouponController {
   constructor(
     private readonly getAllCouponsUseCase: GetAllCouponsUseCase,
     private readonly getCouponByIdUseCase: GetCouponByIdUseCase,
-    private readonly issueUserCouponUseCase: IssueUserCouponUseCase
+    private readonly issueUserCouponUseCase: IssueUserCouponUseCase,
+    private readonly issueUserCouponWithSpinLockUseCase: IssueUserCouponWithSpinLockUseCase
   ) {}
 
   @Get()
@@ -85,11 +89,22 @@ export class CouponController {
   }
 
   @Post(":couponId/claims")
-  @ApiOperation({ summary: "쿠폰 발급 요청 (선착순)" })
+  @ApiOperation({
+    summary: "쿠폰 발급 요청",
+    description:
+      "X-Lock-Strategy 헤더로 락 전략을 선택할 수 있습니다. 기본값은 'database'입니다. 'spinlock'을 사용하면 스핀락(반복 시도)을 사용합니다.",
+  })
   @ApiParam({
     name: "couponId",
     description: "쿠폰 ID",
     example: "coupon-1",
+  })
+  @ApiHeader({
+    name: "X-Lock-Strategy",
+    description: "락 전략 선택 (database: DB락, spinlock: 스핀락 - 반복 시도)",
+    required: false,
+    enum: ["database", "spinlock"],
+    example: "database",
   })
   @ApiResponse({
     status: 201,
@@ -107,18 +122,38 @@ export class CouponController {
   async claimCoupon(
     @CurrentUser() user: CurrentUserData,
     @Param("couponId") couponId: string,
-    @Body() claimDto: ClaimCouponDto
+    @Body() claimDto: ClaimCouponDto,
+    @Headers("x-lock-strategy") lockStrategy?: string
   ): Promise<ApiResponseDto<UserCouponResponseDto>> {
     const idempotencyKey = claimDto.idempotencyKey || uuidv4();
-    const result = await this.issueUserCouponUseCase.execute({
-      couponId,
-      userId: user.id,
-      couponCode: claimDto.couponCode,
-      idempotencyKey,
-    });
-    return ApiResponseDto.success(
-      UserCouponResponseDto.fromEntity(result.userCoupon),
-      "쿠폰이 성공적으로 발급되었습니다"
-    );
+    const selectedStrategy = lockStrategy?.toLowerCase() || "database";
+
+    if (selectedStrategy === "spinlock") {
+      const result = await this.issueUserCouponWithSpinLockUseCase.execute({
+        couponId,
+        userId: user.id,
+        couponCode: claimDto.couponCode,
+        idempotencyKey,
+        lockStrategy: "both",
+      });
+
+      return ApiResponseDto.success(
+        UserCouponResponseDto.fromEntity(result.userCoupon),
+        "쿠폰이 성공적으로 발급되었습니다"
+      );
+    } else {
+      const result = await this.issueUserCouponUseCase.execute({
+        couponId,
+        userId: user.id,
+        couponCode: claimDto.couponCode,
+        idempotencyKey,
+        lockStrategy: "db-lock",
+      });
+
+      return ApiResponseDto.success(
+        UserCouponResponseDto.fromEntity(result.userCoupon),
+        "쿠폰이 성공적으로 발급되었습니다"
+      );
+    }
   }
 }

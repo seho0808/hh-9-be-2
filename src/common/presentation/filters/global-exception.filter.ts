@@ -8,7 +8,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { Response, Request } from "express";
-import { StandardErrorResponseDto } from "@/common/dto/standard-error-response.dto";
+import { StandardErrorResponseDto } from "@/common/presentation/dto/standard-error-response.dto";
 import { ErrorCode } from "@/common/constants/error-codes.enum";
 
 /**

@@ -19,7 +19,7 @@ import { CreateOrderDto, OrderResponseDto } from "./dto/order.dto";
 import {
   ApiResponseDto,
   PaginatedResponseDto,
-} from "../../../common/dto/response.dto";
+} from "../../../common/presentation/dto/response.dto";
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
 import {
   CurrentUser,

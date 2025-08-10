@@ -8,7 +8,7 @@ import { ErrorCode } from "@/common/constants/error-codes.enum";
 import {
   BaseExceptionFilter,
   ErrorMapping,
-} from "@/common/filters/base-exception.filter";
+} from "@/common/presentation/filters/base-exception.filter";
 
 type AuthException = ConflictException | UnauthorizedException;
 

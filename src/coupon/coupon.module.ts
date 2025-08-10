@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { AuthModule } from "../auth/auth.module";
+import { LocksModule } from "../common/infrastructure/locks/locks.module";
 import { CouponController } from "./presentation/http/coupon.controller";
 import { UserCouponController } from "./presentation/http/user-coupon.controller";
 import { GetAllCouponsUseCase } from "./application/use-cases/tier-1-in-domain/get-all-coupons.use-case";
@@ -16,11 +17,13 @@ import { UserCouponTypeOrmEntity } from "./infrastructure/persistence/orm/user-c
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { RecoverUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/recover-user-coupon.use-case";
 import { ValidateUserCouponService } from "./domain/services/validate-user-coupon.service";
+import { IssueUserCouponWithSpinLockUseCase } from "./application/use-cases/tier-2/issue-user-coupon-with-spin-lock.use-case";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserCouponTypeOrmEntity, CouponTypeOrmEntity]),
     AuthModule,
+    LocksModule,
   ],
   controllers: [CouponController, UserCouponController],
   providers: [
@@ -28,6 +31,7 @@ import { ValidateUserCouponService } from "./domain/services/validate-user-coupo
     GetAllUserCouponsUseCase,
     GetCouponByIdUseCase,
     IssueUserCouponUseCase,
+    IssueUserCouponWithSpinLockUseCase,
     UseUserCouponUseCase,
     ValidateUserCouponUseCase,
     CancelUserCouponUseCase,

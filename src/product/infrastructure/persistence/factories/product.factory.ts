@@ -2,7 +2,7 @@ import { ProductTypeOrmEntity } from "../orm/product.typeorm.entity";
 import {
   createEntityFactory,
   getBaseProps,
-} from "../../../../common/factories/base.factory";
+} from "../../../../common/infrastructure/base.factory";
 import {
   TEST_FACTORY_DEFAULTS,
   createTestName,
