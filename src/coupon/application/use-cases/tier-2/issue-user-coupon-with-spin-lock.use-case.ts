@@ -9,7 +9,6 @@ export interface IssueUserCouponWithSpinLockCommand {
   userId: string;
   couponCode: string;
   idempotencyKey: string;
-  lockStrategy: "spinlock" | "both";
 }
 
 export interface IssueUserCouponWithSpinLockResult {
@@ -30,10 +29,7 @@ export class IssueUserCouponWithSpinLockUseCase {
     const lockKey = `spinlock:coupon:issue:${command.couponId}`;
 
     return await this.spinLockService.withLock(lockKey, async () => {
-      return await this.issueUserCouponUseCase.execute({
-        ...command,
-        lockStrategy: command.lockStrategy === "both" ? "db-lock" : "no-lock",
-      });
+      return await this.issueUserCouponUseCase.execute(command);
     });
   }
 }

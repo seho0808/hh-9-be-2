@@ -14,7 +14,6 @@ export interface IssueUserCouponCommand {
   userId: string;
   couponCode: string;
   idempotencyKey: string;
-  lockStrategy: "db-lock" | "no-lock";
 }
 
 export interface IssueUserCouponResult {
@@ -33,8 +32,7 @@ export class IssueUserCouponUseCase {
   async execute(
     command: IssueUserCouponCommand
   ): Promise<IssueUserCouponResult> {
-    const { couponId, userId, couponCode, idempotencyKey, lockStrategy } =
-      command;
+    const { couponId, userId, couponCode, idempotencyKey } = command;
 
     const idempotencyKeyObj =
       await this.userCouponRepository.findByIdempotencyKey(idempotencyKey);
@@ -42,24 +40,16 @@ export class IssueUserCouponUseCase {
       throw new DuplicateIdempotencyKeyError(idempotencyKey);
     }
 
-    const coupon =
-      lockStrategy === "db-lock"
-        ? await this.couponRepository.findByIdWithLock(couponId)
-        : await this.couponRepository.findById(couponId);
+    const coupon = await this.couponRepository.findByIdWithLock(couponId);
     if (!coupon) {
       throw new CouponNotFoundError(couponId);
     }
 
     const existingUserCoupon =
-      lockStrategy === "db-lock"
-        ? await this.userCouponRepository.findByCouponIdAndUserIdWithLock(
-            couponId,
-            userId
-          )
-        : await this.userCouponRepository.findByCouponIdAndUserId(
-            couponId,
-            userId
-          );
+      await this.userCouponRepository.findByCouponIdAndUserIdWithLock(
+        couponId,
+        userId
+      );
 
     coupon.issue(couponCode, existingUserCoupon);
     const userCoupon = UserCoupon.create({

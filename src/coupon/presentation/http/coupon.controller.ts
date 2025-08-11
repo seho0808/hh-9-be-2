@@ -134,7 +134,6 @@ export class CouponController {
         userId: user.id,
         couponCode: claimDto.couponCode,
         idempotencyKey,
-        lockStrategy: "both",
       });
 
       return ApiResponseDto.success(
@@ -147,7 +146,6 @@ export class CouponController {
         userId: user.id,
         couponCode: claimDto.couponCode,
         idempotencyKey,
-        lockStrategy: "db-lock",
       });
 
       return ApiResponseDto.success(
