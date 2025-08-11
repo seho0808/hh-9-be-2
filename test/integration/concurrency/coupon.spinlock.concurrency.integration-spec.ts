@@ -2,7 +2,10 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { DataSource, Repository } from "typeorm";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { ConfigService } from "@nestjs/config";
-import { TestContainersHelper } from "../../testcontainers-helper";
+import {
+  TestEnvironmentFactory,
+  TestEnvironment,
+} from "../../test-environment/test-environment.factory";
 import { CouponFactory } from "@/coupon/infrastructure/persistence/factories/coupon.factory";
 import { UserCouponFactory } from "@/coupon/infrastructure/persistence/factories/user-coupon.factory";
 import { CouponTypeOrmEntity } from "@/coupon/infrastructure/persistence/orm/coupon.typeorm.entity";
@@ -19,7 +22,8 @@ import { RedisConfig } from "@/common/infrastructure/config/redis.config";
 import { SpinLockService } from "@/common/infrastructure/locks/spin-lock.service";
 
 describe("Coupon SpinLock Concurrency Tests", () => {
-  let testHelper: TestContainersHelper;
+  let factory: TestEnvironmentFactory;
+  let environment: TestEnvironment;
   let dataSource: DataSource;
   let couponRepository: Repository<CouponTypeOrmEntity>;
   let userCouponRepository: Repository<UserCouponTypeOrmEntity>;
@@ -27,9 +31,9 @@ describe("Coupon SpinLock Concurrency Tests", () => {
   let redisConfig: RedisConfig;
 
   beforeAll(async () => {
-    testHelper = new TestContainersHelper();
-    const setup = await testHelper.setupDatabaseAndRedis();
-    dataSource = setup.dataSource;
+    factory = new TestEnvironmentFactory();
+    environment = await factory.createDatabaseAndRedisEnvironment();
+    dataSource = environment.dataSource;
 
     couponRepository = dataSource.getRepository(CouponTypeOrmEntity);
     userCouponRepository = dataSource.getRepository(UserCouponTypeOrmEntity);
@@ -38,8 +42,8 @@ describe("Coupon SpinLock Concurrency Tests", () => {
     const mockConfigService = {
       get: jest.fn((key: string, defaultValue?: any) => {
         const config = {
-          REDIS_HOST: setup.redisContainer.getHost(),
-          REDIS_PORT: setup.redisContainer.getPort(),
+          REDIS_HOST: environment.redisContainer!.getHost(),
+          REDIS_PORT: environment.redisContainer!.getPort(),
           REDIS_DB: 0,
         };
         return config[key] || defaultValue;
@@ -79,12 +83,12 @@ describe("Coupon SpinLock Concurrency Tests", () => {
 
   afterAll(async () => {
     await redisConfig.disconnect();
-    await testHelper.cleanup();
+    await factory.cleanup(environment);
   });
 
   beforeEach(async () => {
-    await testHelper.clearDatabase(dataSource);
-    await testHelper.createTestUser(dataSource);
+    await environment.dbHelper.clearDatabase();
+    await environment.dataHelper.createTestUser();
 
     // Create additional test users for concurrent requests
     const hashedPassword = "hashed_password";

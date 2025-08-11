@@ -1,7 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DataSource, Repository } from "typeorm";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { TestContainersHelper } from "../../testcontainers-helper";
+import {
+  TestEnvironmentFactory,
+  TestEnvironment,
+} from "../../test-environment/test-environment.factory";
 import { OrderRepository } from "../../../src/order/infrastructure/persistence/order.repository";
 import { OrderFactory } from "../../../src/order/infrastructure/persistence/factories/order.factory";
 import { OrderItemFactory } from "../../../src/order/infrastructure/persistence/factories/order-item.factory";
@@ -15,7 +18,8 @@ import { ProductTypeOrmEntity } from "../../../src/product/infrastructure/persis
 import * as bcrypt from "bcrypt";
 
 describe("OrderRepository Integration Tests", () => {
-  let testHelper: TestContainersHelper;
+  let factory: TestEnvironmentFactory;
+  let environment: TestEnvironment;
   let dataSource: DataSource;
   let orderRepository: OrderRepository;
   let orderOrmRepository: Repository<OrderTypeOrmEntity>;
@@ -23,9 +27,9 @@ describe("OrderRepository Integration Tests", () => {
   let productOrmRepository: Repository<ProductTypeOrmEntity>;
 
   beforeAll(async () => {
-    testHelper = new TestContainersHelper();
-    const setup = await testHelper.setupDatabaseOnly();
-    dataSource = setup.dataSource;
+    factory = new TestEnvironmentFactory();
+    environment = await factory.createDatabaseOnlyEnvironment();
+    dataSource = environment.dataSource;
 
     orderOrmRepository = dataSource.getRepository(OrderTypeOrmEntity);
     orderItemOrmRepository = dataSource.getRepository(OrderItemTypeOrmEntity);
@@ -49,11 +53,11 @@ describe("OrderRepository Integration Tests", () => {
   });
 
   afterAll(async () => {
-    await testHelper.cleanup();
+    await factory.cleanup(environment);
   });
 
   beforeEach(async () => {
-    await testHelper.clearDatabase(dataSource);
+    await environment.dbHelper.clearDatabase();
 
     // 실제 테스트에서 사용하는 유저들만 생성
     const hashedPassword = bcrypt.hashSync("testPassword123", 10);

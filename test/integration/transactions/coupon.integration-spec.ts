@@ -1,7 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DataSource, Repository } from "typeorm";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { TestContainersHelper } from "../../testcontainers-helper";
+import {
+  TestEnvironmentFactory,
+  TestEnvironment,
+} from "../../test-environment/test-environment.factory";
 import { CouponFactory } from "@/coupon/infrastructure/persistence/factories/coupon.factory";
 import { UserCouponFactory } from "@/coupon/infrastructure/persistence/factories/user-coupon.factory";
 import { CouponTypeOrmEntity } from "@/coupon/infrastructure/persistence/orm/coupon.typeorm.entity";
@@ -22,7 +25,8 @@ import {
 } from "@/coupon/application/coupon.application.exceptions";
 
 describe("Coupon Domain Integration Tests", () => {
-  let testHelper: TestContainersHelper;
+  let factory: TestEnvironmentFactory;
+  let environment: TestEnvironment;
   let dataSource: DataSource;
   let couponRepository: Repository<CouponTypeOrmEntity>;
   let userCouponRepository: Repository<UserCouponTypeOrmEntity>;
@@ -31,9 +35,9 @@ describe("Coupon Domain Integration Tests", () => {
   let useUserCouponUseCase: UseUserCouponUseCase;
 
   beforeAll(async () => {
-    testHelper = new TestContainersHelper();
-    const setup = await testHelper.setupDatabaseOnly();
-    dataSource = setup.dataSource;
+    factory = new TestEnvironmentFactory();
+    environment = await factory.createDatabaseOnlyEnvironment();
+    dataSource = environment.dataSource;
 
     couponRepository = dataSource.getRepository(CouponTypeOrmEntity);
     userCouponRepository = dataSource.getRepository(UserCouponTypeOrmEntity);
@@ -68,12 +72,12 @@ describe("Coupon Domain Integration Tests", () => {
   });
 
   afterAll(async () => {
-    await testHelper.cleanup();
+    await factory.cleanup(environment);
   });
 
   beforeEach(async () => {
-    await testHelper.clearDatabase(dataSource);
-    await testHelper.createTestUser(dataSource);
+    await environment.dbHelper.clearDatabase();
+    await environment.dataHelper.createTestUser();
 
     // Reset factory counters
     CouponFactory.resetCounter();
