@@ -1,7 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DataSource, Repository } from "typeorm";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { TestContainersHelper } from "../../testcontainers-helper";
+import {
+  TestEnvironmentFactory,
+  TestEnvironment,
+} from "../../test-environment/test-environment.factory";
 import { UserBalanceFactory } from "@/wallet/infrastructure/persistence/factories/user-balance.factory";
 import { PointTransactionFactory } from "@/wallet/infrastructure/persistence/factories/point-transaction.factory";
 import { UserBalanceTypeOrmEntity } from "@/wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
@@ -22,7 +25,8 @@ import {
 import { InsufficientPointBalanceError } from "@/wallet/domain/exceptions/point.exceptions";
 
 describe("Wallet Domain Integration Tests", () => {
-  let testHelper: TestContainersHelper;
+  let factory: TestEnvironmentFactory;
+  let environment: TestEnvironment;
   let dataSource: DataSource;
   let userBalanceRepository: Repository<UserBalanceTypeOrmEntity>;
   let pointTransactionRepository: Repository<PointTransactionTypeOrmEntity>;
@@ -31,9 +35,9 @@ describe("Wallet Domain Integration Tests", () => {
   let recoverPointsUseCase: RecoverPointsUseCase;
 
   beforeAll(async () => {
-    testHelper = new TestContainersHelper();
-    const setup = await testHelper.setupDatabaseOnly();
-    dataSource = setup.dataSource;
+    factory = new TestEnvironmentFactory();
+    environment = await factory.createDatabaseOnlyEnvironment();
+    dataSource = environment.dataSource;
 
     userBalanceRepository = dataSource.getRepository(UserBalanceTypeOrmEntity);
     pointTransactionRepository = dataSource.getRepository(
@@ -67,12 +71,12 @@ describe("Wallet Domain Integration Tests", () => {
   });
 
   afterAll(async () => {
-    await testHelper.cleanup();
+    await factory.cleanup(environment);
   });
 
   beforeEach(async () => {
-    await testHelper.clearDatabase(dataSource);
-    await testHelper.createTestUser(dataSource);
+    await environment.dbHelper.clearDatabase();
+    await environment.dataHelper.createTestUser();
 
     // Reset factory counters
     UserBalanceFactory.resetCounter();

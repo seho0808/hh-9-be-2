@@ -1,7 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DataSource, Repository } from "typeorm";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { TestContainersHelper } from "../../testcontainers-helper";
+import {
+  TestEnvironmentFactory,
+  TestEnvironment,
+} from "../../test-environment/test-environment.factory";
 import { CouponFactory } from "@/coupon/infrastructure/persistence/factories/coupon.factory";
 import { UserCouponFactory } from "@/coupon/infrastructure/persistence/factories/user-coupon.factory";
 import { CouponTypeOrmEntity } from "@/coupon/infrastructure/persistence/orm/coupon.typeorm.entity";
@@ -24,7 +27,8 @@ import {
 import { UserTypeOrmEntity } from "@/user/infrastructure/persistence/orm/user.typeorm.entity";
 
 describe("Coupon Concurrency Tests", () => {
-  let testHelper: TestContainersHelper;
+  let factory: TestEnvironmentFactory;
+  let environment: TestEnvironment;
   let dataSource: DataSource;
   let couponRepository: Repository<CouponTypeOrmEntity>;
   let userCouponRepository: Repository<UserCouponTypeOrmEntity>;
@@ -35,9 +39,9 @@ describe("Coupon Concurrency Tests", () => {
   let recoverUserCouponUseCase: RecoverUserCouponUseCase;
 
   beforeAll(async () => {
-    testHelper = new TestContainersHelper();
-    const setup = await testHelper.setupDatabaseOnly();
-    dataSource = setup.dataSource;
+    factory = new TestEnvironmentFactory();
+    environment = await factory.createDatabaseOnlyEnvironment();
+    dataSource = environment.dataSource;
 
     couponRepository = dataSource.getRepository(CouponTypeOrmEntity);
     userCouponRepository = dataSource.getRepository(UserCouponTypeOrmEntity);
@@ -77,12 +81,12 @@ describe("Coupon Concurrency Tests", () => {
   });
 
   afterAll(async () => {
-    await testHelper.cleanup();
+    await factory.cleanup(environment);
   });
 
   beforeEach(async () => {
-    await testHelper.clearDatabase(dataSource);
-    await testHelper.createTestUser(dataSource);
+    await environment.dbHelper.clearDatabase();
+    await environment.dataHelper.createTestUser();
 
     // Create additional test users for concurrent requests
     const hashedPassword = "hashed_password";

@@ -1,7 +1,10 @@
 import { INestApplication } from "@nestjs/common";
 import * as request from "supertest";
 import { DataSource, Repository } from "typeorm";
-import { TestContainersHelper } from "../testcontainers-helper";
+import {
+  TestEnvironmentFactory,
+  TestEnvironment,
+} from "../test-environment/test-environment.factory";
 import { CouponFactory } from "../../src/coupon/infrastructure/persistence/factories/coupon.factory";
 import { UserCouponFactory } from "../../src/coupon/infrastructure/persistence/factories/user-coupon.factory";
 import { CouponTypeOrmEntity } from "../../src/coupon/infrastructure/persistence/orm/coupon.typeorm.entity";
@@ -12,25 +15,26 @@ describe("Coupon API E2E (with TestContainers)", () => {
   let dataSource: DataSource;
   let couponRepository: Repository<CouponTypeOrmEntity>;
   let userCouponRepository: Repository<UserCouponTypeOrmEntity>;
-  let testHelper: TestContainersHelper;
+  let factory: TestEnvironmentFactory;
+  let environment: TestEnvironment;
 
   beforeAll(async () => {
-    testHelper = new TestContainersHelper();
-    const setup = await testHelper.setupWithMySQL();
-    app = setup.app;
-    dataSource = setup.dataSource;
+    factory = new TestEnvironmentFactory();
+    environment = await factory.createE2EEnvironment();
+    app = environment.app!;
+    dataSource = environment.dataSource;
     couponRepository = dataSource.getRepository(CouponTypeOrmEntity);
     userCouponRepository = dataSource.getRepository(UserCouponTypeOrmEntity);
   });
 
   afterAll(async () => {
-    await testHelper.cleanup();
+    await factory.cleanup(environment);
   });
 
   beforeEach(async () => {
-    await testHelper.clearDatabase(dataSource);
+    await environment.dbHelper.clearDatabase();
     // 각 테스트를 위한 기본 사용자 생성 (인증용)
-    await testHelper.createTestUser(dataSource);
+    await environment.dataHelper.createTestUser();
     // Factory counter 초기화
     CouponFactory.resetCounter();
     UserCouponFactory.resetCounter();
@@ -40,7 +44,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
     it("전체 쿠폰 목록을 조회할 때 올바른 목록이 반환되어야 함", async () => {
       // Given: 테스트 쿠폰들 생성
       await CouponFactory.createManyAndSave(couponRepository, 3);
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 전체 쿠폰 조회
       const response = await request(app.getHttpServer())
@@ -70,7 +74,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
 
     it("빈 쿠폰 목록을 조회할 때 빈 배열이 반환되어야 함", async () => {
       // Given: 쿠폰 없음
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 전체 쿠폰 조회
       const response = await request(app.getHttpServer())
@@ -97,7 +101,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
       // When: 잘못된 토큰으로 쿠폰 목록 조회 시도
       const response = await request(app.getHttpServer())
         .get("/api/coupons")
-        .set(testHelper.getInvalidAuthHeaders())
+        .set(environment.dataHelper.getInvalidAuthHeaders())
         .expect(401);
 
       // Then: 인증 에러 메시지가 반환되어야 함
@@ -118,7 +122,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
         minimumOrderPrice: 50000,
         totalCount: 100,
       });
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 특정 쿠폰 조회
       const response = await request(app.getHttpServer())
@@ -151,7 +155,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
         maxDiscountPrice: 30000,
         minimumOrderPrice: 100000,
       });
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 퍼센트 쿠폰 조회
       const response = await request(app.getHttpServer())
@@ -167,7 +171,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
 
     it("존재하지 않는 쿠폰을 조회할 때 404 에러가 발생해야 함", async () => {
       // Given: 인증 헤더 준비
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 존재하지 않는 쿠폰 조회
       const response = await request(app.getHttpServer())
@@ -206,7 +210,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
         totalCount: 10,
         issuedCount: 0,
       });
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 쿠폰 발급 요청
       const response = await request(app.getHttpServer())
@@ -233,7 +237,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
       const testCoupon = await CouponFactory.createAndSave(couponRepository, {
         couponCode: "CORRECT2024",
       });
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 잘못된 쿠폰 코드로 발급 시도
       const response = await request(app.getHttpServer())
@@ -254,7 +258,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
         totalCount: 1,
         issuedCount: 1, // 이미 모든 재고 발급됨
       });
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 소진된 쿠폰 발급 시도
       const response = await request(app.getHttpServer())
@@ -279,7 +283,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
         couponCode: "EXPIRED2024",
         endDate: pastDate,
       });
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 만료된 쿠폰 발급 시도
       const response = await request(app.getHttpServer())
@@ -295,7 +299,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
 
     it("존재하지 않는 쿠폰으로 발급할 때 404 에러가 발생해야 함", async () => {
       // Given: 인증 헤더 준비
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 존재하지 않는 쿠폰으로 발급 시도
       const response = await request(app.getHttpServer())
@@ -327,7 +331,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
   describe("GET /api/users/me/coupons", () => {
     it("내가 가진 쿠폰 목록을 조회할 때 올바른 목록이 반환되어야 함", async () => {
       // Given: 사용자의 쿠폰들 생성
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
       const userId = "user-123"; // TestContainersHelper에서 생성되는 사용자 ID
 
       const coupon = await CouponFactory.createAndSave(couponRepository, {
@@ -367,7 +371,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
 
     it("쿠폰이 없는 경우 조회할 때 빈 배열이 반환되어야 함", async () => {
       // Given: 쿠폰이 없는 사용자
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 내 쿠폰 목록 조회
       const response = await request(app.getHttpServer())
@@ -420,7 +424,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
 
     it("DB 연결 상태 및 테이블 구조를 확인할 때 정상 동작해야 함", async () => {
       // DB 연결 확인
-      const isConnected = await testHelper.verifyDatabaseConnection(dataSource);
+      const isConnected = await environment.dbHelper.verifyConnection();
       expect(isConnected).toBe(true);
 
       // 테이블 존재 확인
@@ -430,10 +434,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
       expect(tableNames).toContain("user_coupons");
 
       // 쿠폰 테이블 구조 확인
-      const couponColumns = await testHelper.getTableInfo(
-        dataSource,
-        "coupons"
-      );
+      const couponColumns = await environment.dbHelper.getTableInfo("coupons");
       const couponColumnNames = couponColumns.map((col: any) => col.Field);
 
       expect(couponColumnNames).toContain("id");
@@ -446,10 +447,8 @@ describe("Coupon API E2E (with TestContainers)", () => {
       expect(couponColumnNames).toContain("total_count");
 
       // 사용자 쿠폰 테이블 구조 확인
-      const userCouponColumns = await testHelper.getTableInfo(
-        dataSource,
-        "user_coupons"
-      );
+      const userCouponColumns =
+        await environment.dbHelper.getTableInfo("user_coupons");
       const userCouponColumnNames = userCouponColumns.map(
         (col: any) => col.Field
       );
@@ -486,7 +485,7 @@ describe("Coupon API E2E (with TestContainers)", () => {
         couponRepository,
         3
       );
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 각 쿠폰을 개별적으로 조회
       for (const coupon of coupons) {
