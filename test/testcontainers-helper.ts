@@ -4,6 +4,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { MySqlContainer, StartedMySqlContainer } from "@testcontainers/mysql";
 import { RedisContainer, StartedRedisContainer } from "@testcontainers/redis";
 import { AppModule } from "../src/app.module";
+import { DatabaseModule } from "../src/common/infrastructure/config/database.module";
 import { UserTypeOrmEntity } from "../src/user/infrastructure/persistence/orm/user.typeorm.entity";
 import { ProductTypeOrmEntity } from "../src/product/infrastructure/persistence/orm/product.typeorm.entity";
 import { StockReservationTypeOrmEntity } from "../src/product/infrastructure/persistence/orm/stock-reservations.typeorm.entity";
@@ -156,9 +157,11 @@ export class TestContainersHelper {
 
     const { container, workerId } = await this.setupMySQLContainer(config);
 
-    // 테스트 모듈 생성
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
+      imports: [AppModule],
+    })
+      .overrideModule(DatabaseModule)
+      .useModule(
         TypeOrmModule.forRoot({
           type: "mysql",
           host: container.getHost(),
@@ -180,12 +183,8 @@ export class TestContainersHelper {
           synchronize: true,
           dropSchema: true,
           logging: false, // 테스트 시 로깅 비활성화
-        }),
-        AppModule,
-      ],
-    })
-      .overrideProvider("DatabaseModule")
-      .useValue({})
+        })
+      )
       .compile();
 
     // NestJS 앱 생성 및 초기화

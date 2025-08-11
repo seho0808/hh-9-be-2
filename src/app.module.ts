@@ -13,7 +13,7 @@ import { OrderModule } from "./order/order.module";
   imports: [
     ScheduleModule.forRoot(),
     RedisModule,
-    // DatabaseModule,
+    DatabaseModule,
     AuthModule,
     UserModule,
     ProductModule,
