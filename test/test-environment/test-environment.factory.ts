@@ -62,6 +62,18 @@ export class TestEnvironmentFactory {
     };
   }
 
+  async createRedisOnlyEnvironment(
+    config: TestEnvironmentConfig = {}
+  ): Promise<TestEnvironment> {
+    const redisContainer = await this.containerManager.setupRedis(config);
+
+    return {
+      redisContainer,
+      dataHelper: new DataHelper(null as any),
+      dbHelper: new DbHelper(null as any),
+    } as TestEnvironment;
+  }
+
   async createDatabaseAndRedisEnvironment(
     config: TestEnvironmentConfig = {}
   ): Promise<TestEnvironment> {

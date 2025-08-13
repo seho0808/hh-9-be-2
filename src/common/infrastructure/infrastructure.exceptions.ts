@@ -24,3 +24,11 @@ export class SpinLockTimeoutError extends InfrastructureError {
     super(`스핀락 타임아웃 (키: ${lockKey}): ${error}`);
   }
 }
+
+export class FencingTokenViolationError extends InfrastructureError {
+  readonly code = "FENCING_TOKEN_VIOLATION";
+
+  constructor(expectedToken: number, actualToken: number) {
+    super(`Fencing token 위반. 예상: ${expectedToken}, 실제: ${actualToken}`);
+  }
+}

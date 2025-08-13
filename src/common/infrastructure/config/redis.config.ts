@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import Redis from "ioredis";
+
 @Injectable()
-export class RedisConfig {
+export class RedisManager {
   private readonly redis: Redis;
 
   constructor() {
