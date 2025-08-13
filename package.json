@@ -18,7 +18,18 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/e2e/jest-e2e.json",
-    "test:integration": "jest --config ./test/integration/jest-integration.json"
+    "test:integration": "jest --config ./test/integration/jest-integration.json",
+    "k6:coupon": "k6 run scripts/k6-lock-test/k6-coupon-load-test.js",
+    "k6:coupon:database": "BASE_URL=http://[::1]:3000 LOCK_STRATEGY=database COUPON_ID=test-coupon-1 k6 run scripts/k6-lock-test/k6-coupon-load-test.js",
+    "k6:coupon:spinlock": "BASE_URL=http://[::1]:3000 LOCK_STRATEGY=spinlock COUPON_ID=test-coupon-1 k6 run scripts/k6-lock-test/k6-coupon-load-test.js",
+    "k6:coupon:pubsub": "BASE_URL=http://[::1]:3000 LOCK_STRATEGY=pubsub COUPON_ID=test-coupon-1 k6 run scripts/k6-lock-test/k6-coupon-load-test.js",
+    "k6:coupon:queue": "BASE_URL=http://[::1]:3000 LOCK_STRATEGY=queue COUPON_ID=test-coupon-1 k6 run scripts/k6-lock-test/k6-coupon-load-test.js",
+    "k6:coupon:fencing": "BASE_URL=http://[::1]:3000 LOCK_STRATEGY=fencing COUPON_ID=test-coupon-1 k6 run scripts/k6-lock-test/k6-coupon-load-test.js",
+    "k6:coupon:redlock": "BASE_URL=http://[::1]:3000 LOCK_STRATEGY=redlock COUPON_ID=test-coupon-1 k6 run scripts/k6-lock-test/k6-coupon-load-test.js",
+    "seed:coupon": "ts-node -r tsconfig-paths/register scripts/k6-lock-test/seed-test-coupon.ts",
+    "cleanup:test-data": "ts-node -r tsconfig-paths/register scripts/k6-lock-test/cleanup-test-data.ts",
+    "cleanup:test-users": "ts-node -r tsconfig-paths/register scripts/k6-lock-test/cleanup-test-data.ts users",
+    "reset:coupon-counts": "ts-node -r tsconfig-paths/register scripts/k6-lock-test/cleanup-test-data.ts reset"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
