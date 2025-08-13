@@ -1,18 +1,18 @@
 import { Injectable } from "@nestjs/common";
 import Redlock, { ExecutionError } from "redlock";
-import { RedisConfig } from "../config/redis.config";
+import { RedisManager } from "../config/redis.config";
 import { LockService, LockOptions } from "./lock.interfaces";
 import { SpinLockTimeoutError } from "../infrastructure.exceptions";
 
 @Injectable()
-export class SpinLockService implements LockService {
+export class RedlockSpinLockService implements LockService {
   private readonly redlock: Redlock;
   private readonly defaultTtl: number;
 
-  constructor(private readonly redisConfig: RedisConfig) {
+  constructor(private readonly redisManager: RedisManager) {
     this.defaultTtl = 5000;
 
-    this.redlock = new Redlock([this.redisConfig.getClient()], {
+    this.redlock = new Redlock([this.redisManager.getClient()], {
       retryDelay: 50,
       retryCount: 10,
       retryJitter: 50,
