@@ -18,7 +18,7 @@ import { IssueUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in
 import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
 import { ValidateUserCouponService } from "@/coupon/domain/services/validate-user-coupon.service";
-import { RedisConfig } from "@/common/infrastructure/config/redis.config";
+import { RedisManager } from "@/common/infrastructure/config/redis.config";
 import { SpinLockService } from "@/common/infrastructure/locks/spin-lock.service";
 
 describe("Coupon SpinLock Concurrency Tests", () => {
@@ -28,7 +28,7 @@ describe("Coupon SpinLock Concurrency Tests", () => {
   let couponRepository: Repository<CouponTypeOrmEntity>;
   let userCouponRepository: Repository<UserCouponTypeOrmEntity>;
   let issueUserCouponWithSpinLockUseCase: IssueUserCouponWithSpinLockUseCase;
-  let redisConfig: RedisConfig;
+  let redisManager: RedisManager;
 
   beforeAll(async () => {
     factory = new TestEnvironmentFactory();
@@ -68,7 +68,7 @@ describe("Coupon SpinLock Concurrency Tests", () => {
         UserCouponRepository,
         ValidateUserCouponService,
         IssueUserCouponUseCase,
-        RedisConfig,
+        RedisManager,
         SpinLockService,
         IssueUserCouponWithSpinLockUseCase,
       ],
@@ -78,11 +78,11 @@ describe("Coupon SpinLock Concurrency Tests", () => {
       moduleFixture.get<IssueUserCouponWithSpinLockUseCase>(
         IssueUserCouponWithSpinLockUseCase
       );
-    redisConfig = moduleFixture.get<RedisConfig>(RedisConfig);
+    redisManager = moduleFixture.get<RedisManager>(RedisManager);
   });
 
   afterAll(async () => {
-    await redisConfig.disconnect();
+    await redisManager.disconnect();
     await factory.cleanup(environment);
   });
 
@@ -282,7 +282,7 @@ describe("Coupon SpinLock Concurrency Tests", () => {
       // 먼저 수동으로 락을 획득하여 충돌 상황 생성
       const lockKey = `spinlock:coupon:issue:${coupon.id}`;
       const lockValue = `test-lock-${Date.now()}`;
-      const redis = redisConfig.getClient();
+      const redis = redisManager.getClient();
       await redis.set(lockKey, lockValue, "EX", 10); // 10초 동안 락 유지
 
       try {
