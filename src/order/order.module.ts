@@ -1,5 +1,6 @@
 import { forwardRef, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { ScheduleModule } from "@nestjs/schedule";
 import {
   OrderController,
   UserOrderController,
@@ -41,6 +42,7 @@ import { RecoverOrderUseCase } from "./application/use-cases/tier-2/recover-orde
 import { PrepareOrderUseCase } from "./application/use-cases/tier-3/prepare-order.use-case";
 import { ProcessOrderUseCase } from "./application/use-cases/tier-2/process-order.use-case";
 import { AutoRecoverOrdersUseCase } from "./application/use-cases/tier-3/auto-recover-orders.use-case";
+import { RefreshPopularProductsCacheUseCase } from "./application/use-cases/tier-1-in-domain/refresh-popular-products-cache.use-case";
 import { CacheModule } from "@/common/infrastructure/cache/cache.module";
 
 @Module({
@@ -60,6 +62,7 @@ import { CacheModule } from "@/common/infrastructure/cache/cache.module";
     WalletModule,
     CouponModule,
     CacheModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [OrderController, UserOrderController],
   providers: [
@@ -76,6 +79,7 @@ import { CacheModule } from "@/common/infrastructure/cache/cache.module";
     ProcessOrderUseCase,
     RecoverOrderUseCase,
     AutoRecoverOrdersUseCase,
+    RefreshPopularProductsCacheUseCase,
     OrderRepository,
     OrderItemRepository,
     CouponRepository,
