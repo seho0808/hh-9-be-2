@@ -1,0 +1,73 @@
+import { Injectable } from "@nestjs/common";
+import { Order } from "@/order/domain/entities/order.entitiy";
+import { GetOrdersByUserIdUseCase } from "../tier-1-in-domain/get-orders-by-user-id.use-case";
+import { CacheService } from "@/common/infrastructure/cache/cache.service";
+import {
+  CACHE_KEYS,
+  CACHE_TTL,
+} from "@/common/infrastructure/cache/cache-keys.constants";
+
+@Injectable()
+export class GetOrdersByUserIdWithCacheUseCase {
+  constructor(
+    private readonly getOrdersByUserIdUseCase: GetOrdersByUserIdUseCase,
+    private readonly cacheService: CacheService
+  ) {}
+
+  async execute(userId: string): Promise<Order[]> {
+    const cacheKey = CACHE_KEYS.USER_ORDERS(userId);
+    const cachedOrders = await this.cacheService.get<{
+      orders: any[]; // TODO: ts util 추가하여 orders 추론
+      totalCount: number;
+      lastUpdated: string;
+    }>(cacheKey);
+
+    if (cachedOrders) {
+      return cachedOrders.orders.map(
+        (order) =>
+          new Order({
+            ...order,
+            createdAt: new Date(order.createdAt),
+            updatedAt: new Date(order.updatedAt),
+            OrderItems: [], // 캐시에서는 OrderItems는 별도로 관리
+          })
+      );
+    }
+
+    const orders = await this.getOrdersByUserIdUseCase.execute(userId);
+
+    const ordersToCache = orders.slice(0, 50);
+    const cacheData = {
+      orders: ordersToCache.map((order) => ({
+        id: order.id,
+        userId: order.userId,
+        totalPrice: order.totalPrice,
+        discountPrice: order.discountPrice,
+        finalPrice: order.finalPrice,
+        status: order.status,
+        failedReason: order.failedReason,
+        idempotencyKey: order.idempotencyKey,
+        appliedUserCouponId: order.appliedUserCouponId,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+      })),
+      totalCount: orders.length,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    await this.cacheService.setMultiple([
+      {
+        key: cacheKey,
+        value: cacheData,
+        ttl: CACHE_TTL.USER_ORDERS,
+      },
+      {
+        key: CACHE_KEYS.USER_ORDERS_LAST_UPDATED(userId),
+        value: new Date().toISOString(),
+        ttl: CACHE_TTL.USER_ORDERS,
+      },
+    ]);
+
+    return orders;
+  }
+}

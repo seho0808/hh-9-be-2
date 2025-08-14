@@ -41,6 +41,7 @@ import { RecoverOrderUseCase } from "./application/use-cases/tier-2/recover-orde
 import { PrepareOrderUseCase } from "./application/use-cases/tier-3/prepare-order.use-case";
 import { ProcessOrderUseCase } from "./application/use-cases/tier-2/process-order.use-case";
 import { AutoRecoverOrdersUseCase } from "./application/use-cases/tier-3/auto-recover-orders.use-case";
+import { CacheModule } from "@/common/infrastructure/cache/cache.module";
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { AutoRecoverOrdersUseCase } from "./application/use-cases/tier-3/auto-re
     forwardRef(() => ProductModule),
     WalletModule,
     CouponModule,
+    CacheModule,
   ],
   controllers: [OrderController, UserOrderController],
   providers: [
