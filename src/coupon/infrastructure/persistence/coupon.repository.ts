@@ -38,6 +38,36 @@ export class CouponRepository {
     return this.toDomain(savedEntity);
   }
 
+  /**
+   * CAS(Compare-And-Set) 방식으로 fencing token 검증과 함께 쿠폰 업데이트
+   * @param couponId 쿠폰 ID
+   * @param fencingToken 현재 fencing token
+   * @param updatedData 업데이트할 데이터
+   * @returns 업데이트 성공 여부 (true: 성공, false: fencing token 위반)
+   */
+  async updateWithFencingToken(
+    couponId: string,
+    fencingToken: number,
+    updatedData: { issuedCount: number }
+  ): Promise<boolean> {
+    const result = await this.couponRepository
+      .createQueryBuilder()
+      .update(CouponTypeOrmEntity)
+      .set({
+        issuedCount: updatedData.issuedCount,
+        lastFencingToken: fencingToken,
+        updatedAt: () => "CURRENT_TIMESTAMP",
+      })
+      .where("id = :couponId", { couponId })
+      .andWhere(
+        "(lastFencingToken IS NULL OR lastFencingToken < :fencingToken)",
+        { fencingToken }
+      )
+      .execute();
+
+    return result.affected === 1;
+  }
+
   private toDomain(entity: CouponTypeOrmEntity): Coupon {
     const couponProps = {
       id: entity.id,
