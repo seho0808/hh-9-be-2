@@ -43,6 +43,7 @@ import { PrepareOrderUseCase } from "./application/use-cases/tier-3/prepare-orde
 import { ProcessOrderUseCase } from "./application/use-cases/tier-2/process-order.use-case";
 import { AutoRecoverOrdersUseCase } from "./application/use-cases/tier-3/auto-recover-orders.use-case";
 import { RefreshPopularProductsCacheUseCase } from "./application/use-cases/tier-1-in-domain/refresh-popular-products-cache.use-case";
+import { GetOrdersByUserIdWithCacheUseCase } from "./application/use-cases/tier-2/get-orders-by-user-id-with-cache.use-case";
 import { CacheModule } from "@/common/infrastructure/cache/cache.module";
 
 @Module({
@@ -71,6 +72,7 @@ import { CacheModule } from "@/common/infrastructure/cache/cache.module";
     ChangeOrderStatusUseCase,
     GetOrderByIdUseCase,
     GetOrdersByUserIdUseCase,
+    GetOrdersByUserIdWithCacheUseCase,
     FindStalePendingOrdersUseCase,
     FindFailedOrdersUseCase,
     GetPopularProductsUseCase,

@@ -19,6 +19,8 @@ import { ReserveStocksUseCase } from "./application/use-cases/tier-2/reserve-sto
 import { GetProductsPriceUseCase } from "./application/use-cases/tier-1-in-domain/get-products-price.use-case";
 import { ValidateStockService } from "./domain/services/validate-stock.service";
 import { CacheModule } from "@/common/infrastructure/cache/cache.module";
+import { GetPopularProductsWithDetailWithCacheUseCase } from "./application/use-cases/tier-3/get-popular-products-with-detail-with-cache.use-case";
+import { GetProductByIdWithCacheUseCase } from "./application/use-cases/tier-2/get-product-by-id-with-cache.use-case";
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { CacheModule } from "@/common/infrastructure/cache/cache.module";
     ConfirmStockUseCase,
     GetStockReservationsByOrderIdUseCase,
     GetPopularProductsWithDetailUseCase,
+    GetPopularProductsWithDetailWithCacheUseCase,
+    GetProductByIdWithCacheUseCase,
     ValidateStockService,
     ProductRepository,
     StockReservationRepository,

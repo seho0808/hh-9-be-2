@@ -215,6 +215,7 @@ describe("Order API E2E (with TestContainers)", () => {
       const response = await request(app.getHttpServer())
         .get("/api/users/me/orders")
         .set(authHeaders)
+        .set("x-cache-disabled", "true")
         .expect(200);
 
       // Then: 내 주문 목록이 올바르게 반환되어야 함
