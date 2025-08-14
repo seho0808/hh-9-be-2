@@ -32,6 +32,10 @@ import { v4 as uuidv4 } from "uuid";
 import { GetAllCouponsUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-all-coupons.use-case";
 import { IssueUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/issue-user-coupon.use-case";
 import { IssueUserCouponWithSpinLockUseCase } from "@/coupon/application/use-cases/tier-2/issue-user-coupon-with-spin-lock.use-case";
+import { IssueUserCouponWithPubSubLockUseCase } from "@/coupon/application/use-cases/tier-2/issue-user-coupon-with-pubsub-lock.use-case";
+import { IssueUserCouponWithQueueLockUseCase } from "@/coupon/application/use-cases/tier-2/issue-user-coupon-with-queue-lock.use-case";
+import { IssueUserCouponWithFencingLockUseCase } from "@/coupon/application/use-cases/tier-2/issue-user-coupon-with-fencing-lock.use-case";
+import { IssueUserCouponWithRedlockSpinLockUseCase } from "@/coupon/application/use-cases/tier-2/issue-user-coupon-with-redlock-spin-lock.use-case";
 import { GetCouponByIdUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-coupon-by-id.use-case";
 
 @ApiTags("쿠폰")
@@ -44,7 +48,11 @@ export class CouponController {
     private readonly getAllCouponsUseCase: GetAllCouponsUseCase,
     private readonly getCouponByIdUseCase: GetCouponByIdUseCase,
     private readonly issueUserCouponUseCase: IssueUserCouponUseCase,
-    private readonly issueUserCouponWithSpinLockUseCase: IssueUserCouponWithSpinLockUseCase
+    private readonly issueUserCouponWithSpinLockUseCase: IssueUserCouponWithSpinLockUseCase,
+    private readonly issueUserCouponWithPubSubLockUseCase: IssueUserCouponWithPubSubLockUseCase,
+    private readonly issueUserCouponWithQueueLockUseCase: IssueUserCouponWithQueueLockUseCase,
+    private readonly issueUserCouponWithFencingLockUseCase: IssueUserCouponWithFencingLockUseCase,
+    private readonly issueUserCouponWithRedlockSpinLockUseCase: IssueUserCouponWithRedlockSpinLockUseCase
   ) {}
 
   @Get()
@@ -101,9 +109,10 @@ export class CouponController {
   })
   @ApiHeader({
     name: "X-Lock-Strategy",
-    description: "락 전략 선택 (database: DB락, spinlock: 스핀락 - 반복 시도)",
+    description:
+      "락 전략 선택 (database: DB락, spinlock: 스핀락, pubsub: PubSub락, queue: 큐락, fencing: 펜싱락, redlock: Redlock)",
     required: false,
-    enum: ["database", "spinlock"],
+    enum: ["database", "spinlock", "pubsub", "queue", "fencing", "redlock"],
     example: "database",
   })
   @ApiResponse({
@@ -128,30 +137,43 @@ export class CouponController {
     const idempotencyKey = claimDto.idempotencyKey || uuidv4();
     const selectedStrategy = lockStrategy?.toLowerCase() || "database";
 
-    if (selectedStrategy === "spinlock") {
-      const result = await this.issueUserCouponWithSpinLockUseCase.execute({
-        couponId,
-        userId: user.id,
-        couponCode: claimDto.couponCode,
-        idempotencyKey,
-      });
+    const command = {
+      couponId,
+      userId: user.id,
+      couponCode: claimDto.couponCode,
+      idempotencyKey,
+    };
 
-      return ApiResponseDto.success(
-        UserCouponResponseDto.fromEntity(result.userCoupon),
-        "쿠폰이 성공적으로 발급되었습니다"
-      );
-    } else {
-      const result = await this.issueUserCouponUseCase.execute({
-        couponId,
-        userId: user.id,
-        couponCode: claimDto.couponCode,
-        idempotencyKey,
-      });
-
-      return ApiResponseDto.success(
-        UserCouponResponseDto.fromEntity(result.userCoupon),
-        "쿠폰이 성공적으로 발급되었습니다"
-      );
+    let result;
+    switch (selectedStrategy) {
+      case "spinlock":
+        result = await this.issueUserCouponWithSpinLockUseCase.execute(command);
+        break;
+      case "pubsub":
+        result =
+          await this.issueUserCouponWithPubSubLockUseCase.execute(command);
+        break;
+      case "queue":
+        result =
+          await this.issueUserCouponWithQueueLockUseCase.execute(command);
+        break;
+      case "fencing":
+        result =
+          await this.issueUserCouponWithFencingLockUseCase.execute(command);
+        break;
+      case "redlock":
+        result =
+          await this.issueUserCouponWithRedlockSpinLockUseCase.execute(command);
+        break;
+      case "database":
+      default:
+        result = await this.issueUserCouponUseCase.execute(command);
+        break;
     }
+
+    return ApiResponseDto.success(
+      UserCouponResponseDto.fromEntity(result.userCoupon),
+      "쿠폰이 성공적으로 발급되었습니다"
+    );
   }
 }

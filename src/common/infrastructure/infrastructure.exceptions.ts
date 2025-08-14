@@ -27,8 +27,12 @@ export class SpinLockTimeoutError extends InfrastructureError {
 
 export class FencingTokenViolationError extends InfrastructureError {
   readonly code = "FENCING_TOKEN_VIOLATION";
+  readonly expectedToken: number;
+  readonly actualToken: number;
 
   constructor(expectedToken: number, actualToken: number) {
     super(`Fencing token 위반. 예상: ${expectedToken}, 실제: ${actualToken}`);
+    this.expectedToken = expectedToken;
+    this.actualToken = actualToken;
   }
 }

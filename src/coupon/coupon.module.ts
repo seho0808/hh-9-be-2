@@ -18,6 +18,10 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { RecoverUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/recover-user-coupon.use-case";
 import { ValidateUserCouponService } from "./domain/services/validate-user-coupon.service";
 import { IssueUserCouponWithSpinLockUseCase } from "./application/use-cases/tier-2/issue-user-coupon-with-spin-lock.use-case";
+import { IssueUserCouponWithPubSubLockUseCase } from "./application/use-cases/tier-2/issue-user-coupon-with-pubsub-lock.use-case";
+import { IssueUserCouponWithQueueLockUseCase } from "./application/use-cases/tier-2/issue-user-coupon-with-queue-lock.use-case";
+import { IssueUserCouponWithFencingLockUseCase } from "./application/use-cases/tier-2/issue-user-coupon-with-fencing-lock.use-case";
+import { IssueUserCouponWithRedlockSpinLockUseCase } from "./application/use-cases/tier-2/issue-user-coupon-with-redlock-spin-lock.use-case";
 
 @Module({
   imports: [
@@ -32,6 +36,10 @@ import { IssueUserCouponWithSpinLockUseCase } from "./application/use-cases/tier
     GetCouponByIdUseCase,
     IssueUserCouponUseCase,
     IssueUserCouponWithSpinLockUseCase,
+    IssueUserCouponWithPubSubLockUseCase,
+    IssueUserCouponWithQueueLockUseCase,
+    IssueUserCouponWithFencingLockUseCase,
+    IssueUserCouponWithRedlockSpinLockUseCase,
     UseUserCouponUseCase,
     ValidateUserCouponUseCase,
     CancelUserCouponUseCase,
