@@ -5,7 +5,7 @@ import { ConfigService } from "@nestjs/config";
 import {
   TestEnvironmentFactory,
   TestEnvironment,
-} from "../../test-environment/test-environment.factory";
+} from "../../../test-environment/test-environment.factory";
 import { CouponFactory } from "@/coupon/infrastructure/persistence/factories/coupon.factory";
 import { UserCouponFactory } from "@/coupon/infrastructure/persistence/factories/user-coupon.factory";
 import { CouponTypeOrmEntity } from "@/coupon/infrastructure/persistence/orm/coupon.typeorm.entity";
