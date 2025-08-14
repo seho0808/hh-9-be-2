@@ -7,7 +7,7 @@ import { TEST_FACTORY_DEFAULTS } from "./constants";
 import { v4 as uuidv4 } from "uuid";
 
 export const OrderFactory = createEntityFactory<OrderTypeOrmEntity>(
-  (options) => {
+  (options, counter) => {
     const baseProps = getBaseProps();
 
     const order = new OrderTypeOrmEntity();
@@ -21,7 +21,8 @@ export const OrderFactory = createEntityFactory<OrderTypeOrmEntity>(
       finalPrice: options.finalPrice ?? TEST_FACTORY_DEFAULTS.ORDER.FINAL_PRICE,
       status: options.status ?? TEST_FACTORY_DEFAULTS.ORDER.STATUS,
       failedReason: options.failedReason ?? null,
-      idempotencyKey: options.idempotencyKey || uuidv4(),
+      idempotencyKey:
+        options.idempotencyKey || `${uuidv4()}-${counter}-${Date.now()}`,
       appliedUserCouponId: options.appliedUserCouponId ?? null,
       orderItems: options.orderItems ?? [],
       ...options,
