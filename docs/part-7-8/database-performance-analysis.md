@@ -7,7 +7,7 @@
 스크립트 실행:
 
 ```shell
-npx ts-node scripts/direct-explain-runner.ts
+npx ts-node scripts/indexing-optimization/direct-explain-runner.ts
 ```
 
 ## 1. 현재 데이터베이스 구조 분석
@@ -683,7 +683,7 @@ ANALYZE TABLE orders, order_items, products, stock_reservations;
 
 ```bash
 # 실제 MySQL 컨테이너에서 EXPLAIN 쿼리 실행
-npx ts-node scripts/direct-explain-runner.ts
+npx ts-node scripts/indexing-optimization/direct-explain-runner.ts
 ```
 
 이 스크립트는:

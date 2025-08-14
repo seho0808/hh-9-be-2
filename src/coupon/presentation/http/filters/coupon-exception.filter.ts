@@ -23,7 +23,7 @@ import { ErrorCode } from "@/common/constants/error-codes.enum";
 import {
   BaseExceptionFilter,
   ErrorMapping,
-} from "@/common/filters/base-exception.filter";
+} from "@/common/presentation/filters/base-exception.filter";
 
 /**
  * 쿠폰 도메인 및 애플리케이션 예외 처리 필터

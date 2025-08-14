@@ -2,7 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { ValidationPipe } from "@nestjs/common";
-import { GlobalExceptionFilter } from "./common/filters/global-exception.filter";
+import { GlobalExceptionFilter } from "./common/presentation/filters/global-exception.filter";
 import {
   initializeTransactionalContext,
   addTransactionalDataSource,

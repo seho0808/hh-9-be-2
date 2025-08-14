@@ -3,7 +3,7 @@ import {
   CurrentUser,
   CurrentUserData,
 } from "@/common/decorators/current-user.decorator";
-import { ApiResponseDto } from "@/common/dto/response.dto";
+import { ApiResponseDto } from "@/common/presentation/dto/response.dto";
 import { Controller, Get, UseGuards, UseFilters } from "@nestjs/common";
 import {
   ApiBearerAuth,

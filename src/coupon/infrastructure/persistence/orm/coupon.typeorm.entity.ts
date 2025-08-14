@@ -63,6 +63,14 @@ export class CouponTypeOrmEntity {
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
 
+  @Column({
+    type: "bigint",
+    name: "last_fencing_token",
+    nullable: true,
+    default: null,
+  })
+  lastFencingToken: number | null;
+
   @OneToMany(() => UserCouponTypeOrmEntity, "coupon")
   userCoupons: UserCouponTypeOrmEntity[];
 }

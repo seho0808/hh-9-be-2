@@ -1,6 +1,6 @@
 import { ExceptionFilter, ArgumentsHost, HttpStatus } from "@nestjs/common";
 import { Response, Request } from "express";
-import { StandardErrorResponseDto } from "@/common/dto/standard-error-response.dto";
+import { StandardErrorResponseDto } from "@/common/presentation/dto/standard-error-response.dto";
 
 /**
  * 예외 매핑 정보

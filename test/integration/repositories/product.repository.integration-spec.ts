@@ -1,21 +1,25 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DataSource, Repository } from "typeorm";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { TestContainersHelper } from "../../testcontainers-helper";
+import {
+  TestEnvironmentFactory,
+  TestEnvironment,
+} from "../../test-environment/test-environment.factory";
 import { ProductRepository } from "../../../src/product/infrastructure/persistence/product.repository";
 import { ProductTypeOrmEntity } from "../../../src/product/infrastructure/persistence/orm/product.typeorm.entity";
 import { ProductFactory } from "../../../src/product/infrastructure/persistence/factories/product.factory";
 
 describe("ProductRepository Integration Tests", () => {
-  let testHelper: TestContainersHelper;
+  let factory: TestEnvironmentFactory;
+  let environment: TestEnvironment;
   let dataSource: DataSource;
   let productRepository: ProductRepository;
   let productOrmRepository: Repository<ProductTypeOrmEntity>;
 
   beforeAll(async () => {
-    testHelper = new TestContainersHelper();
-    const setup = await testHelper.setupDatabaseOnly();
-    dataSource = setup.dataSource;
+    factory = new TestEnvironmentFactory();
+    environment = await factory.createDatabaseOnlyEnvironment();
+    dataSource = environment.dataSource;
 
     productOrmRepository = dataSource.getRepository(ProductTypeOrmEntity);
 
@@ -33,11 +37,11 @@ describe("ProductRepository Integration Tests", () => {
   });
 
   afterAll(async () => {
-    await testHelper.cleanup();
+    await factory.cleanup(environment);
   });
 
   beforeEach(async () => {
-    await testHelper.clearDatabase(dataSource);
+    await environment.dbHelper.clearDatabase();
     ProductFactory.resetCounter();
   });
 

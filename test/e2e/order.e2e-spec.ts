@@ -1,7 +1,10 @@
 import { INestApplication } from "@nestjs/common";
 import * as request from "supertest";
 import { DataSource, Repository } from "typeorm";
-import { TestContainersHelper } from "../testcontainers-helper";
+import {
+  TestEnvironmentFactory,
+  TestEnvironment,
+} from "../test-environment/test-environment.factory";
 import { OrderFactory } from "../../src/order/infrastructure/persistence/factories/order.factory";
 import { OrderItemFactory } from "../../src/order/infrastructure/persistence/factories/order-item.factory";
 import {
@@ -21,13 +24,14 @@ describe("Order API E2E (with TestContainers)", () => {
   let orderItemRepository: Repository<OrderItemTypeOrmEntity>;
   let productRepository: Repository<ProductTypeOrmEntity>;
   let userBalanceRepository: Repository<UserBalanceTypeOrmEntity>;
-  let testHelper: TestContainersHelper;
+  let factory: TestEnvironmentFactory;
+  let environment: TestEnvironment;
 
   beforeAll(async () => {
-    testHelper = new TestContainersHelper();
-    const setup = await testHelper.setupWithMySQL();
-    app = setup.app;
-    dataSource = setup.dataSource;
+    factory = new TestEnvironmentFactory();
+    environment = await factory.createE2EEnvironment();
+    app = environment.app!;
+    dataSource = environment.dataSource;
     orderRepository = dataSource.getRepository(OrderTypeOrmEntity);
     orderItemRepository = dataSource.getRepository(OrderItemTypeOrmEntity);
     productRepository = dataSource.getRepository(ProductTypeOrmEntity);
@@ -35,13 +39,13 @@ describe("Order API E2E (with TestContainers)", () => {
   });
 
   afterAll(async () => {
-    await testHelper.cleanup();
+    await factory.cleanup(environment);
   });
 
   beforeEach(async () => {
-    await testHelper.clearDatabase(dataSource);
+    await environment.dbHelper.clearDatabase();
     // 각 테스트를 위한 기본 사용자 생성 (인증용)
-    await testHelper.createTestUser(dataSource);
+    await environment.dataHelper.createTestUser();
     // Factory counter 초기화
     OrderFactory.resetCounter();
     OrderItemFactory.resetCounter();
@@ -69,7 +73,7 @@ describe("Order API E2E (with TestContainers)", () => {
         balance: 50000, // 충분한 잔액
       });
 
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 주문 생성 요청
       const response = await request(app.getHttpServer())
@@ -161,7 +165,7 @@ describe("Order API E2E (with TestContainers)", () => {
         }
       );
 
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 주문 상세 조회
       const response = await request(app.getHttpServer())
@@ -184,7 +188,7 @@ describe("Order API E2E (with TestContainers)", () => {
 
     it("존재하지 않는 주문을 조회할 때 404 에러가 발생해야 함", async () => {
       // Given: 인증 헤더 준비
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 존재하지 않는 주문 조회
       const response = await request(app.getHttpServer())
@@ -205,7 +209,7 @@ describe("Order API E2E (with TestContainers)", () => {
         userId: userId,
       });
 
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 내 주문 목록 조회
       const response = await request(app.getHttpServer())
@@ -232,7 +236,7 @@ describe("Order API E2E (with TestContainers)", () => {
 
     it("주문이 없는 경우 조회할 때 빈 배열이 반환되어야 함", async () => {
       // Given: 주문이 없는 사용자
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 내 주문 목록 조회
       const response = await request(app.getHttpServer())

@@ -56,8 +56,8 @@ import { AutoRecoverOrdersUseCase } from "./application/use-cases/tier-3/auto-re
     ]),
     forwardRef(() => AuthModule),
     forwardRef(() => ProductModule),
-    forwardRef(() => WalletModule),
-    forwardRef(() => CouponModule),
+    WalletModule,
+    CouponModule,
   ],
   controllers: [OrderController, UserOrderController],
   providers: [

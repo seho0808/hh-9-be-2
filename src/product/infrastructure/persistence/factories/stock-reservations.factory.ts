@@ -2,7 +2,7 @@ import { StockReservationTypeOrmEntity } from "../orm/stock-reservations.typeorm
 import {
   createEntityFactory,
   getBaseProps,
-} from "../../../../common/factories/base.factory";
+} from "../../../../common/infrastructure/base.factory";
 import { TEST_FACTORY_DEFAULTS } from "./constants";
 import { v4 as uuidv4 } from "uuid";
 

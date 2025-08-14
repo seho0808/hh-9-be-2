@@ -1,7 +1,10 @@
 import { INestApplication } from "@nestjs/common";
 import * as request from "supertest";
 import { DataSource, Repository } from "typeorm";
-import { TestContainersHelper } from "../testcontainers-helper";
+import {
+  TestEnvironmentFactory,
+  TestEnvironment,
+} from "../test-environment/test-environment.factory";
 import { UserBalanceFactory } from "../../src/wallet/infrastructure/persistence/factories/user-balance.factory";
 import { PointTransactionFactory } from "../../src/wallet/infrastructure/persistence/factories/point-transaction.factory";
 import { UserBalanceTypeOrmEntity } from "../../src/wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
@@ -12,13 +15,14 @@ describe("Wallet API E2E (with TestContainers)", () => {
   let dataSource: DataSource;
   let userBalanceRepository: Repository<UserBalanceTypeOrmEntity>;
   let pointTransactionRepository: Repository<PointTransactionTypeOrmEntity>;
-  let testHelper: TestContainersHelper;
+  let factory: TestEnvironmentFactory;
+  let environment: TestEnvironment;
 
   beforeAll(async () => {
-    testHelper = new TestContainersHelper();
-    const setup = await testHelper.setupWithMySQL();
-    app = setup.app;
-    dataSource = setup.dataSource;
+    factory = new TestEnvironmentFactory();
+    environment = await factory.createE2EEnvironment();
+    app = environment.app!;
+    dataSource = environment.dataSource;
     userBalanceRepository = dataSource.getRepository(UserBalanceTypeOrmEntity);
     pointTransactionRepository = dataSource.getRepository(
       PointTransactionTypeOrmEntity
@@ -26,13 +30,13 @@ describe("Wallet API E2E (with TestContainers)", () => {
   });
 
   afterAll(async () => {
-    await testHelper.cleanup();
+    await factory.cleanup(environment);
   });
 
   beforeEach(async () => {
-    await testHelper.clearDatabase(dataSource);
+    await environment.dbHelper.clearDatabase();
     // 각 테스트를 위한 기본 사용자 생성 (인증용)
-    await testHelper.createTestUser(dataSource);
+    await environment.dataHelper.createTestUser();
   });
 
   describe("GET /api/users/me/points/balance", () => {
@@ -45,7 +49,7 @@ describe("Wallet API E2E (with TestContainers)", () => {
           balance: 50000,
         }
       );
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 잔액 조회
       const response = await request(app.getHttpServer())
@@ -64,7 +68,7 @@ describe("Wallet API E2E (with TestContainers)", () => {
 
     it("지갑이 없는 경우 잔액을 조회할 때 0원으로 반환되어야 함", async () => {
       // Given: 지갑이 없는 사용자
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 잔액 조회
       const response = await request(app.getHttpServer())
@@ -98,7 +102,7 @@ describe("Wallet API E2E (with TestContainers)", () => {
           balance: 10000,
         }
       );
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
       const chargeAmount = 50000;
 
       // When: 포인트 충전
@@ -127,7 +131,7 @@ describe("Wallet API E2E (with TestContainers)", () => {
 
     it("잘못된 충전 금액으로 요청할 때 400 에러가 발생해야 함", async () => {
       // Given: 인증 헤더 준비
-      const authHeaders = await testHelper.getAuthHeaders(app);
+      const authHeaders = await environment.dataHelper.getAuthHeaders();
 
       // When: 잘못된 금액으로 충전 시도
       const response = await request(app.getHttpServer())
