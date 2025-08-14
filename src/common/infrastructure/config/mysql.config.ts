@@ -8,7 +8,7 @@ export const mysqlModule = TypeOrmModule.forRoot({
   username: "root",
   password: "root",
   logging: false,
-  synchronize: false,
+  synchronize: true,
   autoLoadEntities: true,
   relationLoadStrategy: "join",
 });
