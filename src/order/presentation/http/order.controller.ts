@@ -35,7 +35,6 @@ import { PlaceOrderUseCase } from "@/order/application/use-cases/tier-4/place-or
 import { GetOrderByIdUseCase } from "@/order/application/use-cases/tier-1-in-domain/get-order-by-id.use-case";
 import { GetOrdersByUserIdUseCase } from "@/order/application/use-cases/tier-1-in-domain/get-orders-by-user-id.use-case";
 import { GetOrdersByUserIdWithCacheUseCase } from "@/order/application/use-cases/tier-2/get-orders-by-user-id-with-cache.use-case";
-import { GetPopularProductsUseCase } from "@/order/application/use-cases/tier-1-in-domain/get-popular-products.use-case";
 import { Order } from "@/order/domain/entities/order.entitiy";
 
 @ApiTags("주문/결제")
@@ -46,8 +45,7 @@ import { Order } from "@/order/domain/entities/order.entitiy";
 export class OrderController {
   constructor(
     private readonly placeOrderUseCase: PlaceOrderUseCase,
-    private readonly getOrderByIdUseCase: GetOrderByIdUseCase,
-    private readonly getPopularProductsUseCase: GetPopularProductsUseCase
+    private readonly getOrderByIdUseCase: GetOrderByIdUseCase
   ) {}
 
   @Post()
@@ -113,31 +111,6 @@ export class OrderController {
       OrderResponseDto.fromEntity(order),
       "주문 정보를 조회했습니다"
     );
-  }
-
-  @Get("popular-products")
-  @ApiOperation({ summary: "인기 상품 통계 조회" })
-  @ApiResponse({
-    status: 200,
-    description: "인기 상품 통계 조회 성공",
-  })
-  async getPopularProducts(): Promise<ApiResponseDto<any>> {
-    const popularProducts = await this.getPopularProductsUseCase.execute({
-      limit: 10,
-    });
-
-    const result = {
-      products: popularProducts.map((item) => ({
-        productId: item.productId,
-        totalQuantity: item.totalQuantity,
-        totalOrders: item.totalOrders,
-        ranking: popularProducts.indexOf(item) + 1,
-      })),
-      lastUpdated: new Date().toISOString(),
-      totalCount: popularProducts.length,
-    };
-
-    return ApiResponseDto.success(result, "인기 상품 통계를 조회했습니다");
   }
 }
 
