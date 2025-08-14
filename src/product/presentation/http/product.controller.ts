@@ -39,7 +39,6 @@ import { Product } from "@/product/domain/entities/product.entity";
 
 @ApiTags("상품")
 @Controller("products")
-@UseGuards(JwtAuthGuard)
 @ApiBearerAuth("access-token")
 @UseFilters(ProductExceptionFilter)
 export class ProductController {
