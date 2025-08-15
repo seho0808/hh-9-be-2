@@ -36,9 +36,8 @@ export class GetOrdersByUserIdWithCacheUseCase {
 
     const orders = await this.getOrdersByUserIdUseCase.execute(userId);
 
-    const ordersToCache = orders.slice(0, 50);
     const cacheData = {
-      orders: ordersToCache.map((order) => ({
+      orders: orders.map((order) => ({
         id: order.id,
         userId: order.userId,
         totalPrice: order.totalPrice,
@@ -55,18 +54,7 @@ export class GetOrdersByUserIdWithCacheUseCase {
       lastUpdated: new Date().toISOString(),
     };
 
-    await this.cacheService.setMultiple([
-      {
-        key: cacheKey,
-        value: cacheData,
-        ttl: CACHE_TTL.USER_ORDERS,
-      },
-      {
-        key: CACHE_KEYS.USER_ORDERS_LAST_UPDATED(userId),
-        value: new Date().toISOString(),
-        ttl: CACHE_TTL.USER_ORDERS,
-      },
-    ]);
+    await this.cacheService.set(cacheKey, cacheData, CACHE_TTL.USER_ORDERS);
 
     return orders;
   }

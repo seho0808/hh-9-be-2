@@ -232,31 +232,6 @@ describe("User Orders Cache Integration Tests", () => {
       expect(user1CacheAfter).toBeTruthy(); // user1 캐시는 유지
       expect(user2CacheAfter).toBeNull(); // user2 캐시만 무효화
     });
-
-    it("50개 이상의 주문이 있을 때 최근 50개만 캐시되어야 함", async () => {
-      // Given: 60개의 주문 생성
-      const userId = `many-${Math.random().toString(36).substring(2, 8)}`;
-      // 추가 테스트 사용자 생성
-      await userOrmRepository.save({
-        id: userId,
-        email: `${userId}@test.com`,
-        password: "password",
-        name: "Test User Many Orders",
-      });
-      await createTestOrders(userId, 60);
-
-      // When: 주문 조회
-      const orders = await getOrdersByUserIdWithCacheUseCase.execute(userId);
-
-      // Then: 모든 주문 반환 (60개)
-      expect(orders).toHaveLength(60);
-
-      // 캐시에는 최근 50개만 저장되어야 함
-      const cachedData = await cacheService.get(CACHE_KEYS.USER_ORDERS(userId));
-      expect(cachedData).toBeTruthy();
-      expect((cachedData as any).orders).toHaveLength(50);
-      expect((cachedData as any).totalCount).toBe(60);
-    });
   });
 
   /**
