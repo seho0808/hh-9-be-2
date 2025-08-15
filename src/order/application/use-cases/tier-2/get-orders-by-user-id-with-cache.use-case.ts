@@ -1,11 +1,29 @@
 import { Injectable } from "@nestjs/common";
-import { Order } from "@/order/domain/entities/order.entitiy";
+import { Order, OrderStatus } from "@/order/domain/entities/order.entitiy";
 import { GetOrdersByUserIdUseCase } from "../tier-1-in-domain/get-orders-by-user-id.use-case";
 import { CacheService } from "@/common/infrastructure/cache/cache.service";
 import {
   CACHE_KEYS,
   CACHE_TTL,
 } from "@/common/infrastructure/cache/cache-keys.constants";
+
+interface OrderCacheData {
+  orders: {
+    id: string;
+    userId: string;
+    totalPrice: number;
+    discountPrice: number;
+    finalPrice: number;
+    status: OrderStatus;
+    failedReason: string | null;
+    idempotencyKey: string;
+    appliedUserCouponId: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }[];
+  totalCount: number;
+  lastUpdated: string;
+}
 
 @Injectable()
 export class GetOrdersByUserIdWithCacheUseCase {
@@ -16,11 +34,7 @@ export class GetOrdersByUserIdWithCacheUseCase {
 
   async execute(userId: string): Promise<Order[]> {
     const cacheKey = CACHE_KEYS.USER_ORDERS(userId);
-    const cachedOrders = await this.cacheService.get<{
-      orders: any[]; // TODO: ts util 추가하여 orders 추론
-      totalCount: number;
-      lastUpdated: string;
-    }>(cacheKey);
+    const cachedOrders = await this.cacheService.get<OrderCacheData>(cacheKey);
 
     if (cachedOrders) {
       return cachedOrders.orders.map(
@@ -36,7 +50,7 @@ export class GetOrdersByUserIdWithCacheUseCase {
 
     const orders = await this.getOrdersByUserIdUseCase.execute(userId);
 
-    const cacheData = {
+    const cacheData: OrderCacheData = {
       orders: orders.map((order) => ({
         id: order.id,
         userId: order.userId,

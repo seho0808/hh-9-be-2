@@ -8,6 +8,18 @@ import {
   CACHE_TTL,
 } from "@/common/infrastructure/cache/cache-keys.constants";
 
+interface ProductCacheData {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  isActive: boolean;
+  totalStock: number;
+  reservedStock: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 @Injectable()
 export class GetProductByIdWithCacheUseCase {
   constructor(
@@ -17,17 +29,8 @@ export class GetProductByIdWithCacheUseCase {
 
   async execute(productId: string): Promise<Product> {
     const cacheKey = CACHE_KEYS.PRODUCT_DETAILS(productId);
-    const cachedProduct = await this.cacheService.get<{
-      id: string;
-      name: string;
-      description: string;
-      price: number;
-      isActive: boolean;
-      totalStock: number;
-      reservedStock: number;
-      createdAt: string;
-      updatedAt: string;
-    }>(cacheKey);
+    const cachedProduct =
+      await this.cacheService.get<ProductCacheData>(cacheKey);
 
     if (cachedProduct)
       return new Product({
@@ -38,7 +41,7 @@ export class GetProductByIdWithCacheUseCase {
 
     const product = await this.getProductByIdUseCase.execute(productId);
 
-    const productCacheData = {
+    const productCacheData: ProductCacheData = {
       id: product.id,
       name: product.name,
       description: product.description,
