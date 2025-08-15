@@ -8,8 +8,27 @@ import {
   GetPopularProductsWithDetailUseCase,
   GetPopularProductsWithDetailCommand,
   GetPopularProductsWithDetailResult,
+  PopularProductResult,
 } from "../tier-2/get-popular-products-with-detail.use-case";
 import { Product } from "@/product/domain/entities/product.entity";
+
+interface PopularProductsWithDetailCacheData {
+  popularProductsStats: {
+    product: {
+      id: string;
+      name: string;
+      description: string;
+      price: number;
+      totalStock: number;
+      reservedStock: number;
+      isActive: boolean;
+      createdAt: Date;
+      updatedAt: Date;
+    };
+    statistics: PopularProductResult;
+  }[];
+  lastUpdated: string;
+}
 
 @Injectable()
 export class GetPopularProductsWithDetailWithCacheUseCase {
@@ -21,21 +40,20 @@ export class GetPopularProductsWithDetailWithCacheUseCase {
   async execute(
     command: GetPopularProductsWithDetailCommand
   ): Promise<GetPopularProductsWithDetailResult> {
-    const cachedData = await this.cacheService.get<any>(
-      CACHE_KEYS.POPULAR_PRODUCTS
-    );
+    const cachedData =
+      await this.cacheService.get<PopularProductsWithDetailCacheData>(
+        CACHE_KEYS.POPULAR_PRODUCTS
+      );
     if (cachedData) {
       const restoredData: GetPopularProductsWithDetailResult = {
-        popularProductsStats: cachedData.popularProductsStats.map(
-          (item: any) => ({
-            product: new Product({
-              ...item.product.props,
-              createdAt: new Date(item.product.props.createdAt),
-              updatedAt: new Date(item.product.props.updatedAt),
-            }),
-            statistics: item.statistics,
-          })
-        ),
+        popularProductsStats: cachedData.popularProductsStats.map((item) => ({
+          product: new Product({
+            ...item.product,
+            createdAt: new Date(item.product.createdAt),
+            updatedAt: new Date(item.product.updatedAt),
+          }),
+          statistics: item.statistics,
+        })),
       };
       return restoredData;
     }
@@ -43,18 +61,29 @@ export class GetPopularProductsWithDetailWithCacheUseCase {
     const result =
       await this.getPopularProductsWithDetailUseCase.execute(command);
 
-    await this.cacheService.setMultiple([
-      {
-        key: CACHE_KEYS.POPULAR_PRODUCTS,
-        value: result,
-        ttl: CACHE_TTL.POPULAR_PRODUCTS,
-      },
-      {
-        key: CACHE_KEYS.POPULAR_PRODUCTS_LAST_UPDATED,
-        value: new Date().toISOString(),
-        ttl: CACHE_TTL.POPULAR_PRODUCTS,
-      },
-    ]);
+    const cacheData: PopularProductsWithDetailCacheData = {
+      popularProductsStats: result.popularProductsStats.map((item) => ({
+        product: {
+          id: item.product.id,
+          name: item.product.name,
+          description: item.product.description,
+          price: item.product.price,
+          totalStock: item.product.totalStock,
+          reservedStock: item.product.reservedStock,
+          isActive: item.product.isActive,
+          createdAt: item.product.createdAt,
+          updatedAt: item.product.updatedAt,
+        },
+        statistics: item.statistics,
+      })),
+      lastUpdated: new Date().toISOString(),
+    };
+
+    await this.cacheService.set(
+      CACHE_KEYS.POPULAR_PRODUCTS,
+      cacheData,
+      CACHE_TTL.POPULAR_PRODUCTS
+    );
 
     return result;
   }
