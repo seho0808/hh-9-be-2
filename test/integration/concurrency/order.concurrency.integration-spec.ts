@@ -1,7 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DataSource, Repository } from "typeorm";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { TestContainersHelper } from "../../testcontainers-helper";
+import {
+  TestEnvironmentFactory,
+  TestEnvironment,
+} from "../../test-environment/test-environment.factory";
 import { OrderFactory } from "@/order/infrastructure/persistence/factories/order.factory";
 import { OrderItemFactory } from "@/order/infrastructure/persistence/factories/order-item.factory";
 import {
@@ -56,7 +59,8 @@ import { CouponFactory } from "@/coupon/infrastructure/persistence/factories/cou
 import { UserCouponFactory } from "@/coupon/infrastructure/persistence/factories/user-coupon.factory";
 
 describe("Order Concurrency Integration Tests", () => {
-  let testHelper: TestContainersHelper;
+  let factory: TestEnvironmentFactory;
+  let environment: TestEnvironment;
   let dataSource: DataSource;
   let orderRepository: Repository<OrderTypeOrmEntity>;
   let orderItemRepository: Repository<OrderItemTypeOrmEntity>;
@@ -70,9 +74,9 @@ describe("Order Concurrency Integration Tests", () => {
   let placeOrderUseCase: PlaceOrderUseCase;
 
   beforeAll(async () => {
-    testHelper = new TestContainersHelper();
-    const setup = await testHelper.setupDatabaseOnly();
-    dataSource = setup.dataSource;
+    factory = new TestEnvironmentFactory();
+    environment = await factory.createDatabaseOnlyEnvironment();
+    dataSource = environment.dataSource;
 
     orderRepository = dataSource.getRepository(OrderTypeOrmEntity);
     orderItemRepository = dataSource.getRepository(OrderItemTypeOrmEntity);
@@ -167,12 +171,12 @@ describe("Order Concurrency Integration Tests", () => {
   });
 
   afterAll(async () => {
-    await testHelper.cleanup();
+    await factory.cleanup(environment);
   });
 
   beforeEach(async () => {
-    await testHelper.clearDatabase(dataSource);
-    await testHelper.createTestUser(dataSource);
+    await environment.dbHelper.clearDatabase();
+    await environment.dataHelper.createTestUser();
 
     // Create test users for concurrent orders
     const testUsers = Array.from({ length: 20 }, (_, i) => ({

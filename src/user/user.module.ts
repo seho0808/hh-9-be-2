@@ -15,7 +15,7 @@ import { CreateUserUseCaseWithBalanceUseCase } from "./application/use-cases/tie
   imports: [
     TypeOrmModule.forFeature([UserTypeOrmEntity]),
     forwardRef(() => AuthModule),
-    forwardRef(() => WalletModule),
+    WalletModule,
   ],
   controllers: [UserController],
   providers: [

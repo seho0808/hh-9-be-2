@@ -5,27 +5,38 @@ import { v4 as uuidv4 } from "uuid";
 
 jest.mock("@/order/infrastructure/persistence/order.repository");
 jest.mock("@/order/infrastructure/persistence/order-item.repository");
+jest.mock("@/common/infrastructure/cache/cache-invalidation.service");
 jest.mock("typeorm-transactional", () => ({
   Transactional: () => () => ({}),
 }));
 
 import { OrderRepository } from "@/order/infrastructure/persistence/order.repository";
 import { OrderItemRepository } from "@/order/infrastructure/persistence/order-item.repository";
+import { CacheInvalidationService } from "@/common/infrastructure/cache/cache-invalidation.service";
 
 describe("CreateOrderUseCase", () => {
   let useCase: CreateOrderUseCase;
   let orderRepository: jest.Mocked<OrderRepository>;
   let orderItemRepository: jest.Mocked<OrderItemRepository>;
+  let cacheInvalidationService: jest.Mocked<CacheInvalidationService>;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [CreateOrderUseCase, OrderRepository, OrderItemRepository],
+      providers: [
+        CreateOrderUseCase,
+        OrderRepository,
+        OrderItemRepository,
+        CacheInvalidationService,
+      ],
     }).compile();
 
     useCase = module.get<CreateOrderUseCase>(CreateOrderUseCase);
     orderRepository = module.get<jest.Mocked<OrderRepository>>(OrderRepository);
     orderItemRepository =
       module.get<jest.Mocked<OrderItemRepository>>(OrderItemRepository);
+    cacheInvalidationService = module.get<
+      jest.Mocked<CacheInvalidationService>
+    >(CacheInvalidationService);
   });
 
   const orderCreationTestCases: Array<

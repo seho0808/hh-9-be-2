@@ -1,7 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DataSource, Repository } from "typeorm";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { TestContainersHelper } from "../../testcontainers-helper";
+import {
+  TestEnvironmentFactory,
+  TestEnvironment,
+} from "../../test-environment/test-environment.factory";
 import { OrderItemRepository } from "@/order/infrastructure/persistence/order-item.repository";
 import {
   OrderTypeOrmEntity,
@@ -15,7 +18,8 @@ import { ProductFactory } from "@/product/infrastructure/persistence/factories/p
 import * as bcrypt from "bcrypt";
 
 describe("OrderItemRepository Integration Tests", () => {
-  let testHelper: TestContainersHelper;
+  let factory: TestEnvironmentFactory;
+  let environment: TestEnvironment;
   let dataSource: DataSource;
   let orderItemRepository: OrderItemRepository;
   let orderOrmRepository: Repository<OrderTypeOrmEntity>;
@@ -23,9 +27,9 @@ describe("OrderItemRepository Integration Tests", () => {
   let productOrmRepository: Repository<ProductTypeOrmEntity>;
 
   beforeAll(async () => {
-    testHelper = new TestContainersHelper();
-    const setup = await testHelper.setupDatabaseOnly();
-    dataSource = setup.dataSource;
+    factory = new TestEnvironmentFactory();
+    environment = await factory.createDatabaseOnlyEnvironment();
+    dataSource = environment.dataSource;
 
     orderOrmRepository = dataSource.getRepository(OrderTypeOrmEntity);
     orderItemOrmRepository = dataSource.getRepository(OrderItemTypeOrmEntity);
@@ -50,11 +54,11 @@ describe("OrderItemRepository Integration Tests", () => {
   });
 
   afterAll(async () => {
-    await testHelper.cleanup();
+    await factory.cleanup(environment);
   });
 
   beforeEach(async () => {
-    await testHelper.clearDatabase(dataSource);
+    await environment.dbHelper.clearDatabase();
 
     const hashedPassword = bcrypt.hashSync("testPassword123", 10);
     const users = [

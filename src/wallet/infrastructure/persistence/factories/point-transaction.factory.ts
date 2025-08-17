@@ -2,7 +2,7 @@ import { PointTransactionTypeOrmEntity } from "../orm/point-transaction.typeorm.
 import {
   createEntityFactory,
   getBaseProps,
-} from "@/common/factories/base.factory";
+} from "@/common/infrastructure/base.factory";
 import { TEST_FACTORY_DEFAULTS } from "./constants";
 import { v4 as uuidv4 } from "uuid";
 

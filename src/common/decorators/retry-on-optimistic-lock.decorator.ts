@@ -1,4 +1,4 @@
-import { OptimisticLockError } from "@/common/exceptions/infrastructure.exceptions";
+import { OptimisticLockError } from "@/common/infrastructure/infrastructure.exceptions";
 import { AsyncLocalStorage } from "async_hooks";
 
 /**

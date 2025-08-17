@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, UpdateResult } from "typeorm";
 import { UserBalanceTypeOrmEntity } from "./orm/user-balance.typeorm.entity";
 import { UserBalance } from "@/wallet/domain/entities/user-balance.entity";
-import { OptimisticLockError } from "@/common/exceptions/infrastructure.exceptions";
+import { OptimisticLockError } from "@/common/infrastructure/infrastructure.exceptions";
 
 @Injectable()
 export class UserBalanceRepository {

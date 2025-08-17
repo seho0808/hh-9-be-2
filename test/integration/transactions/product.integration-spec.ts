@@ -1,7 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DataSource, Repository } from "typeorm";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { TestContainersHelper } from "../../testcontainers-helper";
+import {
+  TestEnvironmentFactory,
+  TestEnvironment,
+} from "../../test-environment/test-environment.factory";
 import { ProductFactory } from "@/product/infrastructure/persistence/factories/product.factory";
 import { StockReservationFactory } from "@/product/infrastructure/persistence/factories/stock-reservations.factory";
 import { ProductTypeOrmEntity } from "@/product/infrastructure/persistence/orm/product.typeorm.entity";
@@ -18,7 +21,8 @@ import { ValidateStockService } from "@/product/domain/services/validate-stock.s
 import { StockReservationStatus } from "@/product/domain/entities/stock-reservation.entity";
 
 describe("Product Domain Integration Tests", () => {
-  let testHelper: TestContainersHelper;
+  let factory: TestEnvironmentFactory;
+  let environment: TestEnvironment;
   let dataSource: DataSource;
   let productRepository: Repository<ProductTypeOrmEntity>;
   let stockReservationRepository: Repository<StockReservationTypeOrmEntity>;
@@ -28,9 +32,9 @@ describe("Product Domain Integration Tests", () => {
   let reserveStocksUseCase: ReserveStocksUseCase;
 
   beforeAll(async () => {
-    testHelper = new TestContainersHelper();
-    const setup = await testHelper.setupDatabaseOnly();
-    dataSource = setup.dataSource;
+    factory = new TestEnvironmentFactory();
+    environment = await factory.createDatabaseOnlyEnvironment();
+    dataSource = environment.dataSource;
 
     productRepository = dataSource.getRepository(ProductTypeOrmEntity);
     stockReservationRepository = dataSource.getRepository(
@@ -68,12 +72,12 @@ describe("Product Domain Integration Tests", () => {
   });
 
   afterAll(async () => {
-    await testHelper.cleanup();
+    await factory.cleanup(environment);
   });
 
   beforeEach(async () => {
-    await testHelper.clearDatabase(dataSource);
-    await testHelper.createTestUser(dataSource);
+    await environment.dbHelper.clearDatabase();
+    await environment.dataHelper.createTestUser();
     ProductFactory.resetCounter();
     StockReservationFactory.resetCounter();
   });

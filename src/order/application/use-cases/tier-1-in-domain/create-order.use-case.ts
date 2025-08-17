@@ -4,6 +4,7 @@ import { Transactional } from "typeorm-transactional";
 import { OrderItem } from "@/order/domain/entities/order-item.entity";
 import { OrderRepository } from "@/order/infrastructure/persistence/order.repository";
 import { OrderItemRepository } from "@/order/infrastructure/persistence/order-item.repository";
+import { CacheInvalidationService } from "@/common/infrastructure/cache/cache-invalidation.service";
 
 export interface CreateOrderUseCaseCommand {
   userId: string;
@@ -23,7 +24,8 @@ export interface CreateOrderUseCaseResult {
 export class CreateOrderUseCase {
   constructor(
     private readonly orderRepository: OrderRepository,
-    private readonly orderItemRepository: OrderItemRepository
+    private readonly orderItemRepository: OrderItemRepository,
+    private readonly cacheInvalidationService: CacheInvalidationService
   ) {}
 
   @Transactional()
@@ -57,6 +59,7 @@ export class CreateOrderUseCase {
       )
     );
 
+    await this.cacheInvalidationService.invalidateUserOrdersCache(userId);
     return {
       order,
     };
