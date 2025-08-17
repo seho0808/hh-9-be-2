@@ -5,7 +5,10 @@ import {
   Query,
   UseGuards,
   UseFilters,
+  Headers,
+  Res,
 } from "@nestjs/common";
+import { Response } from "express";
 import {
   ApiTags,
   ApiOperation,
@@ -26,18 +29,25 @@ import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
 import { ProductExceptionFilter } from "./filters/product-exception.filter";
 import { GetAllProductsUseCase } from "@/product/application/use-cases/tier-1-in-domain/get-all-products.use-case";
 import { GetProductByIdUseCase } from "@/product/application/use-cases/tier-1-in-domain/get-product-by-id.use-case";
-import { GetPopularProductsWithDetailUseCase } from "@/product/application/use-cases/tier-2/get-popular-products-with-detail.use-case";
+import {
+  GetPopularProductsWithDetailResult,
+  GetPopularProductsWithDetailUseCase,
+} from "@/product/application/use-cases/tier-2/get-popular-products-with-detail.use-case";
+import { GetPopularProductsWithDetailWithCacheUseCase } from "@/product/application/use-cases/tier-3/get-popular-products-with-detail-with-cache.use-case";
+import { GetProductByIdWithCacheUseCase } from "@/product/application/use-cases/tier-2/get-product-by-id-with-cache.use-case";
+import { Product } from "@/product/domain/entities/product.entity";
 
 @ApiTags("상품")
 @Controller("products")
-@UseGuards(JwtAuthGuard)
 @ApiBearerAuth("access-token")
 @UseFilters(ProductExceptionFilter)
 export class ProductController {
   constructor(
     private readonly getAllProductsUseCase: GetAllProductsUseCase,
     private readonly getPopularProductsWithDetailUseCase: GetPopularProductsWithDetailUseCase,
-    private readonly getProductByIdUseCase: GetProductByIdUseCase
+    private readonly getPopularProductsWithDetailWithCacheUseCase: GetPopularProductsWithDetailWithCacheUseCase,
+    private readonly getProductByIdUseCase: GetProductByIdUseCase,
+    private readonly getProductByIdWithCacheUseCase: GetProductByIdWithCacheUseCase
   ) {}
 
   @Get()
@@ -81,13 +91,30 @@ export class ProductController {
     description: "인기 상품 조회 성공",
     type: [PopularProductDto],
   })
-  async getPopularProducts(): Promise<ApiResponseDto<PopularProductDto[]>> {
-    const { popularProductsStats } =
-      await this.getPopularProductsWithDetailUseCase.execute({
-        limit: 10,
-      });
+  async getPopularProducts(
+    @Headers("x-cache-disabled") cacheDisabled?: string,
+    @Res({ passthrough: true }) res?: Response
+  ): Promise<ApiResponseDto<PopularProductDto[]>> {
+    // 캐시 비활성화 여부 확인
+    const shouldDisableCache = cacheDisabled === "true";
 
-    const result = popularProductsStats.map((item) =>
+    let result: GetPopularProductsWithDetailResult["popularProductsStats"];
+
+    if (shouldDisableCache) {
+      const { popularProductsStats } =
+        await this.getPopularProductsWithDetailUseCase.execute({
+          limit: 10,
+        });
+      result = popularProductsStats;
+    } else {
+      const { popularProductsStats } =
+        await this.getPopularProductsWithDetailWithCacheUseCase.execute({
+          limit: 10,
+        });
+      result = popularProductsStats;
+    }
+
+    const mappedResult = result.map((item) =>
       PopularProductDto.fromEntity(
         item.product,
         item.statistics.totalQuantity,
@@ -95,10 +122,13 @@ export class ProductController {
       )
     );
 
-    return ApiResponseDto.success(
-      result,
+    // 응답 메타데이터에 캐시 정보 포함
+    const response = ApiResponseDto.success(
+      mappedResult,
       "인기 상품을 성공적으로 조회했습니다"
     );
+
+    return response;
   }
 
   @Get(":productId")
@@ -118,11 +148,29 @@ export class ProductController {
     description: "상품을 찾을 수 없음",
   })
   async getProductById(
-    @Param("productId") productId: string
+    @Param("productId") productId: string,
+    @Headers("x-cache-disabled") cacheDisabled?: string,
+    @Res({ passthrough: true }) res?: Response
   ): Promise<ApiResponseDto<ProductResponseDto>> {
-    const product = await this.getProductByIdUseCase.execute(productId);
-    const result = ProductResponseDto.fromEntity(product);
+    // 캐시 비활성화 여부 확인
+    const shouldDisableCache = cacheDisabled === "true";
 
-    return ApiResponseDto.success(result, "상품을 성공적으로 조회했습니다");
+    let product: Product;
+
+    if (shouldDisableCache) {
+      product = await this.getProductByIdUseCase.execute(productId);
+    } else {
+      product = await this.getProductByIdWithCacheUseCase.execute(productId);
+    }
+
+    const productResult = ProductResponseDto.fromEntity(product);
+
+    // 응답 메타데이터에 캐시 정보 포함
+    const response = ApiResponseDto.success(
+      productResult,
+      "상품을 성공적으로 조회했습니다"
+    );
+
+    return response;
   }
 }

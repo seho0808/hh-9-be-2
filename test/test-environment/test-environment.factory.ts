@@ -7,6 +7,7 @@ import { DatabaseManager } from "./managers/database-manager";
 import { AppManager } from "./managers/app-manager";
 import { DataHelper } from "./helpers/data-helper";
 import { DbHelper } from "./helpers/db-helper";
+import { RedisHelper } from "./helpers/redis-helper";
 
 export interface TestEnvironment {
   app?: INestApplication;
@@ -15,6 +16,7 @@ export interface TestEnvironment {
   redisContainer?: StartedRedisContainer;
   dataHelper: DataHelper;
   dbHelper: DbHelper;
+  redisHelper?: RedisHelper;
 }
 
 export interface TestEnvironmentConfig {
@@ -88,6 +90,7 @@ export class TestEnvironmentFactory {
       redisContainer: containers.redisContainer,
       dataHelper: new DataHelper(dataSource),
       dbHelper: new DbHelper(dataSource),
+      redisHelper: new RedisHelper(containers.redisContainer),
     };
   }
 

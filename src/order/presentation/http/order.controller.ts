@@ -7,7 +7,10 @@ import {
   Query,
   UseGuards,
   UseFilters,
+  Headers,
+  Res,
 } from "@nestjs/common";
+import { Response } from "express";
 import {
   ApiTags,
   ApiOperation,
@@ -31,6 +34,8 @@ import { OrderNotFoundHttpError } from "./exceptions";
 import { PlaceOrderUseCase } from "@/order/application/use-cases/tier-4/place-order.user-case";
 import { GetOrderByIdUseCase } from "@/order/application/use-cases/tier-1-in-domain/get-order-by-id.use-case";
 import { GetOrdersByUserIdUseCase } from "@/order/application/use-cases/tier-1-in-domain/get-orders-by-user-id.use-case";
+import { GetOrdersByUserIdWithCacheUseCase } from "@/order/application/use-cases/tier-2/get-orders-by-user-id-with-cache.use-case";
+import { Order } from "@/order/domain/entities/order.entitiy";
 
 @ApiTags("주문/결제")
 @Controller("orders")
@@ -116,7 +121,8 @@ export class OrderController {
 @UseFilters(OrderExceptionFilter)
 export class UserOrderController {
   constructor(
-    private readonly getOrdersByUserIdUseCase: GetOrdersByUserIdUseCase
+    private readonly getOrdersByUserIdUseCase: GetOrdersByUserIdUseCase,
+    private readonly getOrdersByUserIdWithCacheUseCase: GetOrdersByUserIdWithCacheUseCase
   ) {}
 
   @Get()
@@ -127,10 +133,29 @@ export class UserOrderController {
     type: PaginatedResponseDto<OrderResponseDto>,
   })
   async getMyOrders(
-    @CurrentUser() user: CurrentUserData
+    @CurrentUser() user: CurrentUserData,
+    @Headers("x-cache-disabled") cacheDisabled?: string,
+    @Res({ passthrough: true }) res?: Response
   ): Promise<ApiResponseDto<OrderResponseDto[]>> {
-    const orders = await this.getOrdersByUserIdUseCase.execute(user.id);
+    // 캐시 비활성화 여부 확인
+    const shouldDisableCache = cacheDisabled === "true";
+
+    let orders: Order[];
+
+    if (shouldDisableCache) {
+      orders = await this.getOrdersByUserIdUseCase.execute(user.id);
+    } else {
+      orders = await this.getOrdersByUserIdWithCacheUseCase.execute(user.id);
+    }
+
     const response = orders.map((order) => OrderResponseDto.fromEntity(order));
-    return ApiResponseDto.success(response, "주문 목록을 조회했습니다");
+
+    // 응답 메타데이터에 캐시 정보 포함
+    const apiResponse = ApiResponseDto.success(
+      response,
+      "주문 목록을 조회했습니다"
+    );
+
+    return apiResponse;
   }
 }
