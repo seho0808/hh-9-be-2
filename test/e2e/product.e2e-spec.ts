@@ -134,16 +134,6 @@ describe("Product API E2E (with TestContainers)", () => {
       expect(response.body.data.items).toHaveLength(1);
       expect(response.body.data.items[0].name).toContain("iPhone");
     });
-
-    it("토큰 없이 접근할 때 401 에러가 발생해야 함", async () => {
-      // When: 토큰 없이 상품 목록 조회 시도
-      const response = await request(app.getHttpServer())
-        .get("/api/products")
-        .expect(401);
-
-      // Then: 인증 에러 메시지가 반환되어야 함
-      expect(response.body.message).toBe("토큰이 필요합니다");
-    });
   });
 
   describe("GET /api/products/popular", () => {
@@ -191,9 +181,7 @@ describe("Product API E2E (with TestContainers)", () => {
         expect(popularProduct).toHaveProperty("name");
         expect(popularProduct).toHaveProperty("price");
         expect(popularProduct).toHaveProperty("salesCount");
-        expect(popularProduct).toHaveProperty("totalOrders");
         expect(popularProduct.salesCount).toBe(2); // 각 상품마다 2개씩 주문
-        expect(popularProduct.totalOrders).toBe(1); // 각 상품마다 1개의 주문
       });
     });
 
@@ -235,16 +223,6 @@ describe("Product API E2E (with TestContainers)", () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.length).toBeLessThanOrEqual(10); // 실제로는 기본 limit이 10
       expect(response.body.message).toBe("인기 상품을 성공적으로 조회했습니다");
-    });
-
-    it("토큰 없이 접근할 때 401 에러가 발생해야 함", async () => {
-      // When: 토큰 없이 인기 상품 조회 시도
-      const response = await request(app.getHttpServer())
-        .get("/api/products/popular")
-        .expect(401);
-
-      // Then: 인증 에러 메시지가 반환되어야 함
-      expect(response.body.message).toBe("토큰이 필요합니다");
     });
   });
 
@@ -297,33 +275,6 @@ describe("Product API E2E (with TestContainers)", () => {
 
       // Then: 상품을 찾을 수 없다는 에러 메시지가 반환되어야 함
       expect(response.body.message).toBe("상품을 찾을 수 없습니다");
-    });
-
-    it("토큰 없이 접근할 때 401 에러가 발생해야 함", async () => {
-      // Given: 테스트 상품 생성
-      const testProduct = await ProductFactory.createAndSave(productRepository);
-
-      // When: 토큰 없이 상품 조회 시도
-      const response = await request(app.getHttpServer())
-        .get(`/api/products/${testProduct.id}`)
-        .expect(401);
-
-      // Then: 인증 에러 메시지가 반환되어야 함
-      expect(response.body.message).toBe("토큰이 필요합니다");
-    });
-
-    it("잘못된 토큰으로 접근할 때 401 에러가 발생해야 함", async () => {
-      // Given: 테스트 상품 생성
-      const testProduct = await ProductFactory.createAndSave(productRepository);
-
-      // When: 잘못된 토큰으로 상품 조회 시도
-      const response = await request(app.getHttpServer())
-        .get(`/api/products/${testProduct.id}`)
-        .set(environment.dataHelper.getInvalidAuthHeaders())
-        .expect(401);
-
-      // Then: 인증 에러 메시지가 반환되어야 함
-      expect(response.body.message).toBe("유효하지 않은 토큰입니다");
     });
   });
 

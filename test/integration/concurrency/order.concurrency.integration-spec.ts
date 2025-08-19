@@ -5,6 +5,7 @@ import {
   TestEnvironmentFactory,
   TestEnvironment,
 } from "../../test-environment/test-environment.factory";
+import { MockRedisManager } from "../../test-environment/mocks/redis-manager";
 import { OrderFactory } from "@/order/infrastructure/persistence/factories/order.factory";
 import { OrderItemFactory } from "@/order/infrastructure/persistence/factories/order-item.factory";
 import {
@@ -57,6 +58,11 @@ import { ProductFactory } from "@/product/infrastructure/persistence/factories/p
 import { UserBalanceFactory } from "@/wallet/infrastructure/persistence/factories/user-balance.factory";
 import { CouponFactory } from "@/coupon/infrastructure/persistence/factories/coupon.factory";
 import { UserCouponFactory } from "@/coupon/infrastructure/persistence/factories/user-coupon.factory";
+import { OrderItemRedisRepository } from "@/order/infrastructure/persistence/order-item-redis.repository";
+import { CacheInvalidationService } from "@/common/infrastructure/cache/cache-invalidation.service";
+import { UpdateProductRankingUseCase } from "@/order/application/use-cases/tier-1-in-domain/update-product-ranking.use-case";
+import { CacheService } from "@/common/infrastructure/cache/cache.service";
+import { RedisManager } from "@/common/infrastructure/config/redis.config";
 
 describe("Order Concurrency Integration Tests", () => {
   let factory: TestEnvironmentFactory;
@@ -164,6 +170,14 @@ describe("Order Concurrency Integration Tests", () => {
         ProcessOrderUseCase,
         RecoverOrderUseCase,
         PlaceOrderUseCase,
+        UpdateProductRankingUseCase,
+        CacheInvalidationService,
+        CacheService,
+        OrderItemRedisRepository,
+        {
+          provide: RedisManager,
+          useValue: MockRedisManager,
+        },
       ],
     }).compile();
 

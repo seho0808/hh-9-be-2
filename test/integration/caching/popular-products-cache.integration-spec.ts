@@ -67,6 +67,10 @@ describe("Popular Products Cache Integration Tests", () => {
         GetProductsByIdsUseCase,
         GetPopularProductsWithDetailUseCase,
         GetPopularProductsWithDetailWithCacheUseCase,
+        {
+          provide: "POPULAR_PRODUCTS_QUERY_PORT",
+          useExisting: OrderItemRepository,
+        },
       ],
     }).compile();
 
