@@ -24,7 +24,6 @@ export class OrderItemRepository {
       .innerJoin("orderItem.order", "order")
       .select("orderItem.productId", "productId")
       .addSelect("SUM(orderItem.quantity)", "totalQuantity")
-      .addSelect("COUNT(DISTINCT orderItem.orderId)", "totalOrders")
       .where("order.status = :status", { status: "SUCCESS" })
       .groupBy("orderItem.productId")
       .orderBy("SUM(orderItem.quantity)", "DESC")
@@ -34,7 +33,6 @@ export class OrderItemRepository {
     return result.map((row) => ({
       productId: row.productId,
       totalQuantity: parseInt(row.totalQuantity),
-      totalOrders: parseInt(row.totalOrders),
     }));
   }
 
