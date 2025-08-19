@@ -3,10 +3,12 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { OrderItem } from "@/order/domain/entities/order-item.entity";
 import { OrderItemTypeOrmEntity } from "./orm/order-item.typeorm.entity";
-import { PopularProductResult } from "@/product/application/use-cases/tier-2/get-popular-products-with-detail.use-case";
-
+import {
+  PopularProductResult,
+  PopularProductsQueryPort,
+} from "@/order/application/ports/popular-products.port";
 @Injectable()
-export class OrderItemRepository {
+export class OrderItemRepository implements PopularProductsQueryPort {
   constructor(
     @InjectRepository(OrderItemTypeOrmEntity)
     private readonly orderItemRepository: Repository<OrderItemTypeOrmEntity>
@@ -17,7 +19,6 @@ export class OrderItemRepository {
     await this.orderItemRepository.save(entity);
   }
 
-  // TODO: postres mv + redis 캐싱 적용
   async findPopularProducts(limit: number): Promise<PopularProductResult[]> {
     const result = await this.orderItemRepository
       .createQueryBuilder("orderItem")
