@@ -8,9 +8,9 @@ import {
   GetPopularProductsWithDetailUseCase,
   GetPopularProductsWithDetailCommand,
   GetPopularProductsWithDetailResult,
-  PopularProductResult,
 } from "../tier-2/get-popular-products-with-detail.use-case";
 import { Product } from "@/product/domain/entities/product.entity";
+import { PopularProductResult } from "@/order/application/ports/popular-products.port";
 
 interface PopularProductsWithDetailCacheData {
   popularProductsStats: {

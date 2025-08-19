@@ -2,15 +2,10 @@ import { GetPopularProductsUseCase } from "@/order/application/use-cases/tier-1-
 import { Product } from "@/product/domain/entities/product.entity";
 import { Injectable } from "@nestjs/common";
 import { GetProductsByIdsUseCase } from "../tier-1-in-domain/get-products-by-ids.use-case";
+import { PopularProductResult } from "@/order/application/ports/popular-products.port";
 
 export interface GetPopularProductsWithDetailCommand {
   limit?: number;
-}
-
-export interface PopularProductResult {
-  productId: string;
-  totalQuantity: number;
-  totalOrders: number;
 }
 
 export interface GetPopularProductsWithDetailResult {

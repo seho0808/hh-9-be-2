@@ -199,17 +199,14 @@ describe("OrderItemRepository Integration Tests", () => {
       // 첫 번째: Product A (총 수량 12, 주문 수 3)
       expect(popularProducts[0].productId).toBe("product-A");
       expect(popularProducts[0].totalQuantity).toBe(12);
-      expect(popularProducts[0].totalOrders).toBe(3);
 
       // 두 번째: Product B (총 수량 8, 주문 수 2)
       expect(popularProducts[1].productId).toBe("product-B");
       expect(popularProducts[1].totalQuantity).toBe(8);
-      expect(popularProducts[1].totalOrders).toBe(2);
 
       // 세 번째: Product C (총 수량 3, 주문 수 1)
       expect(popularProducts[2].productId).toBe("product-C");
       expect(popularProducts[2].totalQuantity).toBe(3);
-      expect(popularProducts[2].totalOrders).toBe(1);
 
       // Product D는 실패한 주문이므로 포함되지 않아야 함
       expect(popularProducts.some((p) => p.productId === "product-D")).toBe(
@@ -274,7 +271,6 @@ describe("OrderItemRepository Integration Tests", () => {
       expect(popularProducts).toHaveLength(1);
       expect(popularProducts[0].productId).toBe(productId);
       expect(popularProducts[0].totalQuantity).toBe(15); // 1+2+3+4+5
-      expect(popularProducts[0].totalOrders).toBe(5); // 5개의 별개 주문
     });
 
     it("한 주문에 동일한 상품이 여러 아이템으로 있을 때 올바르게 집계되어야 함", async () => {
@@ -306,7 +302,6 @@ describe("OrderItemRepository Integration Tests", () => {
       expect(popularProducts).toHaveLength(1);
       expect(popularProducts[0].productId).toBe(productId);
       expect(popularProducts[0].totalQuantity).toBe(5); // 3 + 2
-      expect(popularProducts[0].totalOrders).toBe(1); // 하나의 주문
     });
 
     it("PENDING과 CANCELLED 주문은 집계에서 제외되어야 함", async () => {
@@ -374,7 +369,6 @@ describe("OrderItemRepository Integration Tests", () => {
       expect(popularProducts).toHaveLength(1);
       expect(popularProducts[0].productId).toBe(productId);
       expect(popularProducts[0].totalQuantity).toBe(5); // SUCCESS 주문만
-      expect(popularProducts[0].totalOrders).toBe(1);
     });
 
     it("빈 결과를 올바르게 처리해야 함", async () => {

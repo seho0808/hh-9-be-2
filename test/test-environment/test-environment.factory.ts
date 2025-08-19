@@ -73,6 +73,7 @@ export class TestEnvironmentFactory {
       redisContainer,
       dataHelper: new DataHelper(null as any),
       dbHelper: new DbHelper(null as any),
+      redisHelper: new RedisHelper(redisContainer),
     } as TestEnvironment;
   }
 

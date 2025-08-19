@@ -34,6 +34,7 @@ import {
   GetPopularProductsWithDetailUseCase,
 } from "@/product/application/use-cases/tier-2/get-popular-products-with-detail.use-case";
 import { GetPopularProductsWithDetailWithCacheUseCase } from "@/product/application/use-cases/tier-3/get-popular-products-with-detail-with-cache.use-case";
+import { GetPopularProductsRealtimeUseCase } from "@/product/application/use-cases/tier-3/get-popular-products-realtime.use-case";
 import { GetProductByIdWithCacheUseCase } from "@/product/application/use-cases/tier-2/get-product-by-id-with-cache.use-case";
 import { Product } from "@/product/domain/entities/product.entity";
 
@@ -46,6 +47,7 @@ export class ProductController {
     private readonly getAllProductsUseCase: GetAllProductsUseCase,
     private readonly getPopularProductsWithDetailUseCase: GetPopularProductsWithDetailUseCase,
     private readonly getPopularProductsWithDetailWithCacheUseCase: GetPopularProductsWithDetailWithCacheUseCase,
+    private readonly getPopularProductsRealtimeUseCase: GetPopularProductsRealtimeUseCase,
     private readonly getProductByIdUseCase: GetProductByIdUseCase,
     private readonly getProductByIdWithCacheUseCase: GetProductByIdWithCacheUseCase
   ) {}
@@ -92,34 +94,42 @@ export class ProductController {
     type: [PopularProductDto],
   })
   async getPopularProducts(
-    @Headers("x-cache-disabled") cacheDisabled?: string,
+    @Headers("x-cache-type") cacheType?: string,
     @Res({ passthrough: true }) res?: Response
   ): Promise<ApiResponseDto<PopularProductDto[]>> {
-    // 캐시 비활성화 여부 확인
-    const shouldDisableCache = cacheDisabled === "true";
+    const normalizedCacheType = cacheType?.toLowerCase() || "exact";
 
     let result: GetPopularProductsWithDetailResult["popularProductsStats"];
 
-    if (shouldDisableCache) {
-      const { popularProductsStats } =
-        await this.getPopularProductsWithDetailUseCase.execute({
-          limit: 10,
-        });
-      result = popularProductsStats;
-    } else {
-      const { popularProductsStats } =
-        await this.getPopularProductsWithDetailWithCacheUseCase.execute({
-          limit: 10,
-        });
-      result = popularProductsStats;
+    switch (normalizedCacheType) {
+      case "none":
+        const { popularProductsStats: noneResult } =
+          await this.getPopularProductsWithDetailUseCase.execute({
+            limit: 5,
+          });
+        result = noneResult;
+        break;
+
+      case "realtime":
+        const { popularProductsStats: realtimeResult } =
+          await this.getPopularProductsRealtimeUseCase.execute({
+            limit: 5,
+          });
+        result = realtimeResult;
+        break;
+
+      case "exact":
+      default:
+        const { popularProductsStats: exactResult } =
+          await this.getPopularProductsWithDetailWithCacheUseCase.execute({
+            limit: 5,
+          });
+        result = exactResult;
+        break;
     }
 
     const mappedResult = result.map((item) =>
-      PopularProductDto.fromEntity(
-        item.product,
-        item.statistics.totalQuantity,
-        item.statistics.totalOrders
-      )
+      PopularProductDto.fromEntity(item.product, item.statistics.totalQuantity)
     );
 
     // 응답 메타데이터에 캐시 정보 포함
@@ -149,15 +159,15 @@ export class ProductController {
   })
   async getProductById(
     @Param("productId") productId: string,
-    @Headers("x-cache-disabled") cacheDisabled?: string,
+    @Headers("x-cache-type") cacheType?: string,
     @Res({ passthrough: true }) res?: Response
   ): Promise<ApiResponseDto<ProductResponseDto>> {
-    // 캐시 비활성화 여부 확인
-    const shouldDisableCache = cacheDisabled === "true";
+    // 캐시 타입 확인 (none, exact, realtime)
+    const normalizedCacheType = cacheType?.toLowerCase() || "exact";
 
     let product: Product;
 
-    if (shouldDisableCache) {
+    if (normalizedCacheType === "none") {
       product = await this.getProductByIdUseCase.execute(productId);
     } else {
       product = await this.getProductByIdWithCacheUseCase.execute(productId);

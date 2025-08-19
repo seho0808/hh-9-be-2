@@ -165,16 +165,9 @@ export class PopularProductDto {
   })
   salesCount: number;
 
-  @ApiProperty({
-    description: "총 주문 횟수",
-    example: 45,
-  })
-  totalOrders: number;
-
   static fromEntity(
     product: Product,
-    totalQuantity: number,
-    totalOrders: number
+    totalQuantity: number
   ): PopularProductDto {
     return {
       id: product.id,
@@ -183,7 +176,6 @@ export class PopularProductDto {
       price: product.price,
       availableStock: product.getAvailableStock(),
       salesCount: totalQuantity,
-      totalOrders: totalOrders,
     };
   }
 }

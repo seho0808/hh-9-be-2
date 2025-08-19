@@ -5,6 +5,7 @@ import { UseUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-d
 import { UsePointsUseCase } from "@/wallet/application/use-cases/tier-1-in-domain/use-points.use-case";
 import { ConfirmStockUseCase } from "@/product/application/use-cases/tier-1-in-domain/confirm-stock.use-case";
 import { ChangeOrderStatusUseCase } from "../tier-1-in-domain/change-order-status.use-case";
+import { UpdateProductRankingUseCase } from "../tier-1-in-domain/update-product-ranking.use-case";
 import { IsolationLevel, Transactional } from "typeorm-transactional";
 import { RetryOnOptimisticLock } from "@/common/decorators/retry-on-optimistic-lock.decorator";
 
@@ -29,7 +30,8 @@ export class ProcessOrderUseCase {
     private readonly useUserCouponUseCase: UseUserCouponUseCase,
     private readonly usePointsUseCase: UsePointsUseCase,
     private readonly confirmStockUseCase: ConfirmStockUseCase,
-    private readonly changeOrderStatusUseCase: ChangeOrderStatusUseCase
+    private readonly changeOrderStatusUseCase: ChangeOrderStatusUseCase,
+    private readonly updateProductRankingUseCase: UpdateProductRankingUseCase
   ) {}
 
   @RetryOnOptimisticLock(5, 50)
@@ -90,6 +92,9 @@ export class ProcessOrderUseCase {
         status: OrderStatus.SUCCESS,
       }
     );
+
+    // Redis 인기 상품 랭킹 업데이트
+    this.updateProductRankingUseCase.execute({ order: successOrder });
 
     return {
       order: successOrder,
