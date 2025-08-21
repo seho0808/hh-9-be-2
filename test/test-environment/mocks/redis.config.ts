@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { Redis } from "ioredis";
 import { StartedRedisContainer } from "@testcontainers/redis";
-import { RedisManager } from "../../../src/common/infrastructure/config/redis.config";
+import { BaseRedisEvalsha } from "../../../src/common/infrastructure/config/base-redis-evalsha";
 
 @Injectable()
-export class TestRedisConfig extends RedisManager {
+export class TestRedisConfig extends BaseRedisEvalsha {
   private readonly testRedis: Redis;
 
   constructor(redisContainer: StartedRedisContainer) {
@@ -21,7 +21,11 @@ export class TestRedisConfig extends RedisManager {
     return this.testRedis;
   }
 
+  protected getRedisClient(): Redis {
+    return this.testRedis;
+  }
+
   async disconnect(): Promise<void> {
-    this.testRedis.disconnect();
+    await this.testRedis.disconnect();
   }
 }
