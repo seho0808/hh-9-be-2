@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { AuthModule } from "../auth/auth.module";
 import { LocksModule } from "../common/infrastructure/locks/locks.module";
+import { RedisModule } from "../common/infrastructure/config/redis.module";
 import { CouponController } from "./presentation/http/coupon.controller";
 import { UserCouponController } from "./presentation/http/user-coupon.controller";
 import { GetAllCouponsUseCase } from "./application/use-cases/tier-1-in-domain/get-all-coupons.use-case";
@@ -8,10 +9,12 @@ import { UseUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/u
 import { GetAllUserCouponsUseCase } from "./application/use-cases/tier-1-in-domain/get-all-user-couponse.use-case";
 import { GetCouponByIdUseCase } from "./application/use-cases/tier-1-in-domain/get-coupon-by-id.use-case";
 import { IssueUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/issue-user-coupon.use-case";
+import { IssueUserCouponWithRedisUseCase } from "./application/use-cases/tier-1-in-domain/issue-user-coupon-with-redis.use-case";
 import { ValidateUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/validate-user-coupon.use-case";
 import { CancelUserCouponUseCase } from "./application/use-cases/tier-1-in-domain/cancel-user-coupon.use-case";
 import { UserCouponRepository } from "./infrastructure/persistence/user-coupon.repository";
 import { CouponRepository } from "./infrastructure/persistence/coupon.repository";
+import { CouponRedisRepository } from "./infrastructure/persistence/coupon-redis.repository";
 import { CouponTypeOrmEntity } from "./infrastructure/persistence/orm/coupon.typeorm.entity";
 import { UserCouponTypeOrmEntity } from "./infrastructure/persistence/orm/user-coupon.typeorm.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
@@ -28,6 +31,7 @@ import { IssueUserCouponWithRedlockSpinLockUseCase } from "./application/use-cas
     TypeOrmModule.forFeature([UserCouponTypeOrmEntity, CouponTypeOrmEntity]),
     AuthModule,
     LocksModule,
+    RedisModule,
   ],
   controllers: [CouponController, UserCouponController],
   providers: [
@@ -35,6 +39,7 @@ import { IssueUserCouponWithRedlockSpinLockUseCase } from "./application/use-cas
     GetAllUserCouponsUseCase,
     GetCouponByIdUseCase,
     IssueUserCouponUseCase,
+    IssueUserCouponWithRedisUseCase,
     IssueUserCouponWithSpinLockUseCase,
     IssueUserCouponWithPubSubLockUseCase,
     IssueUserCouponWithQueueLockUseCase,
@@ -47,6 +52,7 @@ import { IssueUserCouponWithRedlockSpinLockUseCase } from "./application/use-cas
     ValidateUserCouponService,
     UserCouponRepository,
     CouponRepository,
+    CouponRedisRepository,
   ],
   exports: [
     ValidateUserCouponUseCase,
