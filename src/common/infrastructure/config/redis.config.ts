@@ -1,11 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import Redis from "ioredis";
+import { BaseRedisEvalsha } from "./base-redis-evalsha";
 
 @Injectable()
-export class RedisManager {
+export class RedisManager extends BaseRedisEvalsha {
   private readonly redis: Redis;
 
   constructor() {
+    super();
     this.redis = new Redis({
       host: "localhost",
       port: 6379,
@@ -17,6 +19,10 @@ export class RedisManager {
   }
 
   getClient(): Redis {
+    return this.redis;
+  }
+
+  protected getRedisClient(): Redis {
     return this.redis;
   }
 

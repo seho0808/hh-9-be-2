@@ -56,7 +56,7 @@ export class CouponRedisRepository {
     `;
 
     try {
-      const result = (await this.redis.eval(
+      const result = (await this.redisManager.evalsha(
         luaScript,
         1,
         key,
