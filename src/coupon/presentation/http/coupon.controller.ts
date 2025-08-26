@@ -36,6 +36,7 @@ import { IssueUserCouponWithPubSubLockUseCase } from "@/coupon/application/use-c
 import { IssueUserCouponWithQueueLockUseCase } from "@/coupon/application/use-cases/tier-2/issue-user-coupon-with-queue-lock.use-case";
 import { IssueUserCouponWithFencingLockUseCase } from "@/coupon/application/use-cases/tier-2/issue-user-coupon-with-fencing-lock.use-case";
 import { IssueUserCouponWithRedlockSpinLockUseCase } from "@/coupon/application/use-cases/tier-2/issue-user-coupon-with-redlock-spin-lock.use-case";
+import { IssueUserCouponWithRedisUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/issue-user-coupon-with-redis.use-case";
 import { GetCouponByIdUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-coupon-by-id.use-case";
 
 @ApiTags("쿠폰")
@@ -48,6 +49,7 @@ export class CouponController {
     private readonly getAllCouponsUseCase: GetAllCouponsUseCase,
     private readonly getCouponByIdUseCase: GetCouponByIdUseCase,
     private readonly issueUserCouponUseCase: IssueUserCouponUseCase,
+    private readonly issueUserCouponWithRedisUseCase: IssueUserCouponWithRedisUseCase,
     private readonly issueUserCouponWithSpinLockUseCase: IssueUserCouponWithSpinLockUseCase,
     private readonly issueUserCouponWithPubSubLockUseCase: IssueUserCouponWithPubSubLockUseCase,
     private readonly issueUserCouponWithQueueLockUseCase: IssueUserCouponWithQueueLockUseCase,
@@ -112,7 +114,15 @@ export class CouponController {
     description:
       "락 전략 선택 (database: DB락, spinlock: 스핀락, pubsub: PubSub락, queue: 큐락, fencing: 펜싱락, redlock: Redlock)",
     required: false,
-    enum: ["database", "spinlock", "pubsub", "queue", "fencing", "redlock"],
+    enum: [
+      "database",
+      "redis",
+      "spinlock",
+      "pubsub",
+      "queue",
+      "fencing",
+      "redlock",
+    ],
     example: "database",
   })
   @ApiResponse({
@@ -146,6 +156,9 @@ export class CouponController {
 
     let result;
     switch (selectedStrategy) {
+      case "redis":
+        result = await this.issueUserCouponWithRedisUseCase.execute(command);
+        break;
       case "spinlock":
         result = await this.issueUserCouponWithSpinLockUseCase.execute(command);
         break;
@@ -165,7 +178,6 @@ export class CouponController {
         result =
           await this.issueUserCouponWithRedlockSpinLockUseCase.execute(command);
         break;
-      case "database":
       default:
         result = await this.issueUserCouponUseCase.execute(command);
         break;
