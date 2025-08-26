@@ -1,6 +1,6 @@
 import { forwardRef, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { ScheduleModule } from "@nestjs/schedule";
+import { PopularProductsScheduler } from "./infrastructure/schedulers/popular-products.scheduler";
 import {
   OrderController,
   UserOrderController,
@@ -15,6 +15,7 @@ import { OrderTypeOrmEntity } from "./infrastructure/persistence/orm/order.typeo
 import { OrderItemTypeOrmEntity } from "./infrastructure/persistence/orm/order-item.typeorm.entity";
 import { OrderRepository } from "./infrastructure/persistence/order.repository";
 import { OrderItemRepository } from "./infrastructure/persistence/order-item.repository";
+import { OrderItemRedisRepository } from "./infrastructure/persistence/order-item-redis.repository";
 import { CouponRepository } from "../coupon/infrastructure/persistence/coupon.repository";
 import { UserCouponRepository } from "../coupon/infrastructure/persistence/user-coupon.repository";
 import { ProductRepository } from "../product/infrastructure/persistence/product.repository";
@@ -37,6 +38,7 @@ import { GetOrdersByUserIdUseCase } from "./application/use-cases/tier-1-in-doma
 import { FindStalePendingOrdersUseCase } from "./application/use-cases/tier-1-in-domain/find-stale-pending-orders.use-case";
 import { FindFailedOrdersUseCase } from "./application/use-cases/tier-1-in-domain/find-failed-orders.use-case";
 import { GetPopularProductsUseCase } from "./application/use-cases/tier-1-in-domain/get-popular-products.use-case";
+import { UpdateProductRankingUseCase } from "./application/use-cases/tier-1-in-domain/update-product-ranking.use-case";
 import { PlaceOrderUseCase } from "./application/use-cases/tier-4/place-order.user-case";
 import { RecoverOrderUseCase } from "./application/use-cases/tier-2/recover-order.use-case";
 import { PrepareOrderUseCase } from "./application/use-cases/tier-3/prepare-order.use-case";
@@ -45,6 +47,7 @@ import { AutoRecoverOrdersUseCase } from "./application/use-cases/tier-3/auto-re
 import { RefreshPopularProductsCacheUseCase } from "./application/use-cases/tier-1-in-domain/refresh-popular-products-cache.use-case";
 import { GetOrdersByUserIdWithCacheUseCase } from "./application/use-cases/tier-2/get-orders-by-user-id-with-cache.use-case";
 import { CacheModule } from "@/common/infrastructure/cache/cache.module";
+import { RedisModule } from "@/common/infrastructure/config/redis.module";
 
 @Module({
   imports: [
@@ -63,7 +66,7 @@ import { CacheModule } from "@/common/infrastructure/cache/cache.module";
     WalletModule,
     CouponModule,
     CacheModule,
-    ScheduleModule.forRoot(),
+    RedisModule,
   ],
   controllers: [OrderController, UserOrderController],
   providers: [
@@ -76,6 +79,7 @@ import { CacheModule } from "@/common/infrastructure/cache/cache.module";
     FindStalePendingOrdersUseCase,
     FindFailedOrdersUseCase,
     GetPopularProductsUseCase,
+    UpdateProductRankingUseCase,
     PlaceOrderUseCase,
     PrepareOrderUseCase,
     ProcessOrderUseCase,
@@ -84,6 +88,16 @@ import { CacheModule } from "@/common/infrastructure/cache/cache.module";
     RefreshPopularProductsCacheUseCase,
     OrderRepository,
     OrderItemRepository,
+    OrderItemRedisRepository,
+    PopularProductsScheduler,
+    {
+      provide: "POPULAR_PRODUCTS_QUERY_PORT",
+      useExisting: OrderItemRepository,
+    },
+    {
+      provide: "REALTIME_POPULAR_PRODUCTS_QUERY_PORT",
+      useExisting: OrderItemRedisRepository,
+    },
     CouponRepository,
     UserCouponRepository,
     ProductRepository,
@@ -91,6 +105,10 @@ import { CacheModule } from "@/common/infrastructure/cache/cache.module";
     UserBalanceRepository,
     PointTransactionRepository,
   ],
-  exports: [GetPopularProductsUseCase],
+  exports: [
+    GetPopularProductsUseCase,
+    "POPULAR_PRODUCTS_QUERY_PORT",
+    "REALTIME_POPULAR_PRODUCTS_QUERY_PORT",
+  ],
 })
 export class OrderModule {}

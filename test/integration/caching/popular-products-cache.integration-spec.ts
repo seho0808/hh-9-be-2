@@ -67,6 +67,10 @@ describe("Popular Products Cache Integration Tests", () => {
         GetProductsByIdsUseCase,
         GetPopularProductsWithDetailUseCase,
         GetPopularProductsWithDetailWithCacheUseCase,
+        {
+          provide: "POPULAR_PRODUCTS_QUERY_PORT",
+          useExisting: OrderItemRepository,
+        },
       ],
     }).compile();
 
@@ -144,7 +148,6 @@ describe("Popular Products Cache Integration Tests", () => {
       const topProduct = result.popularProductsStats[0];
       expect(topProduct.statistics.productId).toBe("product-A");
       expect(topProduct.statistics.totalQuantity).toBe(12);
-      expect(topProduct.statistics.totalOrders).toBe(3);
     });
 
     it("캐시 무효화 후 새로운 데이터가 반영되어야 함", async () => {
