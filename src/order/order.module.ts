@@ -48,6 +48,7 @@ import { RefreshPopularProductsCacheUseCase } from "./application/use-cases/tier
 import { GetOrdersByUserIdWithCacheUseCase } from "./application/use-cases/tier-2/get-orders-by-user-id-with-cache.use-case";
 import { CacheModule } from "@/common/infrastructure/cache/cache.module";
 import { RedisModule } from "@/common/infrastructure/config/redis.module";
+import { DataPlatformMessaging } from "@/order/infrastructure/messaging/data-platform.messaging";
 
 @Module({
   imports: [
@@ -90,6 +91,7 @@ import { RedisModule } from "@/common/infrastructure/config/redis.module";
     OrderItemRepository,
     OrderItemRedisRepository,
     PopularProductsScheduler,
+    DataPlatformMessaging,
     {
       provide: "POPULAR_PRODUCTS_QUERY_PORT",
       useExisting: OrderItemRepository,
