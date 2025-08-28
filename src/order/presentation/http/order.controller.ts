@@ -31,7 +31,7 @@ import {
 import { OrderExceptionFilter } from "./filters/order-exception.filter";
 import { v4 as uuidv4 } from "uuid";
 import { OrderNotFoundHttpError } from "./exceptions";
-import { PlaceOrderUseCase } from "@/order/application/use-cases/tier-4/place-order.user-case";
+import { PlaceOrderUseCase } from "@/order/application/use-cases/tier-4/place-order.use-case";
 import { GetOrderByIdUseCase } from "@/order/application/use-cases/tier-1-in-domain/get-order-by-id.use-case";
 import { GetOrdersByUserIdUseCase } from "@/order/application/use-cases/tier-1-in-domain/get-orders-by-user-id.use-case";
 import { GetOrdersByUserIdWithCacheUseCase } from "@/order/application/use-cases/tier-2/get-orders-by-user-id-with-cache.use-case";
