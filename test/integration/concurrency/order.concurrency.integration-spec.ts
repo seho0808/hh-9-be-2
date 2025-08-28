@@ -23,7 +23,7 @@ import {
   UserCouponTypeOrmEntity,
 } from "@/coupon/infrastructure/persistence/orm/user-coupon.typeorm.entity";
 import { UserTypeOrmEntity } from "@/user/infrastructure/persistence/orm/user.typeorm.entity";
-import { PlaceOrderUseCase } from "@/order/application/use-cases/tier-4/place-order.user-case";
+import { PlaceOrderUseCase } from "@/order/application/use-cases/tier-4/place-order.use-case";
 import { PrepareOrderUseCase } from "@/order/application/use-cases/tier-3/prepare-order.use-case";
 import { ProcessOrderUseCase } from "@/order/application/use-cases/tier-2/process-order.use-case";
 import { RecoverOrderUseCase } from "@/order/application/use-cases/tier-2/recover-order.use-case";
