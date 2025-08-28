@@ -9,7 +9,7 @@ import { UpdateProductRankingUseCase } from "../tier-1-in-domain/update-product-
 import { IsolationLevel, Transactional } from "typeorm-transactional";
 import { RetryOnOptimisticLock } from "@/common/decorators/retry-on-optimistic-lock.decorator";
 import { OrderPlacedEvent } from "@/order/infrastructure/messaging/events";
-import { AfterCommitEmit } from "@/common/decorators/after-commit-emit.decorator";
+import { EmitOnSuccess } from "@/common/decorators/after-commit-emit.decorator";
 
 export interface ProcessOrderCommand {
   userId: string;
@@ -36,7 +36,7 @@ export class ProcessOrderUseCase {
     private readonly updateProductRankingUseCase: UpdateProductRankingUseCase
   ) {}
 
-  @AfterCommitEmit(
+  @EmitOnSuccess(
     "order.placed",
     (result: ProcessOrderResult) => new OrderPlacedEvent(result.order)
   )

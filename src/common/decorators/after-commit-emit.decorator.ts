@@ -1,6 +1,6 @@
 import { EventEmitter2 } from "@nestjs/event-emitter";
 
-export function AfterCommitEmit<T extends (...args: any[]) => any>(
+export function EmitOnSuccess<T extends (...args: any[]) => any>(
   eventName: string,
   buildPayload: (result: Awaited<ReturnType<T>>, args: Parameters<T>) => any
 ): MethodDecorator {
