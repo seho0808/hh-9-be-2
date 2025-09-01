@@ -39,7 +39,7 @@ import { FindStalePendingOrdersUseCase } from "./application/use-cases/tier-1-in
 import { FindFailedOrdersUseCase } from "./application/use-cases/tier-1-in-domain/find-failed-orders.use-case";
 import { GetPopularProductsUseCase } from "./application/use-cases/tier-1-in-domain/get-popular-products.use-case";
 import { UpdateProductRankingUseCase } from "./application/use-cases/tier-1-in-domain/update-product-ranking.use-case";
-import { PlaceOrderUseCase } from "./application/use-cases/tier-4/place-order.user-case";
+import { PlaceOrderUseCase } from "./application/use-cases/tier-4/place-order.use-case";
 import { RecoverOrderUseCase } from "./application/use-cases/tier-2/recover-order.use-case";
 import { PrepareOrderUseCase } from "./application/use-cases/tier-3/prepare-order.use-case";
 import { ProcessOrderUseCase } from "./application/use-cases/tier-2/process-order.use-case";
@@ -48,6 +48,7 @@ import { RefreshPopularProductsCacheUseCase } from "./application/use-cases/tier
 import { GetOrdersByUserIdWithCacheUseCase } from "./application/use-cases/tier-2/get-orders-by-user-id-with-cache.use-case";
 import { CacheModule } from "@/common/infrastructure/cache/cache.module";
 import { RedisModule } from "@/common/infrastructure/config/redis.module";
+import { DataPlatformMessaging } from "@/order/infrastructure/messaging/data-platform.messaging";
 
 @Module({
   imports: [
@@ -90,6 +91,7 @@ import { RedisModule } from "@/common/infrastructure/config/redis.module";
     OrderItemRepository,
     OrderItemRedisRepository,
     PopularProductsScheduler,
+    DataPlatformMessaging,
     {
       provide: "POPULAR_PRODUCTS_QUERY_PORT",
       useExisting: OrderItemRepository,

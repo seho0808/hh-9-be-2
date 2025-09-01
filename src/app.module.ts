@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ScheduleModule } from "@nestjs/schedule";
 import { DatabaseModule } from "./common/infrastructure/config/database.module";
 import { RedisModule } from "./common/infrastructure/config/redis.module";
@@ -11,6 +12,7 @@ import { OrderModule } from "./order/order.module";
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
     RedisModule,
     DatabaseModule,
