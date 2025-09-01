@@ -10,20 +10,20 @@ import { CouponRepository } from "@/coupon/infrastructure/persistence/coupon.rep
 import { UserCouponRepository } from "@/coupon/infrastructure/persistence/user-coupon.repository";
 import { FencingTokenViolationError } from "@/common/infrastructure/infrastructure.exceptions";
 
-export interface IssueUserCouponCommand {
+export interface IssueUserCouponWithFencingTokenCommand {
   couponId: string;
   userId: string;
   couponCode: string;
   idempotencyKey: string;
 }
 
-export interface IssueUserCouponResult {
+export interface IssueUserCouponWithFencingTokenResult {
   coupon: Coupon;
   userCoupon: UserCoupon;
 }
 
 @Injectable()
-export class IssueUserCouponUseCase {
+export class IssueUserCouponWithFencingTokenUseCase {
   constructor(
     private readonly couponRepository: CouponRepository,
     private readonly userCouponRepository: UserCouponRepository
@@ -31,8 +31,9 @@ export class IssueUserCouponUseCase {
 
   @Transactional()
   async execute(
-    command: IssueUserCouponCommand
-  ): Promise<IssueUserCouponResult> {
+    command: IssueUserCouponWithFencingTokenCommand,
+    fencingToken: number
+  ): Promise<IssueUserCouponWithFencingTokenResult> {
     const { couponId, userId, couponCode, idempotencyKey } = command;
 
     // 1. 공통 검증 로직
@@ -53,10 +54,12 @@ export class IssueUserCouponUseCase {
     });
 
     // 3. 저장 로직
-    await Promise.all([
-      this.couponRepository.save(coupon),
-      this.userCouponRepository.save(userCoupon),
-    ]);
+    await this.saveCouponWithFencingToken(
+      couponId,
+      fencingToken,
+      coupon.issuedCount
+    );
+    await this.userCouponRepository.save(userCoupon);
 
     return { coupon, userCoupon };
   }
@@ -85,5 +88,21 @@ export class IssueUserCouponUseCase {
       couponId,
       userId
     );
+  }
+
+  private async saveCouponWithFencingToken(
+    couponId: string,
+    fencingToken: number,
+    issuedCount: number
+  ): Promise<void> {
+    const updateSuccess = await this.couponRepository.updateWithFencingToken(
+      couponId,
+      fencingToken,
+      { issuedCount }
+    );
+
+    if (!updateSuccess) {
+      throw new FencingTokenViolationError(fencingToken, -1);
+    }
   }
 }
