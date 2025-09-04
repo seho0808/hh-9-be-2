@@ -3,6 +3,7 @@ import { CouponReservationRepository } from "@/coupon/infrastructure/persistence
 import { OutboxRepository } from "@/common/infrastructure/persistence/outbox.repository";
 import { Injectable } from "@nestjs/common";
 import { Transactional } from "typeorm-transactional";
+import { IssueUserCouponReservedEvent } from "@/coupon/infrastructure/messaging/issue-user-coupon-reserved.event";
 
 export interface PublishIssueUserCouponEventCommand {
   couponId: string;
@@ -32,9 +33,14 @@ export class ReserveIssueUserCouponUseCase {
     });
 
     await this.couponReservationRepository.save(couponReservation);
+
+    const eventPayload: IssueUserCouponReservedEvent["data"] = {
+      reservationId: couponReservation.id,
+      couponId: couponReservation.couponId,
+    };
     await this.outboxRepository.appendEvent({
       eventType: "issue.usercoupon.reserved",
-      payload: couponReservation,
+      payload: eventPayload,
       idempotencyKey,
     });
 
