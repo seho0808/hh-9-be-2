@@ -33,6 +33,7 @@ import { ReserveIssueUserCouponUseCase } from "./application/use-cases/tier-1-in
 import { CouponReservationRepository } from "./infrastructure/persistence/coupon-reservation.repository";
 import { CouponReservationTypeOrmEntity } from "./infrastructure/persistence/orm/coupon-reservation.typeorm.entity";
 import { GetCouponReservationStatusUseCase } from "./application/use-cases/tier-1-in-domain/get-coupon-reservation-status.use-case";
+import { IssueUserCouponReservedConsumer } from "@/coupon/infrastructure/messaging/issue-user-coupon-reserved.consumer";
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { GetCouponReservationStatusUseCase } from "./application/use-cases/tier-
     CouponRedisRepository,
     CouponReservationRepository,
     OutboxRepository,
+    IssueUserCouponReservedConsumer,
   ],
   exports: [
     ValidateUserCouponUseCase,
