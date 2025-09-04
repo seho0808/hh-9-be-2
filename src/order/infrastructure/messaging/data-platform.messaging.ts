@@ -35,18 +35,11 @@ export class DataPlatformMessaging {
   private readonly timeoutMs: number;
   private readonly sleepFn: (ms: number) => Promise<void>;
 
-  constructor(options?: {
-    endpoint?: string;
-    timeoutMs?: number;
-    logger?: LoggerService;
-    sleep?: (ms: number) => Promise<void>;
-  }) {
-    this.logger = options?.logger ?? new Logger(DataPlatformMessaging.name);
-    this.endpoint = options?.endpoint || "http://localhost:4000/mock/orders";
-    this.timeoutMs =
-      options?.timeoutMs ??
-      Number(process.env.MOCK_DATA_PLATFORM_TIMEOUT_MS || 3000);
-    this.sleepFn = options?.sleep ?? ((ms) => this.sleep(ms));
+  constructor() {
+    this.logger = new Logger(DataPlatformMessaging.name);
+    this.endpoint = process.env.MOCK_DATA_PLATFORM_ENDPOINT || "";
+    this.timeoutMs = Number(process.env.MOCK_DATA_PLATFORM_TIMEOUT_MS || 3000);
+    this.sleepFn = (ms) => this.sleep(ms);
   }
 
   @OnEvent("order.placed", { async: true })
