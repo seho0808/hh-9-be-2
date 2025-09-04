@@ -34,6 +34,7 @@ export class OutboxRepository {
     return await this.repository.save(entity);
   }
 
+  // TODO: Status.PROCESSING => stale한 것들 자동 처리
   async findNew(limit: number = 100): Promise<OutboxTypeOrmEntity[]> {
     return await this.repository.find({
       where: { status: OutboxStatus.NEW },
