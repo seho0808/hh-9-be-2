@@ -39,29 +39,29 @@ export class KafkaManager implements OnModuleDestroy {
 
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
-      await Promise.all([
-        this.producer.connect(),
-        this.consumer.connect(),
-        this.admin.connect(),
-      ]);
+    await Promise.all([
+      this.producer.connect(),
+      this.consumer.connect(),
+      this.admin.connect(),
+    ]);
     await this.createTopicsIfNotExist(["issue.usercoupon.reserved"]);
-      this.isInitialized = true;
+    this.isInitialized = true;
   }
 
   private async createTopicsIfNotExist(topicNames: string[]): Promise<void> {
-      const existingTopics = await this.admin.listTopics();
-      const topicsToCreate = topicNames.filter(
-        (topic) => !existingTopics.includes(topic)
-      );
+    const existingTopics = await this.admin.listTopics();
+    const topicsToCreate = topicNames.filter(
+      (topic) => !existingTopics.includes(topic)
+    );
 
-      if (topicsToCreate.length > 0) {
-        await this.admin.createTopics({
-          topics: topicsToCreate.map((topic) => ({
-            topic,
-            numPartitions: 3,
-            replicationFactor: 1,
-          })),
-        });
+    if (topicsToCreate.length > 0) {
+      await this.admin.createTopics({
+        topics: topicsToCreate.map((topic) => ({
+          topic,
+          numPartitions: 3,
+          replicationFactor: 1,
+        })),
+      });
     }
   }
 
@@ -86,12 +86,13 @@ export class KafkaManager implements OnModuleDestroy {
     return this.admin;
   }
 
-  async sendMessage(topic: string, message: any): Promise<void> {
+  async sendMessage(topic: string, message: any, key?: string): Promise<void> {
     const producer = this.getProducer();
     await producer.send({
       topic,
       messages: [
         {
+          key,
           value: JSON.stringify(message),
           timestamp: Date.now().toString(),
         },
@@ -99,11 +100,16 @@ export class KafkaManager implements OnModuleDestroy {
     });
   }
 
-  async sendMessages(topic: string, messages: any[]): Promise<void> {
+  async sendMessages(
+    topic: string,
+    messages: any[],
+    key?: string
+  ): Promise<void> {
     const producer = this.getProducer();
     await producer.send({
       topic,
       messages: messages.map((message) => ({
+        key,
         value: JSON.stringify(message),
         timestamp: Date.now().toString(),
       })),
