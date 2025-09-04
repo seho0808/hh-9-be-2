@@ -6,6 +6,7 @@ import { UserCouponTypeOrmEntity } from "../../src/coupon/infrastructure/persist
 import { OrderTypeOrmEntity } from "../../src/order/infrastructure/persistence/orm/order.typeorm.entity";
 import { OrderItemTypeOrmEntity } from "../../src/order/infrastructure/persistence/orm/order-item.typeorm.entity";
 import { OutboxTypeOrmEntity } from "../../src/common/infrastructure/persistence/orm/outbox.typeorm.entity";
+import { CouponReservationTypeOrmEntity } from "../../src/coupon/infrastructure/persistence/orm/coupon-reservation.typeorm.entity";
 import { PointTransactionTypeOrmEntity } from "../../src/wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
 import { UserBalanceTypeOrmEntity } from "../../src/wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
 
@@ -15,6 +16,7 @@ export const ALL_ENTITIES = [
   StockReservationTypeOrmEntity,
   CouponTypeOrmEntity,
   UserCouponTypeOrmEntity,
+  CouponReservationTypeOrmEntity,
   UserBalanceTypeOrmEntity,
   PointTransactionTypeOrmEntity,
   OrderTypeOrmEntity,
@@ -28,6 +30,7 @@ export const TABLE_NAMES = [
   "stock_reservations",
   "coupons",
   "user_coupons",
+  "coupon_reservations",
   "user_balances",
   "point_transactions",
   "orders",
