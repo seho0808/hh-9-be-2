@@ -31,6 +31,7 @@ export class CouponReservationRepository {
     couponReservation: CouponReservation
   ): CouponReservationTypeOrmEntity {
     const entity = new CouponReservationTypeOrmEntity();
+    entity.id = couponReservation.id;
     entity.couponId = couponReservation.couponId;
     entity.userId = couponReservation.userId;
     entity.couponCode = couponReservation.couponCode;

@@ -1,3 +1,4 @@
+import { Injectable } from "@nestjs/common";
 import { CouponReservationRepository } from "@/coupon/infrastructure/persistence/coupon-reservation.repository";
 import { Transactional } from "typeorm-transactional";
 import { CouponReservationNotFoundError } from "../../coupon.application.exceptions";
@@ -13,6 +14,7 @@ export interface ConfirmUserCouponReservationResult {
   couponReservation: CouponReservation;
 }
 
+@Injectable()
 export class ConfirmUserCouponReservationUseCase {
   constructor(
     private readonly issueUserCouponUseCase: IssueUserCouponUseCase,
