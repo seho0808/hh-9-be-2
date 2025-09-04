@@ -39,31 +39,16 @@ export class KafkaManager implements OnModuleDestroy {
 
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
-
-    try {
       await Promise.all([
         this.producer.connect(),
         this.consumer.connect(),
         this.admin.connect(),
       ]);
-
-      // 기본 토픽들 생성
-      await this.createTopicsIfNotExist([
-        "coupon.issued",
-        "coupon.used",
-        "coupon.expired",
-      ]);
-
+    await this.createTopicsIfNotExist(["issue.usercoupon.reserved"]);
       this.isInitialized = true;
-      console.log("Kafka initialized successfully");
-    } catch (error) {
-      console.error("Failed to initialize Kafka:", error);
-      throw error;
-    }
   }
 
   private async createTopicsIfNotExist(topicNames: string[]): Promise<void> {
-    try {
       const existingTopics = await this.admin.listTopics();
       const topicsToCreate = topicNames.filter(
         (topic) => !existingTopics.includes(topic)
@@ -77,10 +62,6 @@ export class KafkaManager implements OnModuleDestroy {
             replicationFactor: 1,
           })),
         });
-        console.log("Created topics:", topicsToCreate);
-      }
-    } catch (error) {
-      console.error("Failed to create topics:", error);
     }
   }
 
@@ -136,7 +117,6 @@ export class KafkaManager implements OnModuleDestroy {
         this.consumer.disconnect(),
         this.admin.disconnect(),
       ]);
-      console.log("Kafka disconnected");
     }
   }
 }
