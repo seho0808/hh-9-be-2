@@ -1,5 +1,7 @@
-import { Injectable, OnModuleDestroy } from "@nestjs/common";
+import { Inject, Injectable, OnModuleDestroy } from "@nestjs/common";
 import { Kafka, Producer, Consumer, Admin } from "kafkajs";
+
+export const KAFKA_BROKERS_TOKEN = "KAFKA_BROKERS_TOKEN";
 
 @Injectable()
 export class KafkaManager implements OnModuleDestroy {
@@ -9,10 +11,13 @@ export class KafkaManager implements OnModuleDestroy {
   private readonly admin: Admin;
   private isInitialized = false;
 
-  constructor() {
+  constructor(@Inject(KAFKA_BROKERS_TOKEN) brokers?: string[]) {
+    const resolvedBrokers =
+      brokers && brokers.length > 0 ? brokers : ["localhost:9094"]; // fallback for local docker-compose
+
     this.kafka = new Kafka({
       clientId: "hh-week-2-app",
-      brokers: ["localhost:9094"], // docker-compose의 external listener
+      brokers: resolvedBrokers,
       retry: {
         initialRetryTime: 100,
         retries: 8,

@@ -1,11 +1,13 @@
 import { MySqlContainer, StartedMySqlContainer } from "@testcontainers/mysql";
 import { RedisContainer, StartedRedisContainer } from "@testcontainers/redis";
+import { KafkaContainer, StartedKafkaContainer } from "@testcontainers/kafka";
 import { TestEnvironmentConfig } from "../test-environment.factory";
 import { DEFAULT_CONTAINER_CONFIG } from "../constants";
 
 export interface ContainerSetup {
   mysqlContainer: StartedMySqlContainer;
   redisContainer?: StartedRedisContainer;
+  kafkaContainer?: StartedKafkaContainer;
 }
 
 export class ContainerManager {
@@ -40,6 +42,14 @@ export class ContainerManager {
     return new RedisContainer(redisVersion).withExposedPorts(6379).start();
   }
 
+  private createKafkaContainer(
+    config: TestEnvironmentConfig
+  ): Promise<StartedKafkaContainer> {
+    const { kafkaVersion = DEFAULT_CONTAINER_CONFIG.kafkaVersion } = config;
+
+    return new KafkaContainer(kafkaVersion).start();
+  }
+
   async setupMySQL(
     config: TestEnvironmentConfig = {}
   ): Promise<ContainerSetup> {
@@ -53,6 +63,12 @@ export class ContainerManager {
     return this.createRedisContainer(config);
   }
 
+  async setupKafka(
+    config: TestEnvironmentConfig = {}
+  ): Promise<StartedKafkaContainer> {
+    return this.createKafkaContainer(config);
+  }
+
   async setupMySQLAndRedis(
     config: TestEnvironmentConfig = {}
   ): Promise<ContainerSetup> {
@@ -62,5 +78,26 @@ export class ContainerManager {
     ]);
 
     return { mysqlContainer, redisContainer };
+  }
+
+  async setupMySQLAndKafka(
+    config: TestEnvironmentConfig = {}
+  ): Promise<ContainerSetup> {
+    const [mysqlContainer, kafkaContainer] = await Promise.all([
+      this.createMySQLContainer(config),
+      this.createKafkaContainer(config),
+    ]);
+
+    return { mysqlContainer, kafkaContainer };
+  }
+
+  async setupAll(config: TestEnvironmentConfig = {}): Promise<ContainerSetup> {
+    const [mysqlContainer, redisContainer, kafkaContainer] = await Promise.all([
+      this.createMySQLContainer(config),
+      this.createRedisContainer(config),
+      this.createKafkaContainer(config),
+    ]);
+
+    return { mysqlContainer, redisContainer, kafkaContainer };
   }
 }

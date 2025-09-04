@@ -42,6 +42,7 @@ export const DEFAULT_TEST_USER = {
 export const DEFAULT_CONTAINER_CONFIG = {
   mysqlVersion: "mysql:8.0",
   redisVersion: "redis:7-alpine",
+  kafkaVersion: "confluentinc/cp-kafka:7.4.0",
   username: "test_user",
   password: "test_password",
 };
