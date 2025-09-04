@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { CouponReservationConfirmStatusNotPendingError } from "../exceptions/user-coupon.exception";
 
 export enum CouponReservationStatus {
   PENDING = "PENDING",
@@ -40,6 +41,14 @@ export class CouponReservation {
 
   changeStatus(status: CouponReservationStatus): void {
     this.props.status = status;
+    this.props.updatedAt = new Date();
+  }
+
+  confirm(): void {
+    if (this.props.status !== CouponReservationStatus.PENDING) {
+      throw new CouponReservationConfirmStatusNotPendingError(this.props.id);
+    }
+    this.props.status = CouponReservationStatus.COMPLETED;
     this.props.updatedAt = new Date();
   }
 
