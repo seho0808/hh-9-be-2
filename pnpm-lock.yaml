@@ -47,6 +47,9 @@ importers:
       ioredis:
         specifier: ^5.7.0
         version: 5.7.0
+      kafkajs:
+        specifier: ^2.2.4
+        version: 2.2.4
       mysql2:
         specifier: ^3.9.2
         version: 3.14.2
@@ -78,6 +81,9 @@ importers:
       '@nestjs/testing':
         specifier: ^10.0.0
         version: 10.4.19(@nestjs/common@10.4.19(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@10.4.19)(@nestjs/platform-express@10.4.19)
+      '@testcontainers/kafka':
+        specifier: ^11.5.1
+        version: 11.5.1
       '@testcontainers/mysql':
         specifier: ^10.7.2
         version: 10.28.0
@@ -93,6 +99,9 @@ importers:
       '@types/jest':
         specifier: ^29.5.2
         version: 29.5.14
+      '@types/kafkajs':
+        specifier: ^1.9.0
+        version: 1.9.0
       '@types/node':
         specifier: ^20.3.1
         version: 20.19.7
@@ -730,6 +739,9 @@ packages:
   '@sqltools/formatter@1.2.5':
     resolution: {integrity: sha512-Uy0+khmZqUrUGm5dmMqVlnvufZRSK0FbYzVgp0UMstm+F5+W2/jnEEQyc9vo1ZR/E5ZI/B1WjjoTqBqwJL6Krw==}
 
+  '@testcontainers/kafka@11.5.1':
+    resolution: {integrity: sha512-n2y7wWNW6xPdPPnjjchuSA0DYuMUk6xOO0yk3fWcvTeqUqOKlC33LHBH9Dc3WiOu/eNzBJXdeU2ZJ0VDJJuYqQ==}
+
   '@testcontainers/mysql@10.28.0':
     resolution: {integrity: sha512-yZKe86Esg8mPyr957aSwdkmDqXH17vab5aUcDqwR/E2fZpZxLetwfvmoVP+V6TpQQNTYrVTyP5T+HPMgaZeIkA==}
 
@@ -832,6 +844,10 @@ packages:
 
   '@types/jsonwebtoken@9.0.7':
     resolution: {integrity: sha512-ugo316mmTYBl2g81zDFnZ7cfxlut3o+/EQdaP7J8QN2kY6lJ22hmQYCK5EHcJHbrW+dkCGSCPgbG8JtYj6qSrg==}
+
+  '@types/kafkajs@1.9.0':
+    resolution: {integrity: sha512-R9VDNbiw+vNfxWjjFHUrLMF/Dfc7asGXzKtYUwI4FaT24Chf5ZNkfvce54p4dkLMxPcsrEsVazAK0Jp2ib4Zxw==}
+    deprecated: This is a stub types definition. kafkajs provides its own type definitions, so you do not need this installed.
 
   '@types/luxon@3.6.2':
     resolution: {integrity: sha512-R/BdP7OxEMc44l2Ex5lSXHoIXTB2JLNa3y2QISIbr58U/YcsffyQrYW//hZSdrfxrjRZj3GcUoxMPGdO8gSYuw==}
@@ -1540,6 +1556,9 @@ packages:
   comment-json@4.2.5:
     resolution: {integrity: sha512-bKw/r35jR3HGt5PEPm1ljsQQGyCrR8sFGNiN5L+ykDHdpO8Smxkrkla9Yi6NkQyUrb8V54PGhfMs6NrIwtxtdw==}
     engines: {node: '>= 6'}
+
+  compare-versions@6.1.1:
+    resolution: {integrity: sha512-4hm4VPpIecmlg59CHXnRDnqGplJFrbLG4aFEl5vl6cK1u76ws3LLvX7ikFnTDl5vo39sjWD6AaDPYodJp/NNHg==}
 
   component-emitter@1.3.1:
     resolution: {integrity: sha512-T0+barUSQRTUQASh8bx02dl+DhF54GtIDY13Y3m9oWTklKbb3Wv974meRpeZ3lp1JpLVECWWNHC4vaG2XHXouQ==}
@@ -2708,6 +2727,10 @@ packages:
 
   jws@3.2.2:
     resolution: {integrity: sha512-YHlZCB6lMTllWDtSPHz/ZXTsi8S00usEV6v1tjq8tOUZzw7DpSDWVXjXDre6ed1w/pd495ODpHZYSdkRTsa0HA==}
+
+  kafkajs@2.2.4:
+    resolution: {integrity: sha512-j/YeapB1vfPT2iOIUn/vxdyKEuhuY2PxMBvf5JWux6iSaukAccrMtXEY/Lb7OvavDhOWME589bpLrEdnVHjfjA==}
+    engines: {node: '>=14.0.0'}
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
@@ -4834,6 +4857,14 @@ snapshots:
 
   '@sqltools/formatter@1.2.5': {}
 
+  '@testcontainers/kafka@11.5.1':
+    dependencies:
+      compare-versions: 6.1.1
+      testcontainers: 11.5.1
+    transitivePeerDependencies:
+      - bare-buffer
+      - supports-color
+
   '@testcontainers/mysql@10.28.0':
     dependencies:
       testcontainers: 10.28.0
@@ -4976,6 +5007,10 @@ snapshots:
   '@types/jsonwebtoken@9.0.7':
     dependencies:
       '@types/node': 20.19.7
+
+  '@types/kafkajs@1.9.0':
+    dependencies:
+      kafkajs: 2.2.4
 
   '@types/luxon@3.6.2': {}
 
@@ -5762,6 +5797,8 @@ snapshots:
       esprima: 4.0.1
       has-own-prop: 2.0.0
       repeat-string: 1.6.1
+
+  compare-versions@6.1.1: {}
 
   component-emitter@1.3.1: {}
 
@@ -7302,6 +7339,8 @@ snapshots:
     dependencies:
       jwa: 1.4.2
       safe-buffer: 5.2.1
+
+  kafkajs@2.2.4: {}
 
   keyv@4.5.4:
     dependencies:

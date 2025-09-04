@@ -7,6 +7,9 @@ import {
   UseGuards,
   UseFilters,
   Headers,
+  InternalServerErrorException,
+  Res,
+  HttpCode,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -15,11 +18,14 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiHeader,
+  ApiAcceptedResponse,
 } from "@nestjs/swagger";
 import {
   CouponResponseDto,
   UserCouponResponseDto,
   ClaimCouponDto,
+  IssueCouponReservationDto,
+  IssueCouponReservationResponseDto,
 } from "./dto/coupon.dto";
 import { ApiResponseDto } from "@/common/presentation/dto/response.dto";
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
@@ -38,6 +44,9 @@ import { IssueUserCouponWithFencingLockUseCase } from "@/coupon/application/use-
 import { IssueUserCouponWithRedlockSpinLockUseCase } from "@/coupon/application/use-cases/tier-2/issue-user-coupon-with-redlock-spin-lock.use-case";
 import { IssueUserCouponWithRedisUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/issue-user-coupon-with-redis.use-case";
 import { GetCouponByIdUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-coupon-by-id.use-case";
+import { ReserveIssueUserCouponUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/reserve-issue-user-coupon.use-case";
+import { CouponReservation } from "@/coupon/domain/entities/coupon-reservation.entity";
+import { GetCouponReservationStatusUseCase } from "@/coupon/application/use-cases/tier-1-in-domain/get-coupon-reservation-status.use-case";
 
 @ApiTags("쿠폰")
 @Controller("coupons")
@@ -54,7 +63,9 @@ export class CouponController {
     private readonly issueUserCouponWithPubSubLockUseCase: IssueUserCouponWithPubSubLockUseCase,
     private readonly issueUserCouponWithQueueLockUseCase: IssueUserCouponWithQueueLockUseCase,
     private readonly issueUserCouponWithFencingLockUseCase: IssueUserCouponWithFencingLockUseCase,
-    private readonly issueUserCouponWithRedlockSpinLockUseCase: IssueUserCouponWithRedlockSpinLockUseCase
+    private readonly issueUserCouponWithRedlockSpinLockUseCase: IssueUserCouponWithRedlockSpinLockUseCase,
+    private readonly reserveIssueUserCouponUseCase: ReserveIssueUserCouponUseCase,
+    private readonly getCouponReservationStatusUseCase: GetCouponReservationStatusUseCase
   ) {}
 
   @Get()
@@ -186,6 +197,74 @@ export class CouponController {
     return ApiResponseDto.success(
       UserCouponResponseDto.fromEntity(result.userCoupon),
       "쿠폰이 성공적으로 발급되었습니다"
+    );
+  }
+
+  @Post(":couponId/claims/reservations")
+  @ApiOperation({ summary: "쿠폰 발급 예약" })
+  @ApiParam({
+    name: "couponId",
+    description: "쿠폰 ID",
+    example: "coupon-1",
+  })
+  @ApiAcceptedResponse({
+    description: "쿠폰 발급 예약 성공",
+    type: IssueCouponReservationResponseDto,
+  })
+  @ApiResponse({
+    status: 500,
+    description: "쿠폰 발급 예약 실패",
+  })
+  @HttpCode(202)
+  async reserveIssueCoupon(
+    @CurrentUser() user: CurrentUserData,
+    @Param("couponId") couponId: string,
+    @Body() reserveDto: IssueCouponReservationDto
+  ): Promise<ApiResponseDto<IssueCouponReservationResponseDto>> {
+    let couponReservation: CouponReservation;
+
+    try {
+      couponReservation = await this.reserveIssueUserCouponUseCase.execute({
+        couponId,
+        userId: user.id,
+        couponCode: reserveDto.couponCode,
+        idempotencyKey: reserveDto.idempotencyKey,
+      });
+    } catch (error) {
+      throw new InternalServerErrorException("쿠폰 발급 예약 실패");
+    }
+
+    return ApiResponseDto.success(
+      IssueCouponReservationResponseDto.fromEntity(couponReservation),
+      "쿠폰 발급 예약 성공"
+    );
+  }
+
+  @Get(":couponId/claims/reservations/:reservationId")
+  @ApiOperation({ summary: "쿠폰 발급 예약 상태 조회" })
+  @ApiParam({
+    name: "reservationId",
+    description: "쿠폰 발급 예약 ID",
+    example: "reservation-123",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "쿠폰 발급 예약 상태 조회 성공",
+    type: IssueCouponReservationResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "쿠폰 발급 예약 상태를 찾을 수 없음",
+  })
+  async couponReservationStatus(
+    @Param("reservationId") reservationId: string
+  ): Promise<ApiResponseDto<IssueCouponReservationResponseDto>> {
+    const result = await this.getCouponReservationStatusUseCase.execute({
+      reservationId,
+    });
+    return ApiResponseDto.success(
+      IssueCouponReservationResponseDto.fromEntity(result.couponReservation),
+      "쿠폰 발급 예약 상태를 조회했습니다"
     );
   }
 }

@@ -10,6 +10,8 @@ import {
 import { AppModule } from "../../../src/app.module";
 import { DatabaseModule } from "../../../src/common/infrastructure/config/database.module";
 import { ALL_ENTITIES } from "../constants";
+import { StartedKafkaContainer } from "@testcontainers/kafka";
+import { KAFKA_BROKERS_TOKEN } from "../../../src/common/infrastructure/config/kafka.config";
 
 export class AppManager {
   private createTypeOrmModule(container: StartedMySqlContainer) {
@@ -44,7 +46,10 @@ export class AppManager {
     );
   }
 
-  async createApp(container: StartedMySqlContainer): Promise<INestApplication> {
+  async createApp(
+    container: StartedMySqlContainer,
+    kafkaContainer?: StartedKafkaContainer
+  ): Promise<INestApplication> {
     initializeTransactionalContext();
 
     const moduleFixture = await Test.createTestingModule({
@@ -52,6 +57,10 @@ export class AppManager {
     })
       .overrideModule(DatabaseModule)
       .useModule(this.createTypeOrmModule(container))
+      .overrideProvider(KAFKA_BROKERS_TOKEN)
+      .useValue([
+        `${kafkaContainer.getHost()}:${kafkaContainer.getMappedPort(9093)}`,
+      ])
       .compile();
 
     const app = moduleFixture.createNestApplication();

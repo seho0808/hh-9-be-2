@@ -33,3 +33,11 @@ export class UserCouponRecoverOrderIdMismatchError extends CouponDomainError {
     );
   }
 }
+
+export class CouponReservationConfirmStatusNotPendingError extends CouponDomainError {
+  readonly code = "COUPON_RESERVATION_CONFIRM_STATUS_NOT_PENDING";
+
+  constructor(reservationId: string) {
+    super(`쿠폰 예약 상태가 PENDING가 아닙니다. ID: ${reservationId}`);
+  }
+}

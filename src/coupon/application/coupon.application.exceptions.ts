@@ -30,3 +30,11 @@ export class DuplicateIdempotencyKeyError extends CouponApplicationError {
     super(`중복된 idempotencyKey입니다. 키: ${idempotencyKey}`);
   }
 }
+
+export class CouponReservationNotFoundError extends CouponApplicationError {
+  readonly code = "COUPON_RESERVATION_NOT_FOUND";
+
+  constructor(reservationId: string) {
+    super(`쿠폰 예약을 찾을 수 없습니다. ID: ${reservationId}`);
+  }
+}

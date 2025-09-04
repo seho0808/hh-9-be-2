@@ -4,6 +4,7 @@ import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
 import { FencingLockService } from "@/common/infrastructure/locks/fencing-lock.service";
 import { IssueUserCouponUseCase } from "../tier-1-in-domain/issue-user-coupon.use-case";
 import { FencingTokenViolationError } from "@/common/infrastructure/infrastructure.exceptions";
+import { IssueUserCouponWithFencingTokenUseCase } from "../tier-1-in-domain/issue-user-coupon-with-fencing-token.use-case";
 
 export interface IssueUserCouponWithFencingLockCommand {
   couponId: string;
@@ -21,7 +22,7 @@ export interface IssueUserCouponWithFencingLockResult {
 export class IssueUserCouponWithFencingLockUseCase {
   constructor(
     private readonly fencingLockService: FencingLockService,
-    private readonly issueUserCouponUseCase: IssueUserCouponUseCase
+    private readonly issueUserCouponWithFencingTokenUseCase: IssueUserCouponWithFencingTokenUseCase
   ) {}
 
   async execute(
@@ -32,7 +33,7 @@ export class IssueUserCouponWithFencingLockUseCase {
     return await this.fencingLockService.withLock(
       lockKey,
       async (fencingToken: number) => {
-        return await this.issueUserCouponUseCase.executeWithFencingToken(
+        return await this.issueUserCouponWithFencingTokenUseCase.execute(
           command,
           fencingToken
         );

@@ -5,6 +5,8 @@ import { CouponTypeOrmEntity } from "../../src/coupon/infrastructure/persistence
 import { UserCouponTypeOrmEntity } from "../../src/coupon/infrastructure/persistence/orm/user-coupon.typeorm.entity";
 import { OrderTypeOrmEntity } from "../../src/order/infrastructure/persistence/orm/order.typeorm.entity";
 import { OrderItemTypeOrmEntity } from "../../src/order/infrastructure/persistence/orm/order-item.typeorm.entity";
+import { OutboxTypeOrmEntity } from "../../src/common/infrastructure/persistence/orm/outbox.typeorm.entity";
+import { CouponReservationTypeOrmEntity } from "../../src/coupon/infrastructure/persistence/orm/coupon-reservation.typeorm.entity";
 import { PointTransactionTypeOrmEntity } from "../../src/wallet/infrastructure/persistence/orm/point-transaction.typeorm.entity";
 import { UserBalanceTypeOrmEntity } from "../../src/wallet/infrastructure/persistence/orm/user-balance.typeorm.entity";
 
@@ -14,10 +16,12 @@ export const ALL_ENTITIES = [
   StockReservationTypeOrmEntity,
   CouponTypeOrmEntity,
   UserCouponTypeOrmEntity,
+  CouponReservationTypeOrmEntity,
   UserBalanceTypeOrmEntity,
   PointTransactionTypeOrmEntity,
   OrderTypeOrmEntity,
   OrderItemTypeOrmEntity,
+  OutboxTypeOrmEntity,
 ];
 
 export const TABLE_NAMES = [
@@ -26,10 +30,12 @@ export const TABLE_NAMES = [
   "stock_reservations",
   "coupons",
   "user_coupons",
+  "coupon_reservations",
   "user_balances",
   "point_transactions",
   "orders",
   "order_items",
+  "outbox_events",
 ];
 
 export const DEFAULT_TEST_USER = {
@@ -42,6 +48,7 @@ export const DEFAULT_TEST_USER = {
 export const DEFAULT_CONTAINER_CONFIG = {
   mysqlVersion: "mysql:8.0",
   redisVersion: "redis:7-alpine",
+  kafkaVersion: "confluentinc/cp-kafka:7.4.0",
   username: "test_user",
   password: "test_password",
 };
