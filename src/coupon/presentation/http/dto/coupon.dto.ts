@@ -1,8 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsOptional, IsEnum, Min, Max } from "class-validator";
-import { Type } from "class-transformer";
 import { Coupon } from "@/coupon/domain/entities/coupon.entity";
 import { UserCoupon } from "@/coupon/domain/entities/user-coupon.entity";
+import { CouponReservation } from "@/coupon/domain/entities/coupon-reservation.entity";
 
 export enum CouponDiscountType {
   PERCENTAGE = "PERCENTAGE",
@@ -165,6 +165,58 @@ export class UserCouponResponseDto {
       canUse: userCoupon.canUse(),
       issuedAt: userCoupon.createdAt,
       usedAt: userCoupon.usedAt,
+    };
+  }
+}
+
+export class IssueCouponReservationDto {
+  @ApiProperty({
+    description: "쿠폰 ID",
+    example: "coupon-123",
+  })
+  couponId: string;
+
+  @ApiProperty({
+    description: "쿠폰 코드",
+    example: "WELCOME2024",
+  })
+  @IsString()
+  couponCode: string;
+
+  @ApiProperty({
+    description: "중복 요청 방지 ID",
+    example: "claim_user123_20240115_001",
+  })
+  @IsString()
+  idempotencyKey: string;
+}
+
+export class IssueCouponReservationResponseDto {
+  @ApiProperty({
+    description: "쿠폰 ID",
+    example: "coupon-123",
+  })
+  couponId: string;
+
+  @ApiProperty({
+    description: "중복 요청 방지 ID",
+    example: "claim_user123_20240115_001",
+  })
+  idempotencyKey: string;
+
+  @ApiProperty({
+    description: "쿠폰 발급 예약 ID",
+    example: "reservation-123",
+  })
+  reservationId: string;
+
+  static fromEntity(
+    couponReservation: CouponReservation
+  ): IssueCouponReservationResponseDto {
+    return {
+      couponId: couponReservation.couponId,
+      idempotencyKey: couponReservation.idempotencyKey,
+      reservationId: couponReservation.id,
     };
   }
 }
