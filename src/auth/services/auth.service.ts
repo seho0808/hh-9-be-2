@@ -8,13 +8,13 @@ import { AuthJwtService, JwtPayload } from "./jwt.service";
 import { LoginDto, LoginResponseDto } from "../dto/login.dto";
 import { RegisterDto, RegisterResponseDto } from "../dto/register.dto";
 import * as bcrypt from "bcrypt";
-import { CreateUserUseCase } from "@/user/application/use-cases/tier-1-in-domain/create-user.use-case";
 import { GetUserByEmailUseCase } from "@/user/application/use-cases/tier-1-in-domain/get-user-by-email.use-case";
+import { CreateUserUseCaseWithBalanceUseCase } from "@/user/application/use-cases/tier-2/create-user-with-balance.use-case";
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly createUserUseCase: CreateUserUseCase,
+    private readonly createUserUseCaseWithBalanceUseCase: CreateUserUseCaseWithBalanceUseCase,
     private readonly getUserByEmailUseCase: GetUserByEmailUseCase,
     private readonly authJwtService: AuthJwtService
   ) {}
@@ -28,7 +28,7 @@ export class AuthService {
 
     const hashedPassword = this.hashPassword(password);
 
-    const user = await this.createUserUseCase.execute({
+    const user = await this.createUserUseCaseWithBalanceUseCase.execute({
       email,
       hashedPassword,
       name,
