@@ -17,7 +17,7 @@ import { OrderModule } from "./order/order.module";
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
     RedisModule,
-    KafkaModule,
+    // KafkaModule,
     DatabaseModule,
     OutboxModule,
     AuthModule,
