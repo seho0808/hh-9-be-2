@@ -66,6 +66,12 @@ export class UserBalanceRepository {
     return this.toDomain(updated);
   }
 
+  async save(userBalance: UserBalance): Promise<UserBalance> {
+    const entity = this.fromDomain(userBalance);
+    const saved = await this.userBalanceRepository.save(entity);
+    return this.toDomain(saved);
+  }
+
   private toDomain(entity: UserBalanceTypeOrmEntity): UserBalance {
     return new UserBalance({
       id: entity.id,

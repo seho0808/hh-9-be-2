@@ -49,6 +49,7 @@ import { GetOrdersByUserIdWithCacheUseCase } from "./application/use-cases/tier-
 import { CacheModule } from "@/common/infrastructure/cache/cache.module";
 import { RedisModule } from "@/common/infrastructure/config/redis.module";
 import { DataPlatformMessaging } from "@/order/infrastructure/messaging/data-platform.messaging";
+import { KafkaModule } from "@/common/infrastructure/config/kafka.module";
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { DataPlatformMessaging } from "@/order/infrastructure/messaging/data-pla
     CouponModule,
     CacheModule,
     RedisModule,
+    // KafkaModule,
   ],
   controllers: [OrderController, UserOrderController],
   providers: [
@@ -91,7 +93,7 @@ import { DataPlatformMessaging } from "@/order/infrastructure/messaging/data-pla
     OrderItemRepository,
     OrderItemRedisRepository,
     PopularProductsScheduler,
-    DataPlatformMessaging,
+    // DataPlatformMessaging,
     {
       provide: "POPULAR_PRODUCTS_QUERY_PORT",
       useExisting: OrderItemRepository,

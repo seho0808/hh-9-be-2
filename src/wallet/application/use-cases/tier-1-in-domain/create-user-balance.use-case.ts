@@ -30,6 +30,8 @@ export class CreateUserBalanceUseCase {
       balance: 0,
     });
 
+    await this.userBalanceRepository.save(newUserBalance);
+
     return { userBalance: newUserBalance };
   }
 }

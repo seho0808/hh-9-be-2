@@ -47,7 +47,7 @@ import { ConfirmUserCouponReservationUseCase } from "./application/use-cases/tie
     AuthModule,
     LocksModule,
     RedisModule,
-    KafkaModule,
+    // KafkaModule,
   ],
   controllers: [CouponController, UserCouponController],
   providers: [
@@ -75,7 +75,7 @@ import { ConfirmUserCouponReservationUseCase } from "./application/use-cases/tie
     CouponRedisRepository,
     CouponReservationRepository,
     OutboxRepository,
-    IssueUserCouponReservedConsumer,
+    // IssueUserCouponReservedConsumer,
   ],
   exports: [
     ValidateUserCouponUseCase,

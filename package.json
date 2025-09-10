@@ -41,7 +41,10 @@
     "cleanup:cache-test-data:db": "ts-node -r tsconfig-paths/register scripts/k6-cache-test/cleanup-cache-test-data.ts db",
     "cleanup:cache-test-data:cache": "ts-node -r tsconfig-paths/register scripts/k6-cache-test/cleanup-cache-test-data.ts cache",
     "flush:cache": "ts-node -r tsconfig-paths/register scripts/k6-cache-test/cleanup-cache-test-data.ts flush",
-    "cache:stats": "ts-node -r tsconfig-paths/register scripts/k6-cache-test/cleanup-cache-test-data.ts stats"
+    "cache:stats": "ts-node -r tsconfig-paths/register scripts/k6-cache-test/cleanup-cache-test-data.ts stats",
+    "k6:order:single-product:clean": "DB_HOST=localhost DB_PORT=3306 DB_USERNAME=root DB_PASSWORD=root DB_DATABASE=testdb pnpm ts-node scripts/k6-order-test/cleanup-order-test-data.ts",
+    "k6:order:single-product:seed": "DB_HOST=localhost DB_PORT=3306 DB_USERNAME=root DB_PASSWORD=root DB_DATABASE=testdb pnpm ts-node scripts/k6-order-test/seed-order-test-data.ts",
+    "k6:order:single-product": "npm run k6:order:single-product:clean && npm run k6:order:single-product:seed && k6 run scripts/k6-order-test/k6-popular-product-order-test.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

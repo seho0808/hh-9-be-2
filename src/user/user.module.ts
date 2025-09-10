@@ -26,6 +26,6 @@ import { CreateUserUseCaseWithBalanceUseCase } from "./application/use-cases/tie
     ValidateUserService,
     UserRepository,
   ],
-  exports: [CreateUserUseCase, GetUserByEmailUseCase],
+  exports: [CreateUserUseCaseWithBalanceUseCase, GetUserByEmailUseCase],
 })
 export class UserModule {}
