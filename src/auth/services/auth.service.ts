@@ -26,7 +26,7 @@ export class AuthService {
       throw new UnauthorizedException("비밀번호 형식이 올바르지 않습니다");
     }
 
-    const hashedPassword = this.hashPassword(password);
+    const hashedPassword = await this.hashPassword(password);
 
     const user = await this.createUserUseCaseWithBalanceUseCase.execute({
       email,
@@ -78,8 +78,8 @@ export class AuthService {
     return bcrypt.compareSync(password, hashedPassword);
   }
 
-  private hashPassword(password: string): string {
-    return bcrypt.hashSync(password, 10);
+  private async hashPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, 10);
   }
 
   private userToRegisterResponseDto(user: User): RegisterResponseDto {
